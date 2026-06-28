@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/free-port.mjs 3000",
     "dev": "next dev",
     "build": "next build",
+    "prestart": "node scripts/free-port.mjs 3000",
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx scripts/seed-problems.ts"
