@@ -2,9 +2,13 @@
   "name": "google-dsa",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "predev": "node scripts/free-port.mjs 3000",
     "dev": "next dev",
+    "prebuild": "node scripts/clean.mjs",
     "build": "next build",
     "prestart": "node scripts/free-port.mjs 3000",
     "start": "next start",
