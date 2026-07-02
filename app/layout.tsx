@@ -18,8 +18,6 @@ export const metadata: Metadata = {
     "Track Google interview DSA questions, run mock interviews, and review with spaced repetition.",
 };
 
-export const dynamic = "force-dynamic";
-
 export default function RootLayout({
   children,
 }: Readonly<{

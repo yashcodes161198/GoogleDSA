@@ -1,7 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
-export async function createClient() {
+// `cache()` memoizes the client per request, so every server component,
+// route handler, and server action in a single request shares ONE Supabase
+// client (and therefore one auth.getUser() round trip when combined with the
+// cached getUser in lib/auth).
+export const createClient = cache(async () => {
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -24,4 +29,4 @@ export async function createClient() {
       },
     }
   );
-}
+});

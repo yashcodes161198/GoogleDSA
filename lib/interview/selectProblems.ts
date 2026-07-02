@@ -26,11 +26,9 @@ function weightedPick(candidates: ProblemWithProgress[]): ProblemWithProgress {
 }
 
 function sortPool(problems: ProblemWithProgress[]): ProblemWithProgress[] {
+  // Interview selection ignores global solved/unsolved status so previously
+  // solved problems can still appear in a new mock interview.
   return [...problems].sort((a, b) => {
-    const statusOrder = { unsolved: 0, attempted: 1, solved: 2 };
-    const statusDiff = statusOrder[a.status] - statusOrder[b.status];
-    if (statusDiff !== 0) return statusDiff;
-
     const aReview = a.user_problem?.next_review_at
       ? new Date(a.user_problem.next_review_at).getTime()
       : 0;

@@ -9,10 +9,10 @@ import {
 } from "@/lib/recommendations/nextProblems";
 
 export default async function DashboardPage() {
-  const [stats, problems] = await Promise.all([
-    getDashboardStats(),
-    getProblemsWithProgress(),
-  ]);
+  // One fetch for both stats and recommendations. getDashboardStats uses the
+  // provided list as the JS fallback when the Postgres RPC isn't installed.
+  const problems = await getProblemsWithProgress();
+  const stats = await getDashboardStats(problems);
 
   const recommendations = getNextProblems(problems, 8);
   const daysToFinish = estimateDaysToFinish(problems, 3);

@@ -36,6 +36,12 @@ export function DifficultyBadge({ difficulty }: { difficulty: Difficulty }) {
   return <Badge className={difficultyStyles[difficulty]}>{difficulty}</Badge>;
 }
 
-export function StatusBadge({ status }: { status: ProblemStatus }) {
-  return <Badge className={statusStyles[status]}>{status}</Badge>;
+export function StatusBadge({
+  status,
+  className,
+}: {
+  status: ProblemStatus;
+  className?: string;
+}) {
+  return <Badge className={cn(statusStyles[status], className)}>{status}</Badge>;
 }

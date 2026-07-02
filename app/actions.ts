@@ -159,6 +159,44 @@ export async function startInterviewSession() {
   return session.id as string;
 }
 
+async function syncInterviewCompletionToProgress(
+  userId: string,
+  problemId: string,
+  completed: boolean
+) {
+  // One-way sync: checking a box in an interview promotes overall progress,
+  // but only when the problem is not already solved globally. Unchecking an
+  // interview box never reverts catalog progress.
+  if (!completed) return;
+
+  const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("user_problems")
+    .select("status")
+    .eq("user_id", userId)
+    .eq("problem_id", problemId)
+    .maybeSingle();
+
+  if (existing?.status === "solved") return;
+
+  const now = new Date().toISOString();
+  const srs = initialSrsOnSolve();
+  const { error } = await supabase.from("user_problems").upsert(
+    {
+      user_id: userId,
+      problem_id: problemId,
+      status: "solved",
+      solved_at: now,
+      ease_factor: srs.ease_factor,
+      interval_days: srs.interval_days,
+      repetitions: srs.repetitions,
+      next_review_at: srs.next_review_at.toISOString(),
+    },
+    { onConflict: "user_id,problem_id" }
+  );
+  if (error) throw error;
+}
+
 export async function updateInterviewProblem(
   sessionId: string,
   problemId: string,
@@ -176,7 +214,15 @@ export async function updateInterviewProblem(
     .eq("problem_id", problemId);
 
   if (error) throw error;
+
+  await syncInterviewCompletionToProgress(user.id, problemId, completed);
+
   revalidatePath(`/interview/${sessionId}`);
+  if (completed) {
+    revalidatePath("/dashboard");
+    revalidatePath("/problems");
+    revalidatePath("/review");
+  }
 }
 
 export async function endInterviewSession(
@@ -194,6 +240,20 @@ export async function endInterviewSession(
     .eq("user_id", user.id);
 
   if (error) throw error;
+
+  const { data: completedRows } = await supabase
+    .from("interview_session_problems")
+    .select("problem_id")
+    .eq("session_id", sessionId)
+    .eq("completed", true);
+
+  for (const row of completedRows ?? []) {
+    await syncInterviewCompletionToProgress(user.id, row.problem_id, true);
+  }
+
   revalidatePath("/interview");
   revalidatePath(`/interview/${sessionId}`);
+  revalidatePath("/dashboard");
+  revalidatePath("/problems");
+  revalidatePath("/review");
 }

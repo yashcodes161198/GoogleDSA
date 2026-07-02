@@ -2,19 +2,25 @@
 
 Track ~770 Google interview LeetCode questions, run 2-hour mock interviews with 5 problems, and review solved problems with Anki-style spaced repetition.
 
+> **New here?** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) is a full deep dive — tech stack, request flow, the role of Vercel/Supabase, database schema + RLS policies, the SM-2/interview-selection/recommendations algorithms, and a changelog of the recent performance and UX work. Written to be useful for both a junior dev ramping up and a senior dev reviewing the design.
+
 ## Features
 
-- **Progress tracking** — mark problems as attempted/solved, add notes, filter by difficulty/topic/status
-- **Dashboard** — coverage stats, topic gaps, and smart "next up" recommendations
-- **Mock interview** — 5 problems (1 Easy, 3 Medium, 1 Hard), 2-hour timer, weighted by Google frequency
+- **Progress tracking** — mark problems as attempted/solved, filter by difficulty/topic/status, adjustable rows-per-page (25/50/100/All)
+- **Dashboard** — coverage stats, topic gaps, and smart "next up" recommendations, backed by a single-query Postgres RPC
+- **Mock interview** — 5 problems (1 Easy, 3 Medium, 1 Hard), 2-hour timer, weighted by Google frequency, optimistic "Mark as done"
 - **Spaced repetition** — SM-2 algorithm with Again / Hard / Good / Easy ratings
 - **Auth** — Google OAuth + email/password via Supabase
+- **Responsive UI** — skeleton loaders on every route, optimistic status/completion toggles (no waiting on the server round trip to see the click register)
 
 ## Tech stack
 
-- Next.js (App Router) + TypeScript + Tailwind
+- Next.js 16 (App Router, Turbopack) + TypeScript + Tailwind v4
 - Supabase (PostgreSQL, Auth, RLS)
 - Vercel (hosting)
+- Next.js Data Cache (`unstable_cache`) + React `cache()` for request-level and cross-request caching
+
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for why each of these was chosen and how they fit together.
 
 ## Setup
 
@@ -28,7 +34,9 @@ cp .env.local.example .env.local
 ### 2. Create a Supabase project
 
 1. Go to [supabase.com](https://supabase.com) and create a free project.
-2. In **SQL Editor**, run the migration at [`supabase/migrations/001_schema.sql`](supabase/migrations/001_schema.sql).
+2. In **SQL Editor**, run the migrations in order:
+   - [`supabase/migrations/001_schema.sql`](supabase/migrations/001_schema.sql) — tables + RLS (required).
+   - [`supabase/migrations/002_dashboard_stats.sql`](supabase/migrations/002_dashboard_stats.sql) — `get_user_dashboard_stats` RPC that powers the dashboard in one query (optional — the app falls back to computing stats in JS if this isn't installed, just slightly slower).
 3. Copy your project URL and anon key into `.env.local`.
 4. Copy the **service role key** (Settings → API) into `.env.local` for seeding only.
 
@@ -77,13 +85,24 @@ Open [http://localhost:3000](http://localhost:3000).
 ## Project structure
 
 ```
-app/           # Pages and server actions
-components/    # UI components
-lib/           # Supabase clients, SRS, interview selection, recommendations
+app/           # Pages, server actions, and per-route loading.tsx skeletons
+components/    # UI components (components/ui/ holds small hand-rolled primitives)
+lib/           # Supabase clients, auth, SRS, interview selection, recommendations
 data/          # problems.csv (Google 6-month question list)
-scripts/       # Database seed script
-supabase/      # SQL migration
+scripts/       # Database seed script + build helpers
+supabase/      # SQL migrations (schema + RLS, dashboard stats RPC)
+docs/          # Architecture deep dive (docs/ARCHITECTURE.md)
 ```
+
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#project-structure) for a fuller breakdown of what lives where.
+
+## Performance & UX
+
+- **Caching** — the shared problems catalog is cached across requests (`unstable_cache`); auth lookups are deduped per request (React `cache()`); the dashboard uses a single-query Postgres RPC when available.
+- **Instant feedback** — status toggles on `/problems` and the "Mark as done" checkbox in mock interviews update the UI immediately (`useOptimistic`) instead of waiting on the server round trip.
+- **Skeleton loaders** — every protected route has a `loading.tsx` shaped like its real content, so switching tabs never shows a blank/frozen screen.
+
+Full details and the reasoning behind each choice are in [`docs/ARCHITECTURE.md#recent-improvements`](docs/ARCHITECTURE.md#recent-improvements).
 
 ## Data source
 

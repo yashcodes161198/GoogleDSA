@@ -44,9 +44,19 @@ export interface InterviewSessionProblem {
   session_id: string;
   problem_id: string;
   position: number;
+  /** Whether this problem was completed in *this* interview session only. */
   completed: boolean;
   notes: string | null;
   problem?: Problem;
+  /** Overall catalog progress — display hint only, never drives `completed`. */
+  global_status?: ProblemStatus;
+}
+
+export interface InterviewSessionSummary {
+  session: InterviewSession;
+  totalProblems: number;
+  totalSolved: number;
+  byDifficulty: Record<Difficulty, { solved: number; total: number }>;
 }
 
 export interface DashboardStats {
