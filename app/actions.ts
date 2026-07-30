@@ -1,7 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getProblemsWithProgress, getCurrentUser } from "@/lib/data";
+import {
+  expireStaleInterviewSessions,
+  getProblemsWithProgress,
+  getCurrentUser,
+} from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { selectInterviewProblems } from "@/lib/interview/selectProblems";
 import { applyReview, initialSrsOnSolve } from "@/lib/srs/sm2";
@@ -113,6 +117,8 @@ export async function startInterviewSession() {
   if (!user) throw new Error("Not authenticated");
 
   const supabase = await createClient();
+
+  await expireStaleInterviewSessions(user.id);
 
   const { data: active } = await supabase
     .from("interview_sessions")

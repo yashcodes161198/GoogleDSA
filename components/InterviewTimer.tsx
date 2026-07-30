@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export function InterviewTimer({
@@ -11,12 +11,20 @@ export function InterviewTimer({
   onExpire?: () => void;
 }) {
   const [remainingMs, setRemainingMs] = useState(0);
+  const expiredRef = useRef(false);
+
+  useEffect(() => {
+    expiredRef.current = false;
+  }, [endsAt]);
 
   useEffect(() => {
     const tick = () => {
       const ms = new Date(endsAt).getTime() - Date.now();
       setRemainingMs(Math.max(0, ms));
-      if (ms <= 0) onExpire?.();
+      if (ms <= 0 && !expiredRef.current) {
+        expiredRef.current = true;
+        onExpire?.();
+      }
     };
     tick();
     const id = setInterval(tick, 1000);

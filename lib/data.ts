@@ -276,6 +276,14 @@ export async function getInterviewSession(
 
   if (!session) return null;
 
+  if (
+    session.status === "active" &&
+    new Date(session.ends_at).getTime() <= Date.now()
+  ) {
+    await expireStaleInterviewSessions(user.id);
+    session.status = "completed";
+  }
+
   const { data: sessionProblems } = await supabase
     .from("interview_session_problems")
     .select("*, problem:problems(*)")
@@ -307,10 +315,22 @@ export async function getInterviewSession(
   };
 }
 
+export async function expireStaleInterviewSessions(userId: string): Promise<void> {
+  const supabase = await createClient();
+  await supabase
+    .from("interview_sessions")
+    .update({ status: "completed" })
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .lt("ends_at", new Date().toISOString());
+}
+
 export async function getActiveInterviewSession(): Promise<InterviewSession | null> {
   const supabase = await createClient();
   const user = await getCurrentUser();
   if (!user) return null;
+
+  await expireStaleInterviewSessions(user.id);
 
   const { data } = await supabase
     .from("interview_sessions")
