@@ -36,7 +36,6 @@ export function InterviewSessionView({
   const completedCount = optimisticProblems.filter((p) => p.completed).length;
 
   const toggleComplete = (problemId: string, completed: boolean, notes?: string | null) => {
-    if (!isActive) return;
     startTransition(async () => {
       setOptimisticCompletion({ problemId, completed });
       try {
@@ -48,7 +47,6 @@ export function InterviewSessionView({
   };
 
   const saveNotes = (problemId: string, completed: boolean, notes: string) => {
-    if (!isActive) return;
     startTransition(async () => {
       try {
         await updateInterviewProblem(session.id, problemId, completed, notes);
@@ -124,27 +122,15 @@ export function InterviewSessionView({
               <CardHeader>
                 <div className="flex items-center justify-between gap-4">
                   <CardTitle className="flex flex-wrap items-center gap-3">
-                    {isActive ? (
-                      <Tooltip label="Mark as done in this interview">
-                        <Checkbox
-                          checked={sp.completed}
-                          aria-label="Mark as done in this interview"
-                          onChange={(checked) =>
-                            toggleComplete(sp.problem_id, checked, sp.notes)
-                          }
-                        />
-                      </Tooltip>
-                    ) : (
-                      <span
-                        className={`inline-flex h-6 w-6 items-center justify-center rounded border text-xs ${
-                          sp.completed
-                            ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                            : "border-zinc-300 text-zinc-400"
-                        }`}
-                      >
-                        {sp.completed ? "✓" : "—"}
-                      </span>
-                    )}
+                    <Tooltip label="Mark as done in this interview">
+                      <Checkbox
+                        checked={sp.completed}
+                        aria-label="Mark as done in this interview"
+                        onChange={(checked) =>
+                          toggleComplete(sp.problem_id, checked, sp.notes)
+                        }
+                      />
+                    </Tooltip>
                     <span className="text-zinc-400">#{sp.position}</span>
                     {problem.title}
                     {sp.global_status === "solved" && (
@@ -165,20 +151,12 @@ export function InterviewSessionView({
                 >
                   Open on LeetCode
                 </Link>
-                {isActive ? (
-                  <textarea
-                    className="w-full rounded-lg border border-zinc-300 p-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
-                    placeholder="Interview notes..."
-                    defaultValue={sp.notes ?? ""}
-                    onBlur={(e) => saveNotes(sp.problem_id, sp.completed, e.target.value)}
-                  />
-                ) : (
-                  sp.notes && (
-                    <p className="rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
-                      {sp.notes}
-                    </p>
-                  )
-                )}
+                <textarea
+                  className="w-full rounded-lg border border-zinc-300 p-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                  placeholder="Interview notes..."
+                  defaultValue={sp.notes ?? ""}
+                  onBlur={(e) => saveNotes(sp.problem_id, sp.completed, e.target.value)}
+                />
               </CardContent>
             </Card>
           );
