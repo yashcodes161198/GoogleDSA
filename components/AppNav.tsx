@@ -7,25 +7,36 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   BookOpen,
-  Brain,
   LayoutDashboard,
   ListChecks,
   LogOut,
+  RefreshCw,
   Timer,
 } from "lucide-react";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/problems", label: "Problems", icon: ListChecks },
-  { href: "/review", label: "Review", icon: Brain },
+  { href: "/revise", label: "Revise", icon: RefreshCw },
   { href: "/interview", label: "Interview", icon: Timer },
 ];
 
-export function AppNav({ email }: { email?: string | null }) {
+export function AppNav({
+  email,
+  localMode = false,
+}: {
+  email?: string | null;
+  localMode?: boolean;
+}) {
   const pathname = usePathname();
   const router = useRouter();
 
   const signOut = async () => {
+    if (localMode) {
+      router.push("/dashboard");
+      router.refresh();
+      return;
+    }
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");

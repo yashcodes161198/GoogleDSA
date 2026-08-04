@@ -1,11 +1,13 @@
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import { isLocalMode, LOCAL_ADMIN } from "@/lib/config";
 import { createClient } from "@/lib/supabase/server";
 
-// `cache()` makes auth.getUser() run at most once per request — the protected
-// layout's requireUser(), every data helper, and server actions all share the
-// same result instead of each making a network call to Supabase Auth.
 export const getUser = cache(async () => {
+  if (isLocalMode()) {
+    return { id: LOCAL_ADMIN.id, email: LOCAL_ADMIN.email };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -20,6 +22,9 @@ export async function requireUser() {
 }
 
 export async function redirectIfAuthenticated() {
+  if (isLocalMode()) {
+    redirect("/dashboard");
+  }
   const user = await getUser();
   if (user) redirect("/dashboard");
 }

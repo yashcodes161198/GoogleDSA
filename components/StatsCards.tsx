@@ -6,7 +6,11 @@ export function StatsCards({ stats }: { stats: DashboardStats }) {
     { label: "Solved", value: stats.solved, sub: `of ${stats.total}` },
     { label: "Attempted", value: stats.attempted, sub: "in progress" },
     { label: "Remaining", value: stats.unsolved, sub: "to cover" },
-    { label: "Reviews due", value: stats.reviewsDue, sub: "today" },
+    {
+      label: "To revise today",
+      value: stats.revisionsDueToday,
+      sub: `${stats.revisionsDoneToday} done today`,
+    },
   ];
 
   return (

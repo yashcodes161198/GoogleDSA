@@ -3,6 +3,10 @@ export type ProblemStatus = "unsolved" | "attempted" | "solved";
 export type InterviewSessionStatus = "active" | "completed" | "abandoned";
 export type ReviewRating = "again" | "hard" | "good" | "easy";
 
+export interface RevisionProblem extends ProblemWithProgress {
+  revision_count: number;
+}
+
 export interface Problem {
   id: string;
   slug: string;
@@ -25,6 +29,8 @@ export interface UserProblem {
   repetitions: number;
   next_review_at: string | null;
   last_reviewed_at: string | null;
+  revision_count: number;
+  last_revised_at: string | null;
 }
 
 export interface ProblemWithProgress extends Problem {
@@ -57,6 +63,7 @@ export interface InterviewSessionSummary {
   totalProblems: number;
   totalSolved: number;
   byDifficulty: Record<Difficulty, { solved: number; total: number }>;
+  problemTitles: string[];
 }
 
 export interface DashboardStats {
@@ -65,6 +72,8 @@ export interface DashboardStats {
   attempted: number;
   unsolved: number;
   reviewsDue: number;
+  revisionsDueToday: number;
+  revisionsDoneToday: number;
   byDifficulty: Record<Difficulty, { solved: number; total: number }>;
   topicCoverage: { topic: string; solved: number; total: number }[];
 }

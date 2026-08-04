@@ -6,23 +6,42 @@ import { startInterviewSession } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export function StartInterviewButton() {
+export function StartInterviewButton({
+  hasActiveSession = false,
+}: {
+  hasActiveSession?: boolean;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   const start = () => {
     startTransition(async () => {
-      const sessionId = await startInterviewSession();
-      router.push(`/interview/${sessionId}`);
+      try {
+        const sessionId = await startInterviewSession(true);
+        router.push(`/interview/${sessionId}`);
+        router.refresh();
+      } catch (err) {
+        console.error("Failed to start interview:", err);
+        alert(
+          err instanceof Error
+            ? err.message
+            : "Failed to start interview. Please try again."
+        );
+      }
     });
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Mock interview</CardTitle>
+        <CardTitle>Start a new interview</CardTitle>
         <CardDescription>
           5 problems · 2 hours · weighted by Google frequency with topic diversity
+          {hasActiveSession && (
+            <span className="mt-1 block text-amber-600">
+              Starting a new interview will end your current active session.
+            </span>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent>

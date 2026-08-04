@@ -1,6 +1,6 @@
 # Google DSA Interview Prep
 
-Track ~770 Google interview LeetCode questions, run 2-hour mock interviews with 5 problems, and review solved problems with Anki-style spaced repetition.
+Track ~770 Google interview LeetCode questions, run 2-hour mock interviews with 5 problems, and revise solved problems with a daily round-robin queue.
 
 > **New here?** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) is a full deep dive — tech stack, request flow, the role of Vercel/Supabase, database schema + RLS policies, the SM-2/interview-selection/recommendations algorithms, and a changelog of the recent performance and UX work. Written to be useful for both a junior dev ramping up and a senior dev reviewing the design.
 
@@ -9,7 +9,7 @@ Track ~770 Google interview LeetCode questions, run 2-hour mock interviews with 
 - **Progress tracking** — mark problems as attempted/solved, filter by difficulty/topic/status, adjustable rows-per-page (25/50/100/All)
 - **Dashboard** — coverage stats, topic gaps, and smart "next up" recommendations, backed by a single-query Postgres RPC
 - **Mock interview** — 5 problems (1 Easy, 3 Medium, 1 Hard), 2-hour timer, weighted by Google frequency, optimistic "Mark as done"
-- **Spaced repetition** — SM-2 algorithm with Again / Hard / Good / Easy ratings
+- **Revise** — daily round-robin through solved problems (10/day), tracks revision count per problem
 - **Auth** — Google OAuth + email/password via Supabase
 - **Responsive UI** — skeleton loaders on every route, optimistic status/completion toggles (no waiting on the server round trip to see the click register)
 
@@ -22,7 +22,19 @@ Track ~770 Google interview LeetCode questions, run 2-hour mock interviews with 
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for why each of these was chosen and how they fit together.
 
-## Setup
+## Local development (no Supabase)
+
+The fastest way to run and test locally uses an in-memory database and skips auth entirely:
+
+```bash
+npm install
+cp .env.local.example .env.local   # USE_LOCAL_DB=true is already set
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) — you are automatically signed in as `admin@local.dev`. Data resets when the dev server restarts.
+
+## Production setup
 
 ### 1. Clone and install
 
@@ -37,6 +49,7 @@ cp .env.local.example .env.local
 2. In **SQL Editor**, run the migrations in order:
    - [`supabase/migrations/001_schema.sql`](supabase/migrations/001_schema.sql) — tables + RLS (required).
    - [`supabase/migrations/002_dashboard_stats.sql`](supabase/migrations/002_dashboard_stats.sql) — `get_user_dashboard_stats` RPC that powers the dashboard in one query (optional — the app falls back to computing stats in JS if this isn't installed, just slightly slower).
+   - [`supabase/migrations/003_revision_tracking.sql`](supabase/migrations/003_revision_tracking.sql) — revision count columns for the Revise feature.
 3. Copy your project URL and anon key into `.env.local`.
 4. Copy the **service role key** (Settings → API) into `.env.local` for seeding only.
 

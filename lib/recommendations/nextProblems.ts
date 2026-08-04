@@ -29,7 +29,6 @@ export function getNextProblems(
   problems: ProblemWithProgress[],
   limit = 10
 ): RecommendedProblem[] {
-  const now = Date.now();
   const recommendations: RecommendedProblem[] = [];
   const used = new Set<string>();
 
@@ -39,21 +38,29 @@ export function getNextProblems(
     recommendations.push({ problem, reason, priority });
   };
 
-  const dueReviews = problems
-    .filter(
-      (p) =>
-        p.status === "solved" &&
-        p.user_problem?.next_review_at &&
-        new Date(p.user_problem.next_review_at).getTime() <= now
-    )
-    .sort(
-      (a, b) =>
-        new Date(a.user_problem!.next_review_at!).getTime() -
-        new Date(b.user_problem!.next_review_at!).getTime()
-    );
+  const dueRevisions = problems
+    .filter((p) => p.status === "solved")
+    .sort((a, b) => {
+      const aCount = a.user_problem?.revision_count ?? 0;
+      const bCount = b.user_problem?.revision_count ?? 0;
+      if (aCount !== bCount) return aCount - bCount;
+      const aTime = a.user_problem?.last_revised_at
+        ? new Date(a.user_problem.last_revised_at).getTime()
+        : 0;
+      const bTime = b.user_problem?.last_revised_at
+        ? new Date(b.user_problem.last_revised_at).getTime()
+        : 0;
+      return aTime - bTime;
+    })
+    .slice(0, 5);
 
-  for (const p of dueReviews) {
-    add(p, "Due for spaced repetition review", 1);
+  for (const p of dueRevisions) {
+    const count = p.user_problem?.revision_count ?? 0;
+    add(
+      p,
+      count === 0 ? "Due for first revision" : `Revision round ${count + 1}`,
+      1
+    );
   }
 
   const highFreqUnsolved = problems

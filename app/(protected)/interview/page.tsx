@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { StartInterviewButton } from "@/components/StartInterviewButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -50,9 +49,9 @@ export default async function InterviewPage() {
     getInterviewSessionsWithSummary(),
   ]);
 
-  if (active) {
-    redirect(`/interview/${active.id}`);
-  }
+  const pastSessions = summaries.filter(
+    ({ session }) => !active || session.id !== active.id
+  );
 
   return (
     <div className="space-y-8">
@@ -63,32 +62,65 @@ export default async function InterviewPage() {
         </p>
       </div>
 
-      <StartInterviewButton />
+      {active && (
+        <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20">
+          <CardHeader>
+            <CardTitle>Active interview</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center justify-between gap-4">
+            <div className="text-sm text-zinc-600 dark:text-zinc-300">
+              <p>
+                Started {new Date(active.started_at).toLocaleString()}
+              </p>
+              <p className="mt-1 text-zinc-500">
+                Ends {new Date(active.ends_at).toLocaleString()}
+              </p>
+            </div>
+            <Link
+              href={`/interview/${active.id}`}
+              className="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-4 font-medium text-white hover:bg-blue-700"
+            >
+              Resume interview
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
+      <StartInterviewButton hasActiveSession={!!active} />
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent sessions</CardTitle>
+          <CardTitle>Previous interviews</CardTitle>
         </CardHeader>
         <CardContent>
-          {summaries.length === 0 ? (
-            <p className="text-sm text-zinc-500">No interviews yet.</p>
+          {pastSessions.length === 0 ? (
+            <p className="text-sm text-zinc-500">No previous interviews yet.</p>
           ) : (
-            <ul className="space-y-2">
-              {summaries.map(({ session: s, byDifficulty }) => (
+            <ul className="space-y-3">
+              {pastSessions.map(({ session: s, byDifficulty, problemTitles }) => (
                 <li key={s.id}>
                   <Link
                     href={`/interview/${s.id}`}
-                    className="flex items-center justify-between gap-4 overflow-x-auto rounded-lg border border-zinc-200 px-4 py-3 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+                    className="block rounded-lg border border-zinc-200 px-4 py-3 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
                   >
-                    <span className="flex items-center gap-3 whitespace-nowrap text-sm">
-                      <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {new Date(s.started_at).toLocaleString()}
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="flex flex-wrap items-center gap-3 text-sm">
+                        <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {new Date(s.started_at).toLocaleString()}
+                        </span>
+                        <DifficultyBreakdown byDifficulty={byDifficulty} />
                       </span>
-                      <DifficultyBreakdown byDifficulty={byDifficulty} />
-                    </span>
-                    <span className="shrink-0 whitespace-nowrap text-sm capitalize text-zinc-500">
-                      {s.status}
-                    </span>
+                      <span className="shrink-0 whitespace-nowrap text-sm capitalize text-zinc-500">
+                        {s.status}
+                      </span>
+                    </div>
+                    {problemTitles.length > 0 && (
+                      <ol className="mt-3 list-inside list-decimal space-y-1 text-sm text-zinc-500">
+                        {problemTitles.map((title) => (
+                          <li key={title}>{title}</li>
+                        ))}
+                      </ol>
+                    )}
                   </Link>
                 </li>
               ))}

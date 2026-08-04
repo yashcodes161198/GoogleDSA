@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { isLocalMode } from "@/lib/config";
+import { getLocalUserId, getMemoryStore } from "@/lib/memory/store";
 import {
   expireStaleInterviewSessions,
   getProblemsWithProgress,
@@ -8,129 +10,169 @@ import {
 } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { selectInterviewProblems } from "@/lib/interview/selectProblems";
-import { applyReview, initialSrsOnSolve } from "@/lib/srs/sm2";
-import type { ProblemStatus, ReviewRating } from "@/lib/types";
+import { initialSrsOnSolve } from "@/lib/srs/sm2";
+import type { ProblemStatus } from "@/lib/types";
 
 export async function updateProblemStatus(problemId: string, status: ProblemStatus) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
-  const supabase = await createClient();
   const now = new Date().toISOString();
 
-  const payload: Record<string, unknown> = {
-    user_id: user.id,
-    problem_id: problemId,
-    status,
-  };
+  if (isLocalMode()) {
+    const store = getMemoryStore();
+    const patch: Parameters<typeof store.upsertUserProblem>[2] = { status };
+    if (status === "solved") {
+      const srs = initialSrsOnSolve();
+      Object.assign(patch, {
+        solved_at: now,
+        ease_factor: srs.ease_factor,
+        interval_days: srs.interval_days,
+        repetitions: srs.repetitions,
+        next_review_at: srs.next_review_at.toISOString(),
+      });
+    }
+    store.upsertUserProblem(getLocalUserId(), problemId, patch);
+  } else {
+    const supabase = await createClient();
+    const payload: Record<string, unknown> = {
+      user_id: user.id,
+      problem_id: problemId,
+      status,
+    };
 
-  if (status === "solved") {
-    const srs = initialSrsOnSolve();
-    Object.assign(payload, {
-      solved_at: now,
-      ease_factor: srs.ease_factor,
-      interval_days: srs.interval_days,
-      repetitions: srs.repetitions,
-      next_review_at: srs.next_review_at.toISOString(),
+    if (status === "solved") {
+      const srs = initialSrsOnSolve();
+      Object.assign(payload, {
+        solved_at: now,
+        ease_factor: srs.ease_factor,
+        interval_days: srs.interval_days,
+        repetitions: srs.repetitions,
+        next_review_at: srs.next_review_at.toISOString(),
+      });
+    }
+
+    const { error } = await supabase.from("user_problems").upsert(payload, {
+      onConflict: "user_id,problem_id",
     });
+    if (error) throw error;
   }
-
-  const { error } = await supabase.from("user_problems").upsert(payload, {
-    onConflict: "user_id,problem_id",
-  });
-  if (error) throw error;
 
   revalidatePath("/dashboard");
   revalidatePath("/problems");
-  revalidatePath("/review");
+  revalidatePath("/revise");
 }
 
 export async function updateProblemNotes(problemId: string, notes: string) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
-  const supabase = await createClient();
-  const { data: existing } = await supabase
-    .from("user_problems")
-    .select("status")
-    .eq("user_id", user.id)
-    .eq("problem_id", problemId)
-    .maybeSingle();
-
-  const { error } = await supabase.from("user_problems").upsert(
-    {
-      user_id: user.id,
-      problem_id: problemId,
-      notes,
+  if (isLocalMode()) {
+    const store = getMemoryStore();
+    const existing = store
+      .getProblemsWithProgress(getLocalUserId())
+      .find((p) => p.id === problemId);
+    store.upsertUserProblem(getLocalUserId(), problemId, {
       status: existing?.status ?? "unsolved",
-    },
-    { onConflict: "user_id,problem_id" }
-  );
-  if (error) throw error;
+      notes,
+    });
+  } else {
+    const supabase = await createClient();
+    const { data: existing } = await supabase
+      .from("user_problems")
+      .select("status")
+      .eq("user_id", user.id)
+      .eq("problem_id", problemId)
+      .maybeSingle();
+
+    const { error } = await supabase.from("user_problems").upsert(
+      {
+        user_id: user.id,
+        problem_id: problemId,
+        notes,
+        status: existing?.status ?? "unsolved",
+      },
+      { onConflict: "user_id,problem_id" }
+    );
+    if (error) throw error;
+  }
   revalidatePath("/problems");
 }
 
-export async function submitReview(problemId: string, rating: ReviewRating) {
+export async function markProblemRevised(problemId: string) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
-  const supabase = await createClient();
-  const { data: existing } = await supabase
-    .from("user_problems")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("problem_id", problemId)
-    .single();
+  if (isLocalMode()) {
+    getMemoryStore().markRevised(getLocalUserId(), problemId);
+  } else {
+    const supabase = await createClient();
+    const { data: existing } = await supabase
+      .from("user_problems")
+      .select("status, revision_count")
+      .eq("user_id", user.id)
+      .eq("problem_id", problemId)
+      .single();
 
-  if (!existing) throw new Error("Problem progress not found");
+    if (!existing || existing.status !== "solved") {
+      throw new Error("Only solved problems can be revised");
+    }
 
-  const result = applyReview(
-    {
-      ease_factor: Number(existing.ease_factor),
-      interval_days: existing.interval_days,
-      repetitions: existing.repetitions,
-    },
-    rating
-  );
+    const { error } = await supabase
+      .from("user_problems")
+      .update({
+        revision_count: (existing.revision_count ?? 0) + 1,
+        last_revised_at: new Date().toISOString(),
+      })
+      .eq("user_id", user.id)
+      .eq("problem_id", problemId);
 
-  const { error } = await supabase
-    .from("user_problems")
-    .update({
-      ease_factor: result.ease_factor,
-      interval_days: result.interval_days,
-      repetitions: result.repetitions,
-      next_review_at: result.next_review_at.toISOString(),
-      last_reviewed_at: new Date().toISOString(),
-      status: "solved",
-    })
-    .eq("user_id", user.id)
-    .eq("problem_id", problemId);
-
-  if (error) throw error;
+    if (error) throw error;
+  }
 
   revalidatePath("/dashboard");
-  revalidatePath("/review");
+  revalidatePath("/revise");
 }
 
-export async function startInterviewSession() {
+export async function startInterviewSession(forceNew = true) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
-
-  const supabase = await createClient();
-
-  await expireStaleInterviewSessions(user.id);
-
-  const { data: active } = await supabase
-    .from("interview_sessions")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .maybeSingle();
-
-  if (active) return active.id as string;
 
   const problems = await getProblemsWithProgress();
   const selected = selectInterviewProblems(problems, 5);
+  const problemIds = selected.map((p) => p.id);
+
+  if (isLocalMode()) {
+    const sessionId = getMemoryStore().createInterviewSession(
+      getLocalUserId(),
+      problemIds,
+      forceNew
+    );
+    revalidatePath("/interview");
+    return sessionId;
+  }
+
+  const supabase = await createClient();
+  await expireStaleInterviewSessions(user.id);
+
+  if (!forceNew) {
+    const { data: active } = await supabase
+      .from("interview_sessions")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (active) return active.id as string;
+  } else {
+    await supabase
+      .from("interview_sessions")
+      .update({ status: "completed" })
+      .eq("user_id", user.id)
+      .eq("status", "active");
+  }
 
   const startedAt = new Date();
   const endsAt = new Date(startedAt.getTime() + 2 * 60 * 60 * 1000);
@@ -146,11 +188,13 @@ export async function startInterviewSession() {
     .select("id")
     .single();
 
-  if (sessionError || !session) throw sessionError ?? new Error("Failed to create session");
+  if (sessionError || !session) {
+    throw sessionError ?? new Error("Failed to create session");
+  }
 
-  const rows = selected.map((p, i) => ({
+  const rows = problemIds.map((problemId, i) => ({
     session_id: session.id,
-    problem_id: p.id,
+    problem_id: problemId,
     position: i + 1,
     completed: false,
   }));
@@ -170,10 +214,12 @@ async function syncInterviewCompletionToProgress(
   problemId: string,
   completed: boolean
 ) {
-  // One-way sync: checking a box in an interview promotes overall progress,
-  // but only when the problem is not already solved globally. Unchecking an
-  // interview box never reverts catalog progress.
   if (!completed) return;
+
+  if (isLocalMode()) {
+    getMemoryStore().syncSolvedFromInterview(getLocalUserId(), problemId);
+    return;
+  }
 
   const supabase = await createClient();
   const { data: existing } = await supabase
@@ -212,14 +258,24 @@ export async function updateInterviewProblem(
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("interview_session_problems")
-    .update({ completed, notes: notes ?? null })
-    .eq("session_id", sessionId)
-    .eq("problem_id", problemId);
+  if (isLocalMode()) {
+    getMemoryStore().updateInterviewProblem(
+      getLocalUserId(),
+      sessionId,
+      problemId,
+      completed,
+      notes
+    );
+  } else {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("interview_session_problems")
+      .update({ completed, notes: notes ?? null })
+      .eq("session_id", sessionId)
+      .eq("problem_id", problemId);
 
-  if (error) throw error;
+    if (error) throw error;
+  }
 
   await syncInterviewCompletionToProgress(user.id, problemId, completed);
 
@@ -227,7 +283,7 @@ export async function updateInterviewProblem(
   if (completed) {
     revalidatePath("/dashboard");
     revalidatePath("/problems");
-    revalidatePath("/review");
+    revalidatePath("/revise");
   }
 }
 
@@ -238,22 +294,34 @@ export async function endInterviewSession(
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("interview_sessions")
-    .update({ status })
-    .eq("id", sessionId)
-    .eq("user_id", user.id);
+  let completedRows: { problem_id: string }[] = [];
 
-  if (error) throw error;
+  if (isLocalMode()) {
+    completedRows = getMemoryStore().endInterviewSession(
+      getLocalUserId(),
+      sessionId,
+      status
+    );
+  } else {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("interview_sessions")
+      .update({ status })
+      .eq("id", sessionId)
+      .eq("user_id", user.id);
 
-  const { data: completedRows } = await supabase
-    .from("interview_session_problems")
-    .select("problem_id")
-    .eq("session_id", sessionId)
-    .eq("completed", true);
+    if (error) throw error;
 
-  for (const row of completedRows ?? []) {
+    const { data } = await supabase
+      .from("interview_session_problems")
+      .select("problem_id")
+      .eq("session_id", sessionId)
+      .eq("completed", true);
+
+    completedRows = data ?? [];
+  }
+
+  for (const row of completedRows) {
     await syncInterviewCompletionToProgress(user.id, row.problem_id, true);
   }
 
@@ -261,5 +329,5 @@ export async function endInterviewSession(
   revalidatePath(`/interview/${sessionId}`);
   revalidatePath("/dashboard");
   revalidatePath("/problems");
-  revalidatePath("/review");
+  revalidatePath("/revise");
 }
