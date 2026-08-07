@@ -18,7 +18,7 @@ Track ~770 Google interview LeetCode questions, run 2-hour mock interviews with 
 - Next.js 16 (App Router, Turbopack) + TypeScript + Tailwind v4
 - Supabase (PostgreSQL, Auth, RLS)
 - Vercel (hosting)
-- Next.js Data Cache (`unstable_cache`) + React `cache()` for request-level and cross-request caching
+- React `cache()` for request-level deduplication of the shared catalog and auth lookups
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for why each of these was chosen and how they fit together.
 
@@ -111,7 +111,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#project-structure) for a fulle
 
 ## Performance & UX
 
-- **Caching** — the shared problems catalog is cached across requests (`unstable_cache`); auth lookups are deduped per request (React `cache()`); the dashboard uses a single-query Postgres RPC when available.
+- **Request efficiency** — the shared catalog and auth lookups are deduped within each request with React `cache()`; the dashboard uses a single-query Postgres RPC when available. The catalog query remains request-bound because Supabase auth is read from cookies, which Next.js does not allow inside `unstable_cache`.
 - **Instant feedback** — status toggles on `/problems` and the "Mark as done" checkbox in mock interviews update the UI immediately (`useOptimistic`) instead of waiting on the server round trip.
 - **Skeleton loaders** — every protected route has a `loading.tsx` shaped like its real content, so switching tabs never shows a blank/frozen screen.
 

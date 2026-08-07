@@ -1,4 +1,4 @@
-import { revalidateTag, unstable_cache } from "next/cache";
+import { cache } from "react";
 import { DAILY_REVISION_LIMIT, isLocalMode } from "@/lib/config";
 import {
   computeInterviewSummaries,
@@ -56,25 +56,25 @@ function revisionStats(problems: ProblemWithProgress[]) {
   return { revisionsDoneToday, revisionsDueToday };
 }
 
-const getProblemsCatalog = unstable_cache(
-  async () => {
-    if (isLocalMode()) {
-      return getMemoryStore().getProblemsCatalog();
-    }
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("problems")
-      .select("*")
-      .order("frequency", { ascending: false });
-    return (data as Problem[]) ?? [];
-  },
-  ["problems-catalog-v1"],
-  { tags: ["problems-catalog"], revalidate: false }
-);
+// This query must stay outside unstable_cache: the server Supabase client
+// reads the auth session from cookies, and Next.js does not allow request APIs
+// such as cookies() inside an unstable_cache scope. React cache() still
+// deduplicates the catalog lookup for the current request without breaking
+// authentication in production.
+const getProblemsCatalog = cache(async () => {
+  if (isLocalMode()) {
+    return getMemoryStore().getProblemsCatalog();
+  }
 
-export async function revalidateProblemsCatalog() {
-  revalidateTag("problems-catalog", "default");
-}
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("problems")
+    .select("*")
+    .order("frequency", { ascending: false });
+
+  if (error) throw error;
+  return (data as Problem[]) ?? [];
+});
 
 export async function getProblemsWithProgress(): Promise<ProblemWithProgress[]> {
   const user = await getCurrentUser();

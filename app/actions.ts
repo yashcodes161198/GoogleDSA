@@ -13,6 +13,23 @@ import { selectInterviewProblems } from "@/lib/interview/selectProblems";
 import { initialSrsOnSolve } from "@/lib/srs/sm2";
 import type { ProblemStatus } from "@/lib/types";
 
+export type StartInterviewResult =
+  | { ok: true; sessionId: string }
+  | { ok: false; error: string };
+
+function startInterviewErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message === "Not authenticated") {
+    return error.message;
+  }
+  if (
+    error instanceof Error &&
+    error.message.startsWith("Not enough interview problems")
+  ) {
+    return error.message;
+  }
+  return "Could not start the interview. Please verify the Supabase schema and problems catalog, then try again.";
+}
+
 export async function updateProblemStatus(problemId: string, status: ProblemStatus) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
@@ -134,79 +151,92 @@ export async function markProblemRevised(problemId: string) {
   revalidatePath("/revise");
 }
 
-export async function startInterviewSession(forceNew = true) {
-  const user = await getCurrentUser();
-  if (!user) throw new Error("Not authenticated");
+export async function startInterviewSession(
+  forceNew = true
+): Promise<StartInterviewResult> {
+  try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error("Not authenticated");
 
-  const problems = await getProblemsWithProgress();
-  const selected = selectInterviewProblems(problems, 5);
-  const problemIds = selected.map((p) => p.id);
+    const problems = await getProblemsWithProgress();
+    const selected = selectInterviewProblems(problems, 5);
+    const problemIds = selected.map((p) => p.id);
 
-  if (isLocalMode()) {
-    const sessionId = getMemoryStore().createInterviewSession(
-      getLocalUserId(),
-      problemIds,
-      forceNew
-    );
-    revalidatePath("/interview");
-    return sessionId;
-  }
+    if (problemIds.length !== 5) {
+      throw new Error(
+        "Not enough interview problems are available. Please seed the problems catalog and try again."
+      );
+    }
 
-  const supabase = await createClient();
-  await expireStaleInterviewSessions(user.id);
+    if (isLocalMode()) {
+      const sessionId = getMemoryStore().createInterviewSession(
+        getLocalUserId(),
+        problemIds,
+        forceNew
+      );
+      return { ok: true, sessionId };
+    }
 
-  if (!forceNew) {
-    const { data: active } = await supabase
+    const supabase = await createClient();
+    await expireStaleInterviewSessions(user.id);
+
+    if (!forceNew) {
+      const { data: active } = await supabase
+        .from("interview_sessions")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (active) return { ok: true, sessionId: active.id as string };
+    } else {
+      const { error: closeActiveError } = await supabase
+        .from("interview_sessions")
+        .update({ status: "completed" })
+        .eq("user_id", user.id)
+        .eq("status", "active");
+
+      if (closeActiveError) throw closeActiveError;
+    }
+
+    const startedAt = new Date();
+    const endsAt = new Date(startedAt.getTime() + 2 * 60 * 60 * 1000);
+
+    const { data: session, error: sessionError } = await supabase
       .from("interview_sessions")
+      .insert({
+        user_id: user.id,
+        started_at: startedAt.toISOString(),
+        ends_at: endsAt.toISOString(),
+        status: "active",
+      })
       .select("id")
-      .eq("user_id", user.id)
-      .eq("status", "active")
-      .order("started_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .single();
 
-    if (active) return active.id as string;
-  } else {
-    await supabase
-      .from("interview_sessions")
-      .update({ status: "completed" })
-      .eq("user_id", user.id)
-      .eq("status", "active");
+    if (sessionError || !session) {
+      throw sessionError ?? new Error("Failed to create session");
+    }
+
+    const rows = problemIds.map((problemId, i) => ({
+      session_id: session.id,
+      problem_id: problemId,
+      position: i + 1,
+      completed: false,
+    }));
+
+    const { error: problemsError } = await supabase
+      .from("interview_session_problems")
+      .insert(rows);
+
+    if (problemsError) throw problemsError;
+
+    return { ok: true, sessionId: session.id as string };
+  } catch (error) {
+    console.error("Failed to start interview", error);
+    return { ok: false, error: startInterviewErrorMessage(error) };
   }
-
-  const startedAt = new Date();
-  const endsAt = new Date(startedAt.getTime() + 2 * 60 * 60 * 1000);
-
-  const { data: session, error: sessionError } = await supabase
-    .from("interview_sessions")
-    .insert({
-      user_id: user.id,
-      started_at: startedAt.toISOString(),
-      ends_at: endsAt.toISOString(),
-      status: "active",
-    })
-    .select("id")
-    .single();
-
-  if (sessionError || !session) {
-    throw sessionError ?? new Error("Failed to create session");
-  }
-
-  const rows = problemIds.map((problemId, i) => ({
-    session_id: session.id,
-    problem_id: problemId,
-    position: i + 1,
-    completed: false,
-  }));
-
-  const { error: problemsError } = await supabase
-    .from("interview_session_problems")
-    .insert(rows);
-
-  if (problemsError) throw problemsError;
-
-  revalidatePath("/interview");
-  return session.id as string;
 }
 
 async function syncInterviewCompletionToProgress(
