@@ -46,11 +46,11 @@ Each layer was picked to minimize moving parts — one framework, one data/auth 
 | Hosting | Vercel | Builds, deploys, serves at the edge, preview URLs per push |
 | Data seeding | tsx + dotenv script | `scripts/seed-problems.ts` loads `data/problems.csv` with the service role key |
 | Runtime | Node 22.x (pinned via `engines`) | Vercel build + server runtime version |
-| Caching | Next.js Data Cache (`unstable_cache`) + React `cache()` | Shared problems catalog cached across requests; auth deduped per request |
+| Caching | React `cache()` | Shared catalog and auth lookups deduped per request; per-user data stays fresh |
 
 ## How a request flows
 
-Protected routes render dynamically because they read the session cookie on every request — not because of a blanket `force-dynamic`. That flag used to sit on the root layout and disabled Next's Data Cache app-wide; it was removed so `unstable_cache` can actually cache the shared, read-only problems catalog across requests.
+Protected routes render dynamically because they read the session cookie on every request — not because of a blanket `force-dynamic`. That flag used to sit on the root layout and disabled cache reuse app-wide; it was removed so safe request-level caching can still deduplicate work.
 
 ```
 Browser
@@ -67,7 +67,7 @@ Supabase Auth     Supabase Postgres
  Google OAuth)     sessions)
 ```
 
-The server component reads the session cookie via Supabase Auth (deduped with React `cache()`), reads the problems catalog from the Data Cache instead of Postgres when warm, queries per-user rows fresh (filtered by RLS), and streams HTML back the same path. Client components hydrate only the interactive bits (forms, buttons, checkboxes).
+The server component reads the session cookie via Supabase Auth (deduped with React `cache()`), reads the problems catalog with the authenticated Supabase client (also deduped within the request), queries per-user rows fresh (filtered by RLS), and streams HTML back the same path. Client components hydrate only the interactive bits (forms, buttons, checkboxes).
 
 ## The role of Vercel
 
@@ -203,7 +203,7 @@ lib/
   supabase/                # server + browser Supabase clients (server client
                              # wrapped in React cache())
   auth.ts                  # getUser()/requireUser(), also cache()-wrapped
-  data.ts                  # all Supabase queries + the problems-catalog cache
+  data.ts                  # all Supabase queries + request-level catalog deduplication
   srs/sm2.ts                # spaced repetition algorithm
   interview/selectProblems.ts
   recommendations/nextProblems.ts
@@ -224,9 +224,9 @@ Two focused passes: first cut server round-trips per click, then polished the in
 | Change | Before | After |
 |---|---|---|
 | Auth lookups | `auth.getUser()` called ~3× per request (layout + data helpers) | Wrapped in React `cache()` — one call per request, shared everywhere |
-| Problems catalog | Refetched all ~770 rows from Postgres on every page load | Cached via `unstable_cache` (tag: `problems-catalog`); only per-user rows fetched fresh |
+| Problems catalog | Refetched all ~770 rows from Postgres on every page load | Deduplicated within each request with React `cache()`; only per-user rows are fetched separately |
 | Dashboard | Two separate `getProblemsWithProgress()` calls (stats + recommendations) | One fetch reused for both; stats also has a single-query Postgres RPC with a JS fallback |
-| Root layout caching | `force-dynamic` on the root layout disabled the Data Cache app-wide | Removed — routes still render dynamically (cookie-based auth) but `unstable_cache` now works |
+| Root layout caching | `force-dynamic` on the root layout disabled cache reuse app-wide | Removed — routes still render dynamically (cookie-based auth) while request-level caching remains safe |
 
 `supabase/migrations/002_dashboard_stats.sql` adds `get_user_dashboard_stats(user_id)` — one query aggregates totals, per-difficulty counts, reviews due, and weakest-topic coverage in Postgres instead of shipping ~770 rows to JS for aggregation.
 

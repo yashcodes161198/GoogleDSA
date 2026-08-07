@@ -16,10 +16,16 @@ function totalTopicOverlap(selected: ProblemWithProgress[], candidate: ProblemWi
 }
 
 function weightedPick(candidates: ProblemWithProgress[]): ProblemWithProgress {
-  const totalWeight = candidates.reduce((sum, p) => sum + p.frequency, 0);
+  // Supabase returns PostgreSQL NUMERIC values as strings at runtime.
+  // Coerce them before summing so the weights do not concatenate into an
+  // invalid number and make the random roll NaN.
+  const totalWeight = candidates.reduce(
+    (sum, p) => sum + Number(p.frequency),
+    0
+  );
   let roll = Math.random() * totalWeight;
   for (const c of candidates) {
-    roll -= c.frequency;
+    roll -= Number(c.frequency);
     if (roll <= 0) return c;
   }
   return candidates[candidates.length - 1];

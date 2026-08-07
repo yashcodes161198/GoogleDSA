@@ -17,8 +17,9 @@ export function StartInterviewButton({
   const start = () => {
     startTransition(async () => {
       try {
-        const sessionId = await startInterviewSession(true);
-        router.push(`/interview/${sessionId}`);
+        const result = await startInterviewSession(true);
+        if (!result.ok) throw new Error(result.error);
+        router.push(`/interview/${result.sessionId}`);
         router.refresh();
       } catch (err) {
         console.error("Failed to start interview:", err);
