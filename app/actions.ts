@@ -117,38 +117,47 @@ export async function updateProblemNotes(problemId: string, notes: string) {
 }
 
 export async function markProblemRevised(problemId: string) {
-  const user = await getCurrentUser();
-  if (!user) throw new Error("Not authenticated");
+  try {
+    const user = await getCurrentUser();
+    if (!user) return { ok: false as const, error: "Not authenticated" };
 
-  if (isLocalMode()) {
-    getMemoryStore().markRevised(getLocalUserId(), problemId);
-  } else {
-    const supabase = await createClient();
-    const { data: existing } = await supabase
-      .from("user_problems")
-      .select("status, revision_count")
-      .eq("user_id", user.id)
-      .eq("problem_id", problemId)
-      .single();
-
-    if (!existing || existing.status !== "solved") {
-      throw new Error("Only solved problems can be revised");
+    if (isLocalMode()) {
+      getMemoryStore().markRevised(getLocalUserId(), problemId);
+      return { ok: true as const };
     }
 
-    const { error } = await supabase
-      .from("user_problems")
-      .update({
-        revision_count: (existing.revision_count ?? 0) + 1,
-        last_revised_at: new Date().toISOString(),
-      })
-      .eq("user_id", user.id)
-      .eq("problem_id", problemId);
+    const supabase = await createClient();
+    const { data: revisionCount, error } = await supabase.rpc(
+      "increment_user_problem_revision",
+      { p_problem_id: problemId }
+    );
 
-    if (error) throw error;
+    if (error) {
+      console.error("Failed to increment revision count", error);
+      if (error.code === "42703" || error.code === "PGRST202") {
+        return {
+          ok: false as const,
+          error:
+            "Revision tracking is not installed in Supabase. Apply migration 004_revision_tracking_rpc.sql.",
+        };
+      }
+      return {
+        ok: false as const,
+        error: "Could not save this revision. Please try again.",
+      };
+    }
+
+    return {
+      ok: true as const,
+      revisionCount: Number(revisionCount),
+    };
+  } catch (error) {
+    console.error("Failed to mark problem revised", error);
+    return {
+      ok: false as const,
+      error: "Could not save this revision. Please try again.",
+    };
   }
-
-  revalidatePath("/dashboard");
-  revalidatePath("/revise");
 }
 
 export async function startInterviewSession(

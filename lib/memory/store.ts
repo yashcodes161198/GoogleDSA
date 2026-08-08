@@ -257,6 +257,8 @@ class MemoryStore {
 
   getDailyRevisions(userId: string, limit: number): ProblemWithProgress[] {
     const today = startOfToday();
+    // Keep the local implementation aligned with the Supabase queue: only
+    // solved problems are eligible, and the lowest revision counts go first.
     const solved = this.getProblemsWithProgress(userId).filter(
       (p) => p.status === "solved"
     );

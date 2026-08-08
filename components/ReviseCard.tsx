@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { markProblemRevised } from "@/app/actions";
@@ -33,6 +33,7 @@ export function ReviseCard({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const initialRevised = new Set(
     problems.filter(isRevisedToday).map((p) => p.id)
@@ -53,12 +54,18 @@ export function ReviseCard({
   const toggleRevised = (problemId: string, revised: boolean) => {
     if (!revised) return;
     startTransition(async () => {
+      setErrorMessage(null);
       setOptimisticRevised({ problemId, revised: true });
       try {
-        await markProblemRevised(problemId);
+        const result = await markProblemRevised(problemId);
+        if (!result.ok) {
+          setErrorMessage(result.error);
+        }
         router.refresh();
       } catch (err) {
         console.error(err);
+        setErrorMessage("Could not save this revision. Please try again.");
+        router.refresh();
       }
     });
   };
@@ -91,6 +98,11 @@ export function ReviseCard({
           </p>
         )}
       </div>
+      {errorMessage && (
+        <p role="alert" className="text-sm text-red-600">
+          {errorMessage}
+        </p>
+      )}
 
       <div className="grid gap-4">
         {problems.map((problem, index) => {

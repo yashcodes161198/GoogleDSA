@@ -233,6 +233,9 @@ export async function getDailyRevisions(
 
   const problems = await getProblemsWithProgress();
   const today = startOfToday();
+  // Unsolved problems have a logical revision count of zero but never enter
+  // this queue. Solved problems with count zero are eligible for their first
+  // revision and correctly appear before already-revised problems.
   const solved = problems.filter((p) => p.status === "solved");
 
   const byRoundRobin = (a: ProblemWithProgress, b: ProblemWithProgress) => {

@@ -9,7 +9,7 @@ Track ~770 Google interview LeetCode questions, run 2-hour mock interviews with 
 - **Progress tracking** — mark problems as attempted/solved, filter by difficulty/topic/status, adjustable rows-per-page (25/50/100/All)
 - **Dashboard** — coverage stats, topic gaps, and smart "next up" recommendations, backed by a single-query Postgres RPC
 - **Mock interview** — 5 problems (1 Easy, 3 Medium, 1 Hard), 2-hour timer, weighted by Google frequency, optimistic "Mark as done"
-- **Revise** — daily round-robin through solved problems (10/day), tracks revision count per problem
+- **Revise** — serves up to 10 solved problems with the lowest per-user revision counts and increments each count atomically when revised
 - **Auth** — Google OAuth + email/password via Supabase
 - **Responsive UI** — skeleton loaders on every route, optimistic status/completion toggles (no waiting on the server round trip to see the click register)
 
@@ -50,6 +50,7 @@ cp .env.local.example .env.local
    - [`supabase/migrations/001_schema.sql`](supabase/migrations/001_schema.sql) — tables + RLS (required).
    - [`supabase/migrations/002_dashboard_stats.sql`](supabase/migrations/002_dashboard_stats.sql) — `get_user_dashboard_stats` RPC that powers the dashboard in one query (optional — the app falls back to computing stats in JS if this isn't installed, just slightly slower).
    - [`supabase/migrations/003_revision_tracking.sql`](supabase/migrations/003_revision_tracking.sql) — revision count columns for the Revise feature.
+   - [`supabase/migrations/004_revision_tracking_rpc.sql`](supabase/migrations/004_revision_tracking_rpc.sql) — atomic revision increment RPC (required for the Revise checkbox).
 3. Copy your project URL and anon key into `.env.local`.
 4. Copy the **service role key** (Settings → API) into `.env.local` for seeding only.
 

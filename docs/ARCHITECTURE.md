@@ -30,7 +30,7 @@ Five features over four protected pages, all behind Supabase auth:
 |---|---|---|
 | `/dashboard` | Stats, topic coverage, smart next-up | Single fetch feeds `getDashboardStats()` (Postgres RPC or JS fallback) + `getNextProblems()` |
 | `/problems` | Browse / filter, mark status (optimistic), paginated | Server Component + Server Actions; `useOptimistic` flips status instantly |
-| `/review` | Due SM-2 reviews with Again / Hard / Good / Easy | `getDueReviews()` + `submitReview()` action applies SM-2 |
+| `/revise` | Lowest-count solved problems with a daily limit | `getDailyRevisions()` + `markProblemRevised()` atomically increments the per-user count |
 | `/interview` | 2-hour mock: 5 problems, timer, optimistic Mark-as-done | `startInterviewSession()` selects + persists; `/interview/[sessionId]` runs it |
 
 ## Tech stack
@@ -99,7 +99,7 @@ One product gives a Postgres database, an auth system, and row-level security â€
 | Table | Purpose | Key columns |
 |---|---|---|
 | `problems` | Shared catalog of ~770 Google questions (read-only) | `slug, title, difficulty, frequency, acceptance_rate, link, topics[]` |
-| `user_problems` | Per-user progress + SM-2 state | `user_id, problem_id, status, ease_factor, interval_days, repetitions, next_review_at` |
+| `user_problems` | Per-user progress + SM-2/revision state | `user_id, problem_id, status, revision_count, last_revised_at, ease_factor, interval_days, repetitions, next_review_at` |
 | `interview_sessions` | A single mock interview (2h window) | `id, user_id, started_at, ends_at, status` |
 | `interview_session_problems` | The 5 problems chosen for a session | `session_id, problem_id, position (1â€“5), completed` |
 
