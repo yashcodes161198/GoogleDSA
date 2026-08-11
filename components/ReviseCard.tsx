@@ -1,13 +1,13 @@
 "use client";
 
 import { useOptimistic, useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { markProblemRevised } from "@/app/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip } from "@/components/ui/tooltip";
 import { DifficultyBadge } from "@/components/ui/badge";
+import { ExternalLink } from "@/components/ui/external-link";
 import type { ProblemWithProgress } from "@/lib/types";
 
 type RevisionUpdate = { problemId: string; revised: boolean };
@@ -140,13 +140,12 @@ export function ReviseCard({
                 <p className="text-sm text-zinc-500">
                   {problem.topics.join(", ") || "General"}
                 </p>
-                <Link
+                <ExternalLink
                   href={problem.link}
-                  target="_blank"
-                  className="text-sm font-medium text-blue-600 hover:underline"
+                  className="inline-flex min-h-10 items-center rounded-md text-sm font-medium text-blue-600 hover:underline"
                 >
                   Open on LeetCode
-                </Link>
+                </ExternalLink>
               </CardContent>
             </Card>
           );

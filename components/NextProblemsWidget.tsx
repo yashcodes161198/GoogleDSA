@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DifficultyBadge } from "@/components/ui/badge";
+import { ExternalLink } from "@/components/ui/external-link";
 import type { RecommendedProblem } from "@/lib/recommendations/nextProblems";
 
 export function NextProblemsWidget({
@@ -25,24 +25,22 @@ export function NextProblemsWidget({
           <p className="text-sm text-zinc-500">You&apos;re all caught up!</p>
         ) : (
           recommendations.map(({ problem, reason }) => (
-            <div
+            <ExternalLink
               key={problem.id}
-              className="flex items-start justify-between gap-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-800"
+              href={problem.link}
+              className="group flex items-start justify-between gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:border-blue-300 hover:bg-blue-50/70 dark:border-zinc-800 dark:hover:border-blue-800 dark:hover:bg-blue-950/30"
             >
               <div>
                 <div className="flex items-center gap-2">
-                  <Link
-                    href={problem.link}
-                    target="_blank"
-                    className="font-medium hover:text-blue-600"
-                  >
+                  <span className="font-medium transition-colors group-hover:text-blue-700">
+                    <span className="sr-only">Open on LeetCode: </span>
                     {problem.title}
-                  </Link>
+                  </span>
                   <DifficultyBadge difficulty={problem.difficulty} />
                 </div>
                 <p className="mt-1 text-xs text-zinc-500">{reason}</p>
               </div>
-            </div>
+            </ExternalLink>
           ))
         )}
       </CardContent>

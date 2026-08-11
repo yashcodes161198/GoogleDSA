@@ -24,3 +24,47 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+/*
+ * Keep the pointer an accurate preview of what each control will do. Text
+ * fields intentionally retain their native text cursor, while disabled
+ * controls stay visible but advertise that they cannot be used.
+ */
+a[href],
+button:not(:disabled),
+select:not(:disabled),
+input[type="checkbox"]:not(:disabled),
+input[type="radio"]:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+input[type="checkbox"]:disabled,
+input[type="radio"]:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* Native outlines are reinforced consistently for keyboard navigation. */
+a[href]:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  a[href]:focus-visible,
+  button:focus-visible,
+  select:focus-visible,
+  input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+  textarea:focus-visible,
+  [role="button"]:focus-visible {
+    outline-color: #60a5fa;
+  }
+}

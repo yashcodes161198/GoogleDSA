@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip } from "@/components/ui/tooltip";
 import { DifficultyBadge } from "@/components/ui/badge";
+import { ExternalLink } from "@/components/ui/external-link";
 import type { InterviewSession, InterviewSessionProblem } from "@/lib/types";
 import Link from "next/link";
 
@@ -144,13 +145,12 @@ export function InterviewSessionView({
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm text-zinc-500">{problem.topics.join(", ")}</p>
-                <Link
+                <ExternalLink
                   href={problem.link}
-                  target="_blank"
-                  className="text-sm font-medium text-blue-600 hover:underline"
+                  className="inline-flex min-h-10 items-center rounded-md text-sm font-medium text-blue-600 hover:underline"
                 >
                   Open on LeetCode
-                </Link>
+                </ExternalLink>
                 <textarea
                   className="w-full rounded-lg border border-zinc-300 p-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
                   placeholder="Interview notes..."

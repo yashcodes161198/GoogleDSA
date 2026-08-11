@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState, useTransition, useOptimistic } from "react";
-import Link from "next/link";
 import { updateProblemStatus } from "@/app/actions";
 import { Button } from "@/components/ui/button";
+import { ExternalLink } from "@/components/ui/external-link";
 import { Input } from "@/components/ui/input";
 import { DifficultyBadge, StatusBadge } from "@/components/ui/badge";
 import type { Difficulty, ProblemStatus, ProblemWithProgress } from "@/lib/types";
@@ -132,14 +132,14 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
           <tbody>
             {pageRows.map((p) => (
               <tr key={p.id} className="border-t border-zinc-200 dark:border-zinc-800">
-                <td className="px-4 py-3">
-                  <Link
+                <td className="p-0">
+                  <ExternalLink
                     href={p.link}
-                    target="_blank"
-                    className="font-medium hover:text-blue-600"
+                    className="flex min-h-11 items-center px-4 py-3 font-medium transition-colors hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-950/40 dark:hover:text-blue-300"
                   >
+                    <span className="sr-only">Open on LeetCode: </span>
                     {p.title}
-                  </Link>
+                  </ExternalLink>
                 </td>
                 <td className="px-4 py-3">
                   <DifficultyBadge difficulty={p.difficulty} />
