@@ -8,7 +8,7 @@ export default async function RevisePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Revise</h1>
+        <h1 className="text-2xl font-bold sm:text-3xl">Revise</h1>
         <p className="mt-1 text-zinc-500">
           Round-robin through solved problems · up to {DAILY_REVISION_LIMIT} per day ·{" "}
           {queue.length} queued today

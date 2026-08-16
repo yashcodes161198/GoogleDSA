@@ -112,7 +112,7 @@ export function ReviseCard({
           return (
             <Card key={problem.id}>
               <CardHeader>
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <CardTitle className="flex flex-wrap items-center gap-3">
                     <Tooltip label="Mark as revised">
                       <Checkbox

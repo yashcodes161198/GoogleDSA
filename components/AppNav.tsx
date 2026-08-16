@@ -3,23 +3,10 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { navLinks } from "@/lib/nav-links";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-  BookOpen,
-  LayoutDashboard,
-  ListChecks,
-  LogOut,
-  RefreshCw,
-  Timer,
-} from "lucide-react";
-
-const links = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/problems", label: "Problems", icon: ListChecks },
-  { href: "/revise", label: "Revise", icon: RefreshCw },
-  { href: "/interview", label: "Interview", icon: Timer },
-];
+import { BookOpen, LogOut } from "lucide-react";
 
 export function AppNav({
   email,
@@ -49,10 +36,10 @@ export function AppNav({
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
             <BookOpen className="h-5 w-5 text-blue-600" />
-            Google DSA
+            <span className="hidden sm:inline">Google DSA</span>
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
-            {links.map(({ href, label, icon: Icon }) => (
+            {navLinks.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
@@ -73,9 +60,15 @@ export function AppNav({
           {email && (
             <span className="hidden text-sm text-zinc-500 sm:inline">{email}</span>
           )}
-          <Button variant="outline" size="sm" onClick={signOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign out
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={signOut}
+            className="px-2 sm:px-3"
+            aria-label="Sign out"
+          >
+            <LogOut className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Sign out</span>
           </Button>
         </div>
       </div>

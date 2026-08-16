@@ -1,4 +1,5 @@
 import { AppNav } from "@/components/AppNav";
+import { MobileTabBar } from "@/components/MobileTabBar";
 import { isLocalMode, LOCAL_ADMIN } from "@/lib/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,7 +20,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black">
       <AppNav email={email} localMode={localMode} />
-      <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-8 pb-20 md:pb-8">{children}</main>
+      <MobileTabBar />
     </div>
   );
 }

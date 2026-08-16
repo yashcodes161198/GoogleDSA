@@ -5,10 +5,48 @@ import { updateProblemStatus } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "@/components/ui/external-link";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { DifficultyBadge, StatusBadge } from "@/components/ui/badge";
 import type { Difficulty, ProblemStatus, ProblemWithProgress } from "@/lib/types";
 
 type StatusUpdate = { id: string; status: ProblemStatus };
+
+function ProblemActions({
+  problem,
+  onStatusChange,
+}: {
+  problem: ProblemWithProgress;
+  onStatusChange: (id: string, status: ProblemStatus) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+      <Button
+        size="sm"
+        variant={problem.status === "attempted" ? "default" : "outline"}
+        className="min-h-11"
+        onClick={() => onStatusChange(problem.id, "attempted")}
+      >
+        Attempted
+      </Button>
+      <Button
+        size="sm"
+        variant={problem.status === "solved" ? "default" : "outline"}
+        className="min-h-11"
+        onClick={() => onStatusChange(problem.id, "solved")}
+      >
+        Solved
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        className="col-span-2 min-h-11 sm:col-span-1"
+        onClick={() => onStatusChange(problem.id, "unsolved")}
+      >
+        Reset
+      </Button>
+    </div>
+  );
+}
 
 export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) {
   const [search, setSearch] = useState("");
@@ -19,9 +57,6 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
   const [pageSize, setPageSize] = useState<number | "all">(50);
   const [pending, startTransition] = useTransition();
 
-  // Flip the status badge the instant a button is clicked; the server action
-  // confirms (and revalidates) in the background. Optimistic state is cleared
-  // once the transition ends and the server-fresh `problems` prop arrives.
   const [optimisticProblems, updateOptimistic] = useOptimistic(
     problems,
     (state, update: StatusUpdate) =>
@@ -44,10 +79,6 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
     });
   }, [optimisticProblems, search, difficulty, status, topic]);
 
-  // Reset to the first page whenever the filter set or page size changes.
-  // Adjusting state during render (rather than in an effect) avoids an extra
-  // commit — React docs call this out as the correct pattern for "reset state
-  // when a dependency changes" instead of useEffect + setState.
   const filterKey = `${search}|${difficulty}|${status}|${topic}|${pageSize}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {
@@ -70,16 +101,20 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
     });
   };
 
+  const selectClassName =
+    "h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950";
+
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Input
+          className="col-span-2 md:col-span-1"
           placeholder="Search problems..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <select
-          className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+          className={selectClassName}
           value={difficulty}
           onChange={(e) => setDifficulty(e.target.value as Difficulty | "ALL")}
         >
@@ -89,7 +124,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
           <option value="HARD">Hard</option>
         </select>
         <select
-          className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+          className={selectClassName}
           value={status}
           onChange={(e) => setStatus(e.target.value as ProblemStatus | "ALL")}
         >
@@ -99,7 +134,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
           <option value="solved">Solved</option>
         </select>
         <select
-          className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+          className={`${selectClassName} col-span-2 md:col-span-1`}
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
         >
@@ -117,7 +152,34 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
         {pending && " · Saving..."}
       </p>
 
-      <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+      {/* Mobile: card list */}
+      <div className="space-y-3 md:hidden">
+        {pageRows.map((p) => (
+          <Card key={p.id}>
+            <CardContent className="space-y-3 pt-4">
+              <div className="flex items-start justify-between gap-3">
+                <ExternalLink
+                  href={p.link}
+                  className="font-medium leading-snug transition-colors hover:text-blue-700 dark:hover:text-blue-300"
+                >
+                  <span className="sr-only">Open on LeetCode: </span>
+                  {p.title}
+                </ExternalLink>
+                <DifficultyBadge difficulty={p.difficulty} />
+              </div>
+              <p className="text-sm text-zinc-500">
+                {p.frequency.toFixed(1)}% · {p.topics.slice(0, 3).join(", ")}
+                {p.topics.length > 3 ? "..." : ""}
+              </p>
+              <StatusBadge status={p.status} />
+              <ProblemActions problem={p} onStatusChange={setStatusFor} />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden overflow-x-auto rounded-xl border border-zinc-200 md:block dark:border-zinc-800">
         <table className="min-w-full text-sm">
           <thead className="bg-zinc-50 text-left dark:bg-zinc-900">
             <tr>
@@ -183,7 +245,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
         </table>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm text-zinc-500">Rows per page</span>
           <select
@@ -201,7 +263,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
           </select>
         </div>
         {pageCount > 1 && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm text-zinc-500">
               Page {safePage + 1} of {pageCount}
             </span>

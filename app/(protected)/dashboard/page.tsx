@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">Dashboard</h1>
           <p className="mt-1 text-zinc-500">
             {progressPct}% complete · {stats.solved} solved of {stats.total} Google questions
           </p>

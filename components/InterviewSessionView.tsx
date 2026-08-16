@@ -98,16 +98,25 @@ export function InterviewSessionView({
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-zinc-500">
           {completedCount} of {optimisticProblems.length} completed
         </p>
         {isActive && (
-          <div className="flex gap-2">
-            <Button variant="outline" disabled={pending} onClick={() => finish("abandoned")}>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <Button
+              variant="outline"
+              disabled={pending}
+              className="w-full sm:w-auto"
+              onClick={() => finish("abandoned")}
+            >
               Abandon
             </Button>
-            <Button disabled={pending} onClick={() => finish("completed")}>
+            <Button
+              disabled={pending}
+              className="w-full sm:w-auto"
+              onClick={() => finish("completed")}
+            >
               End session
             </Button>
           </div>
@@ -121,7 +130,7 @@ export function InterviewSessionView({
           return (
             <Card key={sp.problem_id}>
               <CardHeader>
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <CardTitle className="flex flex-wrap items-center gap-3">
                     <Tooltip label="Mark as done in this interview">
                       <Checkbox
