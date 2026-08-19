@@ -10,6 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip } from "@/components/ui/tooltip";
 import { DifficultyBadge } from "@/components/ui/badge";
 import { ExternalLink } from "@/components/ui/external-link";
+import { ProblemSolveTimer } from "@/components/ProblemSolveTimer";
+import { ProblemTimerProvider, useProblemTimer } from "@/components/ProblemTimerContext";
 import type { InterviewSession, InterviewSessionProblem } from "@/lib/types";
 import Link from "next/link";
 
@@ -35,6 +37,13 @@ export function InterviewSessionView({
   );
 
   const completedCount = optimisticProblems.filter((p) => p.completed).length;
+
+  const initialLastSolve = Object.fromEntries(
+    optimisticProblems.map((sp) => [
+      sp.problem_id,
+      sp.last_solve_seconds ?? null,
+    ])
+  );
 
   const toggleComplete = (problemId: string, completed: boolean, notes?: string | null) => {
     startTransition(async () => {
@@ -77,6 +86,47 @@ export function InterviewSessionView({
     },
     [isActive, router, session.id]
   );
+
+  return (
+    <ProblemTimerProvider initialLastSolve={initialLastSolve}>
+      <InterviewSessionContent
+        session={session}
+        isActive={isActive}
+        optimisticProblems={optimisticProblems}
+        completedCount={completedCount}
+        pending={pending}
+        finish={finish}
+        toggleComplete={toggleComplete}
+        saveNotes={saveNotes}
+      />
+    </ProblemTimerProvider>
+  );
+}
+
+function InterviewSessionContent({
+  session,
+  isActive,
+  optimisticProblems,
+  completedCount,
+  pending,
+  finish,
+  toggleComplete,
+  saveNotes,
+}: {
+  session: InterviewSession;
+  isActive: boolean;
+  optimisticProblems: InterviewSessionProblem[];
+  completedCount: number;
+  pending: boolean;
+  finish: (status: "completed" | "abandoned") => void;
+  toggleComplete: (
+    problemId: string,
+    completed: boolean,
+    notes?: string | null
+  ) => void;
+  saveNotes: (problemId: string, completed: boolean, notes: string) => void;
+}) {
+  const { onLeetCodeClick } = useProblemTimer();
 
   return (
     <div className="space-y-6">
@@ -154,9 +204,11 @@ export function InterviewSessionView({
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm text-zinc-500">{problem.topics.join(", ")}</p>
+                <ProblemSolveTimer problemId={sp.problem_id} />
                 <ExternalLink
                   href={problem.link}
                   className="inline-flex min-h-10 items-center rounded-md text-sm font-medium text-blue-600 hover:underline"
+                  onClick={() => onLeetCodeClick(sp.problem_id)}
                 >
                   Open on LeetCode
                 </ExternalLink>

@@ -1,36 +1,27 @@
 "use client";
 
-import { useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { startInterviewSession } from "@/app/actions";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
+import { startNewInterviewAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+function StartButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" size="lg" disabled={pending}>
+      {pending ? "Starting..." : "Start new interview"}
+    </Button>
+  );
+}
 
 export function StartInterviewButton({
   hasActiveSession = false,
 }: {
   hasActiveSession?: boolean;
 }) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-
-  const start = () => {
-    startTransition(async () => {
-      try {
-        const result = await startInterviewSession(true);
-        if (!result.ok) throw new Error(result.error);
-        router.push(`/interview/${result.sessionId}`);
-        router.refresh();
-      } catch (err) {
-        console.error("Failed to start interview:", err);
-        alert(
-          err instanceof Error
-            ? err.message
-            : "Failed to start interview. Please try again."
-        );
-      }
-    });
-  };
+  const [state, formAction] = useActionState(startNewInterviewAction, null);
 
   return (
     <Card>
@@ -46,9 +37,14 @@ export function StartInterviewButton({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Button size="lg" onClick={start} disabled={pending}>
-          {pending ? "Starting..." : "Start new interview"}
-        </Button>
+        <form action={formAction} className="space-y-3">
+          {state?.error && (
+            <p className="text-sm text-destructive" role="alert">
+              {state.error}
+            </p>
+          )}
+          <StartButton />
+        </form>
       </CardContent>
     </Card>
   );

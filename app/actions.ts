@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { isLocalMode } from "@/lib/config";
 import { getLocalUserId, getMemoryStore } from "@/lib/memory/store";
 import {
@@ -116,6 +117,39 @@ export async function updateProblemNotes(problemId: string, notes: string) {
   revalidatePath("/problems");
 }
 
+export async function saveProblemSolveTime(problemId: string, seconds: number) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const clamped = Math.max(1, Math.round(seconds));
+
+  if (isLocalMode()) {
+    getMemoryStore().saveLastSolveSeconds(getLocalUserId(), problemId, clamped);
+  } else {
+    const supabase = await createClient();
+    const { data: existing } = await supabase
+      .from("user_problems")
+      .select("status")
+      .eq("user_id", user.id)
+      .eq("problem_id", problemId)
+      .maybeSingle();
+
+    const { error } = await supabase.from("user_problems").upsert(
+      {
+        user_id: user.id,
+        problem_id: problemId,
+        status: existing?.status ?? "unsolved",
+        last_solve_seconds: clamped,
+      },
+      { onConflict: "user_id,problem_id" }
+    );
+    if (error) throw error;
+  }
+
+  revalidatePath("/revise");
+  revalidatePath("/interview");
+}
+
 export async function markProblemRevised(problemId: string) {
   try {
     const user = await getCurrentUser();
@@ -183,6 +217,7 @@ export async function startInterviewSession(
         problemIds,
         forceNew
       );
+      revalidatePath("/interview");
       return { ok: true, sessionId };
     }
 
@@ -199,7 +234,10 @@ export async function startInterviewSession(
         .limit(1)
         .maybeSingle();
 
-      if (active) return { ok: true, sessionId: active.id as string };
+      if (active) {
+        revalidatePath("/interview");
+        return { ok: true, sessionId: active.id as string };
+      }
     } else {
       const { error: closeActiveError } = await supabase
         .from("interview_sessions")
@@ -241,11 +279,24 @@ export async function startInterviewSession(
 
     if (problemsError) throw problemsError;
 
+    revalidatePath("/interview");
     return { ok: true, sessionId: session.id as string };
   } catch (error) {
     console.error("Failed to start interview", error);
     return { ok: false, error: startInterviewErrorMessage(error) };
   }
+}
+
+export async function startNewInterviewAction(
+  _prevState: { error: string } | null,
+  _formData: FormData
+): Promise<{ error: string } | null> {
+  const result = await startInterviewSession(true);
+  if (!result.ok) {
+    return { error: result.error };
+  }
+
+  redirect(`/interview/${result.sessionId}`);
 }
 
 async function syncInterviewCompletionToProgress(

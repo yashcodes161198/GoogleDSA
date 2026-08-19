@@ -8,6 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip } from "@/components/ui/tooltip";
 import { DifficultyBadge } from "@/components/ui/badge";
 import { ExternalLink } from "@/components/ui/external-link";
+import { ProblemSolveTimer } from "@/components/ProblemSolveTimer";
+import { ProblemTimerProvider, useProblemTimer } from "@/components/ProblemTimerContext";
 import type { ProblemWithProgress } from "@/lib/types";
 
 type RevisionUpdate = { problemId: string; revised: boolean };
@@ -86,6 +88,44 @@ export function ReviseCard({
 
   const allDone = revisedCount >= problems.length;
 
+  const initialLastSolve = Object.fromEntries(
+    problems.map((p) => [p.id, p.user_problem?.last_solve_seconds ?? null])
+  );
+
+  return (
+    <ProblemTimerProvider initialLastSolve={initialLastSolve}>
+      <ReviseCardContent
+        problems={problems}
+        revisedCount={revisedCount}
+        allDone={allDone}
+        errorMessage={errorMessage}
+        optimisticRevised={optimisticRevised}
+        pending={pending}
+        toggleRevised={toggleRevised}
+      />
+    </ProblemTimerProvider>
+  );
+}
+
+function ReviseCardContent({
+  problems,
+  revisedCount,
+  allDone,
+  errorMessage,
+  optimisticRevised,
+  pending,
+  toggleRevised,
+}: {
+  problems: ProblemWithProgress[];
+  revisedCount: number;
+  allDone: boolean;
+  errorMessage: string | null;
+  optimisticRevised: Set<string>;
+  pending: boolean;
+  toggleRevised: (problemId: string, revised: boolean) => void;
+}) {
+  const { onLeetCodeClick } = useProblemTimer();
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -140,9 +180,11 @@ export function ReviseCard({
                 <p className="text-sm text-zinc-500">
                   {problem.topics.join(", ") || "General"}
                 </p>
+                <ProblemSolveTimer problemId={problem.id} />
                 <ExternalLink
                   href={problem.link}
                   className="inline-flex min-h-10 items-center rounded-md text-sm font-medium text-blue-600 hover:underline"
+                  onClick={() => onLeetCodeClick(problem.id)}
                 >
                   Open on LeetCode
                 </ExternalLink>

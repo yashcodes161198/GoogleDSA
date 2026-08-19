@@ -31,6 +31,7 @@ export interface UserProblem {
   last_reviewed_at: string | null;
   revision_count: number;
   last_revised_at: string | null;
+  last_solve_seconds: number | null;
 }
 
 export interface ProblemWithProgress extends Problem {
@@ -56,6 +57,8 @@ export interface InterviewSessionProblem {
   problem?: Problem;
   /** Overall catalog progress — display hint only, never drives `completed`. */
   global_status?: ProblemStatus;
+  /** Latest recorded solve time in seconds (from user_problems). */
+  last_solve_seconds?: number | null;
 }
 
 export interface InterviewSessionSummary {

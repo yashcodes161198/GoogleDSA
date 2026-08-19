@@ -87,6 +87,8 @@ class MemoryStore {
       revision_count: patch.revision_count ?? existing?.revision_count ?? 0,
       last_revised_at:
         patch.last_revised_at ?? existing?.last_revised_at ?? null,
+      last_solve_seconds:
+        patch.last_solve_seconds ?? existing?.last_solve_seconds ?? null,
       status: patch.status,
     };
     this.userProblems.set(key, row);
@@ -165,11 +167,16 @@ class MemoryStore {
       }));
 
     const globalStatusByProblem = new Map<string, ProblemStatus>();
+    const lastSolveByProblem = new Map<string, number | null>();
     for (const row of rows) {
       const up = this.userProblems.get(userProblemKey(userId, row.problem_id));
       globalStatusByProblem.set(
         row.problem_id,
         (up?.status ?? "unsolved") as ProblemStatus
+      );
+      lastSolveByProblem.set(
+        row.problem_id,
+        up?.last_solve_seconds ?? null
       );
     }
 
@@ -178,6 +185,7 @@ class MemoryStore {
       problems: rows.map((row) => ({
         ...row,
         global_status: globalStatusByProblem.get(row.problem_id) ?? "unsolved",
+        last_solve_seconds: lastSolveByProblem.get(row.problem_id) ?? null,
       })),
     };
   }
@@ -303,6 +311,15 @@ class MemoryStore {
       ...existing,
       revision_count: (existing.revision_count ?? 0) + 1,
       last_revised_at: now,
+    });
+  }
+
+  saveLastSolveSeconds(userId: string, problemId: string, seconds: number) {
+    const key = userProblemKey(userId, problemId);
+    const existing = this.userProblems.get(key);
+    this.upsertUserProblem(userId, problemId, {
+      status: (existing?.status ?? "unsolved") as ProblemStatus,
+      last_solve_seconds: seconds,
     });
   }
 

@@ -397,17 +397,22 @@ export async function getInterviewSession(
   const rows = (sessionProblems as InterviewSessionProblem[]) ?? [];
   const problemIds = rows.map((r) => r.problem_id);
 
-  let globalStatusByProblem = new Map<string, ProblemStatus>();
+  const globalStatusByProblem = new Map<string, ProblemStatus>();
+  const lastSolveByProblem = new Map<string, number | null>();
   if (problemIds.length > 0) {
     const { data: userProblems } = await supabase
       .from("user_problems")
-      .select("problem_id, status")
+      .select("problem_id, status, last_solve_seconds")
       .eq("user_id", user.id)
       .in("problem_id", problemIds);
 
-    globalStatusByProblem = new Map(
-      (userProblems ?? []).map((up) => [up.problem_id, up.status as ProblemStatus])
-    );
+    for (const up of userProblems ?? []) {
+      globalStatusByProblem.set(up.problem_id, up.status as ProblemStatus);
+      lastSolveByProblem.set(
+        up.problem_id,
+        up.last_solve_seconds != null ? Number(up.last_solve_seconds) : null
+      );
+    }
   }
 
   return {
@@ -415,6 +420,7 @@ export async function getInterviewSession(
     problems: rows.map((row) => ({
       ...row,
       global_status: globalStatusByProblem.get(row.problem_id) ?? "unsolved",
+      last_solve_seconds: lastSolveByProblem.get(row.problem_id) ?? null,
     })),
   };
 }
