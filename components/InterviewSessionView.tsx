@@ -38,10 +38,10 @@ export function InterviewSessionView({
 
   const completedCount = optimisticProblems.filter((p) => p.completed).length;
 
-  const initialLastSolve = Object.fromEntries(
+  const initialBestSolve = Object.fromEntries(
     optimisticProblems.map((sp) => [
       sp.problem_id,
-      sp.last_solve_seconds ?? null,
+      sp.best_solve_seconds ?? null,
     ])
   );
 
@@ -88,7 +88,7 @@ export function InterviewSessionView({
   );
 
   return (
-    <ProblemTimerProvider initialLastSolve={initialLastSolve}>
+    <ProblemTimerProvider initialBestSolve={initialBestSolve}>
       <InterviewSessionContent
         session={session}
         isActive={isActive}
@@ -126,7 +126,18 @@ function InterviewSessionContent({
   ) => void;
   saveNotes: (problemId: string, completed: boolean, notes: string) => void;
 }) {
-  const { onLeetCodeClick } = useProblemTimer();
+  const { onLeetCodeClick, stopAndPersist } = useProblemTimer();
+
+  const handleCompleteChange = async (
+    problemId: string,
+    checked: boolean,
+    notes?: string | null
+  ) => {
+    if (checked) {
+      await stopAndPersist(problemId);
+    }
+    toggleComplete(problemId, checked, notes);
+  };
 
   return (
     <div className="space-y-6">
@@ -187,7 +198,11 @@ function InterviewSessionContent({
                         checked={sp.completed}
                         aria-label="Mark as done in this interview"
                         onChange={(checked) =>
-                          toggleComplete(sp.problem_id, checked, sp.notes)
+                          void handleCompleteChange(
+                            sp.problem_id,
+                            checked,
+                            sp.notes
+                          )
                         }
                       />
                     </Tooltip>

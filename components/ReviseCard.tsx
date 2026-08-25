@@ -88,12 +88,12 @@ export function ReviseCard({
 
   const allDone = revisedCount >= problems.length;
 
-  const initialLastSolve = Object.fromEntries(
-    problems.map((p) => [p.id, p.user_problem?.last_solve_seconds ?? null])
+  const initialBestSolve = Object.fromEntries(
+    problems.map((p) => [p.id, p.user_problem?.best_solve_seconds ?? null])
   );
 
   return (
-    <ProblemTimerProvider initialLastSolve={initialLastSolve}>
+    <ProblemTimerProvider initialBestSolve={initialBestSolve}>
       <ReviseCardContent
         problems={problems}
         revisedCount={revisedCount}
@@ -124,7 +124,13 @@ function ReviseCardContent({
   pending: boolean;
   toggleRevised: (problemId: string, revised: boolean) => void;
 }) {
-  const { onLeetCodeClick } = useProblemTimer();
+  const { onLeetCodeClick, stopAndPersist } = useProblemTimer();
+
+  const handleRevisedChange = async (problemId: string, checked: boolean) => {
+    if (!checked) return;
+    await stopAndPersist(problemId);
+    toggleRevised(problemId, checked);
+  };
 
   return (
     <div className="space-y-6">
@@ -160,7 +166,7 @@ function ReviseCardContent({
                         aria-label="Mark as revised"
                         disabled={revised || pending}
                         onChange={(checked) =>
-                          toggleRevised(problem.id, checked)
+                          void handleRevisedChange(problem.id, checked)
                         }
                       />
                     </Tooltip>

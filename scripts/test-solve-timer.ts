@@ -22,17 +22,32 @@ const userId = getLocalUserId();
 const problems = store.getProblemsCatalog();
 const problemId = problems[0].id;
 
-store.saveLastSolveSeconds(userId, problemId, 125);
+const best1 = store.saveSolveSeconds(userId, problemId, 300);
 const row = store.getProblemsWithProgress(userId).find((p) => p.id === problemId);
-if (row?.user_problem?.last_solve_seconds !== 125) {
-  console.error("FAIL saveLastSolveSeconds did not persist");
+if (row?.user_problem?.last_solve_seconds !== 300) {
+  console.error("FAIL saveSolveSeconds did not persist last time");
+  process.exit(1);
+}
+if (best1 !== 300 || row?.user_problem?.best_solve_seconds !== 300) {
+  console.error("FAIL first save should set best to 300");
   process.exit(1);
 }
 
-store.saveLastSolveSeconds(userId, problemId, 200);
+const best2 = store.saveSolveSeconds(userId, problemId, 480);
 const row2 = store.getProblemsWithProgress(userId).find((p) => p.id === problemId);
-if (row2?.user_problem?.last_solve_seconds !== 200) {
-  console.error("FAIL saveLastSolveSeconds did not update latest time");
+if (row2?.user_problem?.last_solve_seconds !== 480) {
+  console.error("FAIL saveSolveSeconds did not update latest time");
+  process.exit(1);
+}
+if (best2 !== 300 || row2?.user_problem?.best_solve_seconds !== 300) {
+  console.error("FAIL slower second save should keep best at 300");
+  process.exit(1);
+}
+
+const best3 = store.saveSolveSeconds(userId, problemId, 180);
+const row3 = store.getProblemsWithProgress(userId).find((p) => p.id === problemId);
+if (best3 !== 180 || row3?.user_problem?.best_solve_seconds !== 180) {
+  console.error("FAIL faster third save should update best to 180");
   process.exit(1);
 }
 

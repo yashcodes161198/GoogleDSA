@@ -117,37 +117,93 @@ export async function updateProblemNotes(problemId: string, notes: string) {
   revalidatePath("/problems");
 }
 
-export async function saveProblemSolveTime(problemId: string, seconds: number) {
-  const user = await getCurrentUser();
-  if (!user) throw new Error("Not authenticated");
+export type SaveProblemSolveTimeResult =
+  | { ok: true; bestSeconds: number }
+  | { ok: false; error: string };
 
-  const clamped = Math.max(1, Math.round(seconds));
+function saveSolveTimeErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message === "Not authenticated") {
+    return error.message;
+  }
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code: string }).code === "42703"
+  ) {
+    return "Solve time tracking is not installed in Supabase. Apply migrations 005 and 006.";
+  }
+  return "Could not save solve time. Please try again.";
+}
 
-  if (isLocalMode()) {
-    getMemoryStore().saveLastSolveSeconds(getLocalUserId(), problemId, clamped);
-  } else {
+export async function saveProblemSolveTime(
+  problemId: string,
+  seconds: number
+): Promise<SaveProblemSolveTimeResult> {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return { ok: false, error: "Not authenticated" };
+
+    const clamped = Math.max(1, Math.round(seconds));
+
+    if (isLocalMode()) {
+      const bestSeconds = getMemoryStore().saveSolveSeconds(
+        getLocalUserId(),
+        problemId,
+        clamped
+      );
+      revalidatePath("/problems");
+      revalidatePath("/revise");
+      revalidatePath("/interview", "layout");
+      return { ok: true, bestSeconds };
+    }
+
     const supabase = await createClient();
-    const { data: existing } = await supabase
+    const { data: existing, error: fetchError } = await supabase
       .from("user_problems")
-      .select("status")
+      .select("status, best_solve_seconds")
       .eq("user_id", user.id)
       .eq("problem_id", problemId)
       .maybeSingle();
 
-    const { error } = await supabase.from("user_problems").upsert(
-      {
+    if (fetchError) throw fetchError;
+
+    const existingBest =
+      existing?.best_solve_seconds != null
+        ? Number(existing.best_solve_seconds)
+        : null;
+    const bestSeconds =
+      existingBest != null ? Math.min(existingBest, clamped) : clamped;
+
+    if (existing) {
+      const { error } = await supabase
+        .from("user_problems")
+        .update({
+          last_solve_seconds: clamped,
+          best_solve_seconds: bestSeconds,
+        })
+        .eq("user_id", user.id)
+        .eq("problem_id", problemId);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from("user_problems").insert({
         user_id: user.id,
         problem_id: problemId,
-        status: existing?.status ?? "unsolved",
+        status: "unsolved",
         last_solve_seconds: clamped,
-      },
-      { onConflict: "user_id,problem_id" }
-    );
-    if (error) throw error;
-  }
+        best_solve_seconds: bestSeconds,
+      });
+      if (error) throw error;
+    }
 
-  revalidatePath("/revise");
-  revalidatePath("/interview");
+    revalidatePath("/problems");
+    revalidatePath("/revise");
+    revalidatePath("/interview", "layout");
+    return { ok: true, bestSeconds };
+  } catch (error) {
+    console.error("Failed to save solve time", error);
+    return { ok: false, error: saveSolveTimeErrorMessage(error) };
+  }
 }
 
 export async function markProblemRevised(problemId: string) {

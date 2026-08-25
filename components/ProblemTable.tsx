@@ -7,6 +7,8 @@ import { ExternalLink } from "@/components/ui/external-link";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { DifficultyBadge, StatusBadge } from "@/components/ui/badge";
+import { BestSolveTimeLabel } from "@/components/BestSolveTimeLabel";
+import { formatDurationSeconds } from "@/lib/format-duration";
 import type { Difficulty, ProblemStatus, ProblemWithProgress } from "@/lib/types";
 
 type StatusUpdate = { id: string; status: ProblemStatus };
@@ -171,6 +173,10 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
                 {p.frequency.toFixed(1)}% · {p.topics.slice(0, 3).join(", ")}
                 {p.topics.length > 3 ? "..." : ""}
               </p>
+              <BestSolveTimeLabel
+                seconds={p.user_problem?.best_solve_seconds}
+                className="text-sm text-zinc-500"
+              />
               <StatusBadge status={p.status} />
               <ProblemActions problem={p} onStatusChange={setStatusFor} />
             </CardContent>
@@ -187,6 +193,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
               <th className="px-4 py-3 font-medium">Difficulty</th>
               <th className="px-4 py-3 font-medium">Frequency</th>
               <th className="px-4 py-3 font-medium">Topics</th>
+              <th className="px-4 py-3 font-medium">Best time</th>
               <th className="px-5 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
@@ -210,6 +217,11 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
                 <td className="px-4 py-3 text-zinc-500">
                   {p.topics.slice(0, 3).join(", ")}
                   {p.topics.length > 3 ? "..." : ""}
+                </td>
+                <td className="px-4 py-3 tabular-nums text-zinc-500">
+                  {p.user_problem?.best_solve_seconds != null
+                    ? formatDurationSeconds(p.user_problem.best_solve_seconds)
+                    : "—"}
                 </td>
                 <td className="px-5 py-3">
                   <StatusBadge status={p.status} className="w-24 justify-center" />

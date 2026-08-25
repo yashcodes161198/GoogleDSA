@@ -1,13 +1,15 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { formatDurationMs, formatDurationSeconds } from "@/lib/format-duration";
+import { BestSolveTimeLabel } from "@/components/BestSolveTimeLabel";
+import { formatDurationMs } from "@/lib/format-duration";
 import { useProblemTimer } from "@/components/ProblemTimerContext";
 
 export function ProblemSolveTimer({ problemId }: { problemId: string }) {
   const {
     getDisplayMs,
-    getLastSavedSeconds,
+    getBestSavedSeconds,
+    getSaveError,
     isRunning,
     start,
     stop,
@@ -15,7 +17,8 @@ export function ProblemSolveTimer({ problemId }: { problemId: string }) {
   } = useProblemTimer();
 
   const displayMs = getDisplayMs(problemId);
-  const lastSaved = getLastSavedSeconds(problemId);
+  const bestSaved = getBestSavedSeconds(problemId);
+  const saveError = getSaveError(problemId);
   const running = isRunning(problemId);
 
   return (
@@ -25,9 +28,10 @@ export function ProblemSolveTimer({ problemId }: { problemId: string }) {
           <p className="font-mono text-2xl font-semibold tracking-wide tabular-nums">
             {formatDurationMs(displayMs)}
           </p>
-          {lastSaved != null && (
-            <p className="mt-1 text-xs text-zinc-500">
-              Last solve: {formatDurationSeconds(lastSaved)}
+          <BestSolveTimeLabel seconds={bestSaved} />
+          {saveError && (
+            <p className="mt-1 text-xs text-destructive" role="alert">
+              {saveError}
             </p>
           )}
         </div>

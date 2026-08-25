@@ -19,17 +19,19 @@ type TimerEntry = {
 
 type ProblemTimerContextValue = {
   getDisplayMs: (problemId: string) => number;
-  getLastSavedSeconds: (problemId: string) => number | null;
+  getBestSavedSeconds: (problemId: string) => number | null;
+  getSaveError: (problemId: string) => string | null;
   isRunning: (problemId: string) => boolean;
   start: (problemId: string) => void;
   stop: (problemId: string) => void;
+  stopAndPersist: (problemId: string) => Promise<void>;
   reset: (problemId: string) => void;
   onLeetCodeClick: (problemId: string) => void;
 };
 
 const ProblemTimerContext = createContext<ProblemTimerContextValue | null>(null);
 
-function buildInitialSaved(
+function buildInitialBest(
   initial: Record<string, number | null | undefined>
 ): Record<string, number> {
   const saved: Record<string, number> = {};
@@ -41,15 +43,16 @@ function buildInitialSaved(
 
 export function ProblemTimerProvider({
   children,
-  initialLastSolve,
+  initialBestSolve,
 }: {
   children: React.ReactNode;
-  initialLastSolve: Record<string, number | null | undefined>;
+  initialBestSolve: Record<string, number | null | undefined>;
 }) {
   const [timers, setTimers] = useState<Record<string, TimerEntry>>({});
-  const [savedSeconds, setSavedSeconds] = useState<Record<string, number>>(() =>
-    buildInitialSaved(initialLastSolve)
+  const [bestSeconds, setBestSeconds] = useState<Record<string, number>>(() =>
+    buildInitialBest(initialBestSolve)
   );
+  const [saveErrors, setSaveErrors] = useState<Record<string, string>>({});
   const [tick, setTick] = useState(0);
   const activeIdRef = useRef<string | null>(null);
   const timersRef = useRef(timers);
@@ -57,6 +60,10 @@ export function ProblemTimerProvider({
   useEffect(() => {
     timersRef.current = timers;
   }, [timers]);
+
+  useEffect(() => {
+    setBestSeconds((prev) => ({ ...buildInitialBest(initialBestSolve), ...prev }));
+  }, [initialBestSolve]);
 
   const anyRunning = useMemo(
     () => Object.values(timers).some((t) => t.running),
@@ -96,12 +103,20 @@ export function ProblemTimerProvider({
   }, []);
 
   const persist = useCallback(async (problemId: string, seconds: number) => {
-    try {
-      await saveProblemSolveTime(problemId, seconds);
-      setSavedSeconds((prev) => ({ ...prev, [problemId]: seconds }));
-    } catch (err) {
-      console.error("Failed to save solve time", err);
+    const result = await saveProblemSolveTime(problemId, seconds);
+    if (!result.ok) {
+      setSaveErrors((prev) => ({ ...prev, [problemId]: result.error }));
+      return false;
     }
+
+    setSaveErrors((prev) => {
+      if (!prev[problemId]) return prev;
+      const next = { ...prev };
+      delete next[problemId];
+      return next;
+    });
+    setBestSeconds((prev) => ({ ...prev, [problemId]: result.bestSeconds }));
+    return true;
   }, []);
 
   const stop = useCallback(
@@ -165,10 +180,18 @@ export function ProblemTimerProvider({
     [start]
   );
 
+  const stopAndPersist = useCallback(
+    async (problemId: string) => {
+      await stop(problemId, true);
+    },
+    [stop]
+  );
+
   const value = useMemo<ProblemTimerContextValue>(
     () => ({
       getDisplayMs,
-      getLastSavedSeconds: (problemId) => savedSeconds[problemId] ?? null,
+      getBestSavedSeconds: (problemId) => bestSeconds[problemId] ?? null,
+      getSaveError: (problemId) => saveErrors[problemId] ?? null,
       isRunning: (problemId) => timers[problemId]?.running ?? false,
       start: (problemId) => {
         void start(problemId);
@@ -176,10 +199,21 @@ export function ProblemTimerProvider({
       stop: (problemId) => {
         void stop(problemId, true);
       },
+      stopAndPersist,
       reset,
       onLeetCodeClick,
     }),
-    [getDisplayMs, savedSeconds, timers, start, stop, reset, onLeetCodeClick]
+    [
+      getDisplayMs,
+      bestSeconds,
+      saveErrors,
+      timers,
+      start,
+      stop,
+      stopAndPersist,
+      reset,
+      onLeetCodeClick,
+    ]
   );
 
   return (

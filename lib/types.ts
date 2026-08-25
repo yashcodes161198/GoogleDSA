@@ -32,6 +32,7 @@ export interface UserProblem {
   revision_count: number;
   last_revised_at: string | null;
   last_solve_seconds: number | null;
+  best_solve_seconds: number | null;
 }
 
 export interface ProblemWithProgress extends Problem {
@@ -59,6 +60,8 @@ export interface InterviewSessionProblem {
   global_status?: ProblemStatus;
   /** Latest recorded solve time in seconds (from user_problems). */
   last_solve_seconds?: number | null;
+  /** Fastest recorded solve time in seconds (from user_problems). */
+  best_solve_seconds?: number | null;
 }
 
 export interface InterviewSessionSummary {

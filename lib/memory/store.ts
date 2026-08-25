@@ -89,6 +89,8 @@ class MemoryStore {
         patch.last_revised_at ?? existing?.last_revised_at ?? null,
       last_solve_seconds:
         patch.last_solve_seconds ?? existing?.last_solve_seconds ?? null,
+      best_solve_seconds:
+        patch.best_solve_seconds ?? existing?.best_solve_seconds ?? null,
       status: patch.status,
     };
     this.userProblems.set(key, row);
@@ -168,6 +170,7 @@ class MemoryStore {
 
     const globalStatusByProblem = new Map<string, ProblemStatus>();
     const lastSolveByProblem = new Map<string, number | null>();
+    const bestSolveByProblem = new Map<string, number | null>();
     for (const row of rows) {
       const up = this.userProblems.get(userProblemKey(userId, row.problem_id));
       globalStatusByProblem.set(
@@ -178,6 +181,10 @@ class MemoryStore {
         row.problem_id,
         up?.last_solve_seconds ?? null
       );
+      bestSolveByProblem.set(
+        row.problem_id,
+        up?.best_solve_seconds ?? null
+      );
     }
 
     return {
@@ -186,6 +193,7 @@ class MemoryStore {
         ...row,
         global_status: globalStatusByProblem.get(row.problem_id) ?? "unsolved",
         last_solve_seconds: lastSolveByProblem.get(row.problem_id) ?? null,
+        best_solve_seconds: bestSolveByProblem.get(row.problem_id) ?? null,
       })),
     };
   }
@@ -314,13 +322,18 @@ class MemoryStore {
     });
   }
 
-  saveLastSolveSeconds(userId: string, problemId: string, seconds: number) {
+  saveSolveSeconds(userId: string, problemId: string, seconds: number): number {
     const key = userProblemKey(userId, problemId);
     const existing = this.userProblems.get(key);
+    const existingBest = existing?.best_solve_seconds ?? null;
+    const bestSeconds =
+      existingBest != null ? Math.min(existingBest, seconds) : seconds;
     this.upsertUserProblem(userId, problemId, {
       status: (existing?.status ?? "unsolved") as ProblemStatus,
       last_solve_seconds: seconds,
+      best_solve_seconds: bestSeconds,
     });
+    return bestSeconds;
   }
 
   syncSolvedFromInterview(userId: string, problemId: string) {
