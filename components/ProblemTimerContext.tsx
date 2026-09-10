@@ -49,21 +49,21 @@ export function ProblemTimerProvider({
   initialBestSolve: Record<string, number | null | undefined>;
 }) {
   const [timers, setTimers] = useState<Record<string, TimerEntry>>({});
-  const [bestSeconds, setBestSeconds] = useState<Record<string, number>>(() =>
-    buildInitialBest(initialBestSolve)
-  );
+  const [savedBestSeconds, setSavedBestSeconds] = useState<
+    Record<string, number>
+  >({});
   const [saveErrors, setSaveErrors] = useState<Record<string, string>>({});
   const [tick, setTick] = useState(0);
   const activeIdRef = useRef<string | null>(null);
   const timersRef = useRef(timers);
+  const initialBestSeconds = useMemo(
+    () => buildInitialBest(initialBestSolve),
+    [initialBestSolve]
+  );
 
   useEffect(() => {
     timersRef.current = timers;
   }, [timers]);
-
-  useEffect(() => {
-    setBestSeconds((prev) => ({ ...buildInitialBest(initialBestSolve), ...prev }));
-  }, [initialBestSolve]);
 
   const anyRunning = useMemo(
     () => Object.values(timers).some((t) => t.running),
@@ -115,7 +115,10 @@ export function ProblemTimerProvider({
       delete next[problemId];
       return next;
     });
-    setBestSeconds((prev) => ({ ...prev, [problemId]: result.bestSeconds }));
+    setSavedBestSeconds((prev) => ({
+      ...prev,
+      [problemId]: result.bestSeconds,
+    }));
     return true;
   }, []);
 
@@ -190,7 +193,8 @@ export function ProblemTimerProvider({
   const value = useMemo<ProblemTimerContextValue>(
     () => ({
       getDisplayMs,
-      getBestSavedSeconds: (problemId) => bestSeconds[problemId] ?? null,
+      getBestSavedSeconds: (problemId) =>
+        savedBestSeconds[problemId] ?? initialBestSeconds[problemId] ?? null,
       getSaveError: (problemId) => saveErrors[problemId] ?? null,
       isRunning: (problemId) => timers[problemId]?.running ?? false,
       start: (problemId) => {
@@ -205,7 +209,8 @@ export function ProblemTimerProvider({
     }),
     [
       getDisplayMs,
-      bestSeconds,
+      savedBestSeconds,
+      initialBestSeconds,
       saveErrors,
       timers,
       start,

@@ -201,7 +201,8 @@ class MemoryStore {
   createInterviewSession(
     userId: string,
     problemIds: string[],
-    forceNew: boolean
+    forceNew: boolean,
+    durationMinutes = 120
   ): string {
     this.expireStaleInterviewSessions(userId);
     if (forceNew) {
@@ -212,7 +213,9 @@ class MemoryStore {
     }
 
     const startedAt = new Date();
-    const endsAt = new Date(startedAt.getTime() + 2 * 60 * 60 * 1000);
+    const endsAt = new Date(
+      startedAt.getTime() + durationMinutes * 60 * 1000
+    );
     const session: InterviewSession = {
       id: randomUUID(),
       user_id: userId,

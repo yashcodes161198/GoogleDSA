@@ -13,6 +13,7 @@
     "prestart": "node scripts/free-port.mjs 3000",
     "start": "next start",
     "lint": "eslint",
+    "test:interview": "tsx scripts/test-interview-config.ts",
     "seed": "tsx scripts/seed-problems.ts"
   },
   "dependencies": {

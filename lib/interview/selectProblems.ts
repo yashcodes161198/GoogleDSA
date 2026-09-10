@@ -1,10 +1,5 @@
 import type { Difficulty, ProblemWithProgress } from "@/lib/types";
-
-const TARGET_MIX: Record<Difficulty, number> = {
-  EASY: 1,
-  MEDIUM: 3,
-  HARD: 1,
-};
+import type { InterviewDifficultyMix } from "@/lib/interview/config";
 
 function topicOverlap(a: string[], b: string[]): number {
   const setB = new Set(b);
@@ -49,7 +44,7 @@ function sortPool(problems: ProblemWithProgress[]): ProblemWithProgress[] {
 
 export function selectInterviewProblems(
   problems: ProblemWithProgress[],
-  count = 5
+  difficultyMix: InterviewDifficultyMix
 ): ProblemWithProgress[] {
   const pool = sortPool(problems);
   const selected: ProblemWithProgress[] = [];
@@ -77,19 +72,10 @@ export function selectInterviewProblems(
   };
 
   (["EASY", "MEDIUM", "HARD"] as Difficulty[]).forEach((diff) => {
-    for (let i = 0; i < TARGET_MIX[diff]; i++) {
-      if (selected.length >= count) break;
+    for (let i = 0; i < difficultyMix[diff]; i++) {
       pickFromBucket(diff);
     }
   });
-
-  while (selected.length < count) {
-    const remaining = pool.filter((p) => !usedIds.has(p.id));
-    if (remaining.length === 0) break;
-    const pick = weightedPick(remaining.slice(0, 20));
-    usedIds.add(pick.id);
-    selected.push(pick);
-  }
 
   return selected;
 }

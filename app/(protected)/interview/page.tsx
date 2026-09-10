@@ -58,7 +58,7 @@ export default async function InterviewPage() {
       <div>
         <h1 className="text-2xl font-bold sm:text-3xl">Mock interview</h1>
         <p className="mt-1 text-zinc-500">
-          Simulate a 2-hour Google-style coding interview with 5 problems
+          Create a Google-style coding interview with an optional custom mix and duration
         </p>
       </div>
 

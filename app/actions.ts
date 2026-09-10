@@ -11,6 +11,12 @@ import {
 } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { selectInterviewProblems } from "@/lib/interview/selectProblems";
+import {
+  DEFAULT_INTERVIEW_CONFIG,
+  getInterviewProblemCount,
+  type InterviewConfig,
+  validateInterviewConfig,
+} from "@/lib/interview/config";
 import { initialSrsOnSolve } from "@/lib/srs/sm2";
 import type { ProblemStatus } from "@/lib/types";
 
@@ -24,7 +30,10 @@ function startInterviewErrorMessage(error: unknown): string {
   }
   if (
     error instanceof Error &&
-    error.message.startsWith("Not enough interview problems")
+    (error.message.startsWith("Not enough") ||
+      error.message.startsWith("Question counts") ||
+      error.message.startsWith("Choose between") ||
+      error.message.startsWith("Duration must"))
   ) {
     return error.message;
   }
@@ -251,19 +260,41 @@ export async function markProblemRevised(problemId: string) {
 }
 
 export async function startInterviewSession(
-  forceNew = true
+  forceNew = true,
+  config: InterviewConfig = DEFAULT_INTERVIEW_CONFIG
 ): Promise<StartInterviewResult> {
   try {
     const user = await getCurrentUser();
     if (!user) throw new Error("Not authenticated");
 
-    const problems = await getProblemsWithProgress();
-    const selected = selectInterviewProblems(problems, 5);
-    const problemIds = selected.map((p) => p.id);
+    const configError = validateInterviewConfig(config);
+    if (configError) throw new Error(configError);
 
-    if (problemIds.length !== 5) {
+    const problems = await getProblemsWithProgress();
+    const selected = selectInterviewProblems(problems, config.difficultyMix);
+    const problemIds = selected.map((p) => p.id);
+    const requestedCount = getInterviewProblemCount(config);
+
+    if (problemIds.length !== requestedCount) {
+      const selectedCounts = selected.reduce(
+        (counts, problem) => {
+          counts[problem.difficulty] += 1;
+          return counts;
+        },
+        { EASY: 0, MEDIUM: 0, HARD: 0 }
+      );
+      const missing = (["EASY", "MEDIUM", "HARD"] as const)
+        .filter(
+          (difficulty) =>
+            selectedCounts[difficulty] < config.difficultyMix[difficulty]
+        )
+        .map(
+          (difficulty) =>
+            `${config.difficultyMix[difficulty] - selectedCounts[difficulty]} ${difficulty.toLowerCase()}`
+        )
+        .join(", ");
       throw new Error(
-        "Not enough interview problems are available. Please seed the problems catalog and try again."
+        `Not enough interview problems are available. Missing: ${missing}.`
       );
     }
 
@@ -271,7 +302,8 @@ export async function startInterviewSession(
       const sessionId = getMemoryStore().createInterviewSession(
         getLocalUserId(),
         problemIds,
-        forceNew
+        forceNew,
+        config.durationMinutes
       );
       revalidatePath("/interview");
       return { ok: true, sessionId };
@@ -305,7 +337,9 @@ export async function startInterviewSession(
     }
 
     const startedAt = new Date();
-    const endsAt = new Date(startedAt.getTime() + 2 * 60 * 60 * 1000);
+    const endsAt = new Date(
+      startedAt.getTime() + config.durationMinutes * 60 * 1000
+    );
 
     const { data: session, error: sessionError } = await supabase
       .from("interview_sessions")
@@ -345,9 +379,21 @@ export async function startInterviewSession(
 
 export async function startNewInterviewAction(
   _prevState: { error: string } | null,
-  _formData: FormData
+  formData: FormData
 ): Promise<{ error: string } | null> {
-  const result = await startInterviewSession(true);
+  const customize = formData.get("customize") === "on";
+  const config: InterviewConfig = customize
+    ? {
+        difficultyMix: {
+          EASY: Number(formData.get("easyCount")),
+          MEDIUM: Number(formData.get("mediumCount")),
+          HARD: Number(formData.get("hardCount")),
+        },
+        durationMinutes: Number(formData.get("durationMinutes")),
+      }
+    : DEFAULT_INTERVIEW_CONFIG;
+
+  const result = await startInterviewSession(true, config);
   if (!result.ok) {
     return { error: result.error };
   }
