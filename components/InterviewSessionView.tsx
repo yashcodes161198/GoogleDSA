@@ -9,9 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip } from "@/components/ui/tooltip";
 import { DifficultyBadge } from "@/components/ui/badge";
-import { ExternalLink } from "@/components/ui/external-link";
+import { ProblemLinks } from "@/components/ProblemLinks";
 import { ProblemSolveTimer } from "@/components/ProblemSolveTimer";
 import { ProblemTimerProvider, useProblemTimer } from "@/components/ProblemTimerContext";
+import { resolveProblemLinks } from "@/lib/problem-links";
 import type { InterviewSession, InterviewSessionProblem } from "@/lib/types";
 import Link from "next/link";
 
@@ -220,13 +221,10 @@ function InterviewSessionContent({
               <CardContent className="space-y-3">
                 <p className="text-sm text-zinc-500">{problem.topics.join(", ")}</p>
                 <ProblemSolveTimer problemId={sp.problem_id} />
-                <ExternalLink
-                  href={problem.link}
-                  className="inline-flex min-h-10 items-center rounded-md text-sm font-medium text-blue-600 hover:underline"
-                  onClick={() => onLeetCodeClick(sp.problem_id)}
-                >
-                  Open on LeetCode
-                </ExternalLink>
+                <ProblemLinks
+                  links={resolveProblemLinks(problem)}
+                  onLinkClick={() => onLeetCodeClick(sp.problem_id)}
+                />
                 <textarea
                   className="w-full rounded-lg border border-zinc-300 p-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
                   placeholder="Interview notes..."

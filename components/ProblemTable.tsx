@@ -3,12 +3,13 @@
 import { useMemo, useState, useTransition, useOptimistic } from "react";
 import { updateProblemStatus } from "@/app/actions";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "@/components/ui/external-link";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { DifficultyBadge, StatusBadge } from "@/components/ui/badge";
 import { BestSolveTimeLabel } from "@/components/BestSolveTimeLabel";
+import { ProblemLinks } from "@/components/ProblemLinks";
 import { formatDurationSeconds } from "@/lib/format-duration";
+import { resolveProblemLinks } from "@/lib/problem-links";
 import type { Difficulty, ProblemStatus, ProblemWithProgress } from "@/lib/types";
 
 type StatusUpdate = { id: string; status: ProblemStatus };
@@ -160,15 +161,10 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
           <Card key={p.id}>
             <CardContent className="space-y-3 pt-4">
               <div className="flex items-start justify-between gap-3">
-                <ExternalLink
-                  href={p.link}
-                  className="font-medium leading-snug transition-colors hover:text-blue-700 dark:hover:text-blue-300"
-                >
-                  <span className="sr-only">Open on LeetCode: </span>
-                  {p.title}
-                </ExternalLink>
+                <span className="font-medium leading-snug">{p.title}</span>
                 <DifficultyBadge difficulty={p.difficulty} />
               </div>
+              <ProblemLinks links={resolveProblemLinks(p)} />
               <p className="text-sm text-zinc-500">
                 {p.frequency.toFixed(1)}% · {p.topics.slice(0, 3).join(", ")}
                 {p.topics.length > 3 ? "..." : ""}
@@ -201,14 +197,11 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
           <tbody>
             {pageRows.map((p) => (
               <tr key={p.id} className="border-t border-zinc-200 dark:border-zinc-800">
-                <td className="p-0">
-                  <ExternalLink
-                    href={p.link}
-                    className="flex min-h-11 items-center px-4 py-3 font-medium transition-colors hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-950/40 dark:hover:text-blue-300"
-                  >
-                    <span className="sr-only">Open on LeetCode: </span>
-                    {p.title}
-                  </ExternalLink>
+                <td className="px-4 py-3">
+                  <div className="space-y-2">
+                    <span className="font-medium">{p.title}</span>
+                    <ProblemLinks links={resolveProblemLinks(p)} linkClassName="text-xs" />
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   <DifficultyBadge difficulty={p.difficulty} />

@@ -43,9 +43,9 @@ const store = getMemoryStore();
 const userId = getLocalUserId();
 const problems = store.getProblemsWithProgress(userId);
 const customMix: Record<Difficulty, number> = {
-  EASY: 2,
-  MEDIUM: 4,
-  HARD: 2,
+  EASY: 0,
+  MEDIUM: 5,
+  HARD: 3,
 };
 const selected = selectInterviewProblems(problems, customMix);
 

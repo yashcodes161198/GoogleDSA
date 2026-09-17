@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip } from "@/components/ui/tooltip";
 import { DifficultyBadge } from "@/components/ui/badge";
-import { ExternalLink } from "@/components/ui/external-link";
+import { ProblemLinks } from "@/components/ProblemLinks";
 import { ProblemSolveTimer } from "@/components/ProblemSolveTimer";
 import { ProblemTimerProvider, useProblemTimer } from "@/components/ProblemTimerContext";
+import { resolveProblemLinks } from "@/lib/problem-links";
 import type { ProblemWithProgress } from "@/lib/types";
 
 type RevisionUpdate = { problemId: string; revised: boolean };
@@ -187,13 +188,10 @@ function ReviseCardContent({
                   {problem.topics.join(", ") || "General"}
                 </p>
                 <ProblemSolveTimer problemId={problem.id} />
-                <ExternalLink
-                  href={problem.link}
-                  className="inline-flex min-h-10 items-center rounded-md text-sm font-medium text-blue-600 hover:underline"
-                  onClick={() => onLeetCodeClick(problem.id)}
-                >
-                  Open on LeetCode
-                </ExternalLink>
+                <ProblemLinks
+                  links={resolveProblemLinks(problem)}
+                  onLinkClick={() => onLeetCodeClick(problem.id)}
+                />
               </CardContent>
             </Card>
           );

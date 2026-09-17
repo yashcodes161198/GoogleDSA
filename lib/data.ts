@@ -7,6 +7,7 @@ import {
 } from "@/lib/memory/store";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
+import { enrichProblemsFromCsv, enrichProblemFromCsv } from "@/lib/problems-enrich";
 import type {
   DashboardStats,
   Difficulty,
@@ -73,7 +74,7 @@ const getProblemsCatalog = cache(async () => {
     .order("frequency", { ascending: false });
 
   if (error) throw error;
-  return (data as Problem[]) ?? [];
+  return enrichProblemsFromCsv((data as Problem[]) ?? []);
 });
 
 export async function getProblemsWithProgress(): Promise<ProblemWithProgress[]> {
@@ -424,6 +425,7 @@ export async function getInterviewSession(
     session: session as InterviewSession,
     problems: rows.map((row) => ({
       ...row,
+      problem: row.problem ? enrichProblemFromCsv(row.problem as Problem) : row.problem,
       global_status: globalStatusByProblem.get(row.problem_id) ?? "unsolved",
       last_solve_seconds: lastSolveByProblem.get(row.problem_id) ?? null,
       best_solve_seconds: bestSolveByProblem.get(row.problem_id) ?? null,

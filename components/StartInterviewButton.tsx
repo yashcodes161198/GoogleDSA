@@ -53,7 +53,7 @@ export function StartInterviewButton({
       <CardHeader>
         <CardTitle>Start a new interview</CardTitle>
         <CardDescription>
-          Default: 1 easy, 3 medium, 1 hard · 2 hours
+          Default: 3 medium, 2 hard · 2 hours
           {hasActiveSession && (
             <span className="mt-1 block text-amber-600">
               Starting a new interview will end your current active session.

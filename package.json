@@ -14,7 +14,9 @@
     "start": "next start",
     "lint": "eslint",
     "test:interview": "tsx scripts/test-interview-config.ts",
-    "seed": "tsx scripts/seed-problems.ts"
+    "seed": "tsx scripts/seed-problems.ts",
+    "merge-striver": "tsx scripts/merge-striver-into-csv.ts",
+    "migrate:009": "tsx scripts/apply-migration-009.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
@@ -35,6 +37,7 @@
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "pg": "^8.23.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
     "typescript": "^5"

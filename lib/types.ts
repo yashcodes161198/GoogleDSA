@@ -1,5 +1,11 @@
 export type Difficulty = "EASY" | "MEDIUM" | "HARD";
 export type ProblemStatus = "unsolved" | "attempted" | "solved";
+export type ProblemLinkProvider = "leetcode" | "gfg" | "tuf";
+
+export interface ProblemLink {
+  provider: ProblemLinkProvider;
+  url: string;
+}
 export type InterviewSessionStatus = "active" | "completed" | "abandoned";
 export type ReviewRating = "again" | "hard" | "good" | "easy";
 
@@ -15,6 +21,7 @@ export interface Problem {
   frequency: number;
   acceptance_rate: number;
   link: string;
+  links: ProblemLink[];
   topics: string[];
 }
 

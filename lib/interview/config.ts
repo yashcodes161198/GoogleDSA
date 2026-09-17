@@ -9,9 +9,9 @@ export type InterviewConfig = {
 
 export const DEFAULT_INTERVIEW_CONFIG: InterviewConfig = {
   difficultyMix: {
-    EASY: 1,
+    EASY: 0,
     MEDIUM: 3,
-    HARD: 1,
+    HARD: 2,
   },
   durationMinutes: 120,
 };

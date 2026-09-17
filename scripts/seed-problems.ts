@@ -2,11 +2,10 @@ import { config } from "dotenv";
 import { resolve } from "path";
 
 config({ path: resolve(process.cwd(), ".env.local") });
-config(); // fallback to .env if present
+config();
 
 import { createClient } from "@supabase/supabase-js";
-import { readFileSync } from "fs";
-import { slugFromLeetCodeUrl } from "../lib/utils";
+import { loadProblemsFromCsv } from "../lib/problems-csv";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -18,78 +17,47 @@ if (!url || !serviceKey) {
 
 const supabase = createClient(url, serviceKey);
 
-function parseCsvLine(line: string): string[] {
-  const result: string[] = [];
-  let current = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      inQuotes = !inQuotes;
-    } else if (ch === "," && !inQuotes) {
-      result.push(current);
-      current = "";
-    } else {
-      current += ch;
-    }
-  }
-  result.push(current);
-  return result;
-}
-
 async function seed() {
-  const csvPath = resolve(process.cwd(), "data/problems.csv");
-  const raw = readFileSync(csvPath, "utf-8");
-  const lines = raw.split(/\r?\n/).filter((l) => l.trim());
-
-  const dataStart = lines.findIndex((l) => l.startsWith("Difficulty,"));
-  if (dataStart === -1) {
-    throw new Error("Could not find CSV header row");
-  }
-
-  const rows = lines.slice(dataStart + 1);
-  const problems = rows
-    .map((line) => {
-      const [difficulty, title, frequency, acceptanceRate, link, topicsRaw] =
-        parseCsvLine(line);
-      if (!title || !link) return null;
-      const topics = (topicsRaw ?? "")
-        .replace(/^"|"$/g, "")
-        .split(", ")
-        .map((t) => t.trim())
-        .filter(Boolean);
-
-      return {
-        slug: slugFromLeetCodeUrl(link),
-        title,
-        difficulty: difficulty.toUpperCase(),
-        frequency: parseFloat(frequency) || 0,
-        acceptance_rate: parseFloat(acceptanceRate) || 0,
-        link,
-        topics,
-      };
-    })
-    .filter(Boolean) as {
-    slug: string;
-    title: string;
-    difficulty: string;
-    frequency: number;
-    acceptance_rate: number;
-    link: string;
-    topics: string[];
-  }[];
+  const problems = loadProblemsFromCsv().map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    difficulty: p.difficulty,
+    frequency: p.frequency,
+    acceptance_rate: p.acceptance_rate,
+    link: p.link,
+    links: p.links,
+    topics: p.topics,
+  }));
 
   console.log(`Parsed ${problems.length} problems`);
 
+  const deduped = Array.from(
+    new Map(problems.map((p) => [p.slug, p])).values()
+  );
+  if (deduped.length !== problems.length) {
+    console.warn(`Deduped ${problems.length - deduped.length} duplicate slugs before upsert`);
+  }
+
   const batchSize = 100;
-  for (let i = 0; i < problems.length; i += batchSize) {
-    const batch = problems.slice(i, i + batchSize);
-    const { error } = await supabase
+  let seededWithLinks = true;
+  for (let i = 0; i < deduped.length; i += batchSize) {
+    const batch = deduped.slice(i, i + batchSize);
+    let { error } = await supabase
       .from("problems")
       .upsert(batch, { onConflict: "slug" });
+    if (error?.code === "PGRST204" && String(error.message).includes("links")) {
+      seededWithLinks = false;
+      const slim = batch.map(({ links: _links, ...rest }) => rest);
+      ({ error } = await supabase.from("problems").upsert(slim, { onConflict: "slug" }));
+    }
     if (error) throw error;
-    console.log(`Upserted ${Math.min(i + batchSize, problems.length)} / ${problems.length}`);
+    console.log(`Upserted ${Math.min(i + batchSize, deduped.length)} / ${deduped.length}`);
+  }
+
+  if (!seededWithLinks) {
+    console.warn(
+      "Seeded without links column. Run supabase/migrations/009_problem_links.sql in the Supabase SQL editor, then npm run seed again."
+    );
   }
 
   console.log("Seed complete");

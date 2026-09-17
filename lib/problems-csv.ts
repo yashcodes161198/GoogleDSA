@@ -1,6 +1,10 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { slugFromLeetCodeUrl } from "@/lib/utils";
+import {
+  deriveProblemSlug,
+  parseProblemLinksJson,
+  preferredProblemLink,
+} from "@/lib/problem-links";
 import type { Difficulty, Problem } from "@/lib/types";
 import { randomUUID } from "crypto";
 
@@ -12,7 +16,12 @@ function parseCsvLine(line: string): string[] {
   for (let i = 0; i < line.length; i++) {
     const ch = line[i];
     if (ch === '"') {
-      inQuotes = !inQuotes;
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
     } else if (ch === "," && !inQuotes) {
       result.push(current);
       current = "";
@@ -36,14 +45,27 @@ export function loadProblemsFromCsv(): Problem[] {
 
   const rows = lines.slice(dataStart + 1);
   const slugToId = new Map<string, string>();
+  const slugSeen = new Set<string>();
 
   return rows
     .map((line) => {
-      const [difficulty, title, frequency, acceptanceRate, link, topicsRaw] =
-        parseCsvLine(line);
-      if (!title || !link) return null;
+      const cols = parseCsvLine(line);
+      const difficulty = cols[0];
+      const title = cols[1];
+      const frequency = cols[2];
+      const acceptanceRate = cols[3];
+      const link = cols[4];
+      const topicsRaw = cols[5];
+      const linksRaw = cols[6];
 
-      const slug = slugFromLeetCodeUrl(link);
+      if (!title || !link) return null;
+      if (difficulty.toUpperCase() === "EASY") return null;
+
+      const links = parseProblemLinksJson(linksRaw, link);
+      const primaryLink = preferredProblemLink(links) || link;
+      const slug = deriveProblemSlug(links, title);
+      if (slugSeen.has(slug)) return null;
+      slugSeen.add(slug);
       let id = slugToId.get(slug);
       if (!id) {
         id = randomUUID();
@@ -63,7 +85,8 @@ export function loadProblemsFromCsv(): Problem[] {
         difficulty: difficulty.toUpperCase() as Difficulty,
         frequency: parseFloat(frequency) || 0,
         acceptance_rate: parseFloat(acceptanceRate) || 0,
-        link,
+        link: primaryLink,
+        links,
         topics,
       } satisfies Problem;
     })
