@@ -13,7 +13,7 @@
     "prestart": "node scripts/free-port.mjs 3000",
     "start": "next start",
     "lint": "eslint",
-    "test:interview": "tsx scripts/test-interview-config.ts",
+    "test:interview": "tsx scripts/test-interview-config.ts && tsx scripts/test-custom-interview-ui.ts",
     "seed": "tsx scripts/seed-problems.ts",
     "merge-striver": "tsx scripts/merge-striver-into-csv.ts",
     "migrate:009": "tsx scripts/apply-migration-009.ts"

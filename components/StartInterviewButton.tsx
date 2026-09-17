@@ -31,11 +31,10 @@ export function StartInterviewButton({
   const [state, formAction] = useActionState(startNewInterviewAction, null);
   const [customize, setCustomize] = useState(false);
   const [counts, setCounts] = useState({
-    easy: DEFAULT_INTERVIEW_CONFIG.difficultyMix.EASY,
-    medium: DEFAULT_INTERVIEW_CONFIG.difficultyMix.MEDIUM,
-    hard: DEFAULT_INTERVIEW_CONFIG.difficultyMix.HARD,
+    medium: 0,
+    hard: 0,
   });
-  const total = counts.easy + counts.medium + counts.hard;
+  const total = counts.medium + counts.hard;
 
   const updateCount = (
     difficulty: keyof typeof counts,
@@ -80,8 +79,8 @@ export function StartInterviewButton({
               }`}
             >
               <span
-                className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                  customize ? "translate-x-6" : "translate-x-1"
+                className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+                  customize ? "translate-x-5" : "translate-x-0"
                 }`}
               />
               <span className="sr-only">Customize interview</span>
@@ -91,21 +90,7 @@ export function StartInterviewButton({
           {customize && (
             <div className="space-y-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
               <input type="hidden" name="customize" value="on" />
-              <div className="grid gap-4 sm:grid-cols-3">
-                <label className="space-y-1.5 text-sm font-medium">
-                  Easy questions
-                  <Input
-                    type="number"
-                    name="easyCount"
-                    min={0}
-                    max={MAX_INTERVIEW_PROBLEMS}
-                    value={counts.easy}
-                    onChange={(event) =>
-                      updateCount("easy", event.target.value)
-                    }
-                    required
-                  />
-                </label>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <label className="space-y-1.5 text-sm font-medium">
                   Medium questions
                   <Input

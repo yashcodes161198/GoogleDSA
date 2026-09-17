@@ -385,7 +385,7 @@ export async function startNewInterviewAction(
   const config: InterviewConfig = customize
     ? {
         difficultyMix: {
-          EASY: Number(formData.get("easyCount")),
+          EASY: 0,
           MEDIUM: Number(formData.get("mediumCount")),
           HARD: Number(formData.get("hardCount")),
         },
