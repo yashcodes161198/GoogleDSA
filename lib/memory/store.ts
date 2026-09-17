@@ -2,6 +2,10 @@ import { randomUUID } from "crypto";
 import { LOCAL_ADMIN } from "@/lib/config";
 import { loadProblemsFromCsv } from "@/lib/problems-csv";
 import { initialSrsOnSolve } from "@/lib/srs/sm2";
+import {
+  selectRevisionQueue,
+  type RevisionQueueOptions,
+} from "@/lib/revision/selectRevisionQueue";
 import type {
   Difficulty,
   InterviewSession,
@@ -17,22 +21,6 @@ type UserProblemRow = UserProblem;
 
 function userProblemKey(userId: string, problemId: string) {
   return `${userId}:${problemId}`;
-}
-
-function startOfToday(): Date {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function isSameDay(a: string | null | undefined, day: Date): boolean {
-  if (!a) return false;
-  const d = new Date(a);
-  return (
-    d.getFullYear() === day.getFullYear() &&
-    d.getMonth() === day.getMonth() &&
-    d.getDate() === day.getDate()
-  );
 }
 
 class MemoryStore {
@@ -274,41 +262,15 @@ class MemoryStore {
     );
   }
 
-  getDailyRevisions(userId: string, limit: number): ProblemWithProgress[] {
-    const today = startOfToday();
-    // Keep the local implementation aligned with the Supabase queue: only
-    // solved problems are eligible, and the lowest revision counts go first.
-    const solved = this.getProblemsWithProgress(userId).filter(
-      (p) => p.status === "solved"
-    );
-
-    const byRoundRobin = (a: ProblemWithProgress, b: ProblemWithProgress) => {
-      const aCount = a.user_problem?.revision_count ?? 0;
-      const bCount = b.user_problem?.revision_count ?? 0;
-      if (aCount !== bCount) return aCount - bCount;
-      const aTime = a.user_problem?.last_revised_at
-        ? new Date(a.user_problem.last_revised_at).getTime()
-        : 0;
-      const bTime = b.user_problem?.last_revised_at
-        ? new Date(b.user_problem.last_revised_at).getTime()
-        : 0;
-      return aTime - bTime;
-    };
-
-    const revisedToday = solved
-      .filter((p) => isSameDay(p.user_problem?.last_revised_at, today))
-      .sort(
-        (a, b) =>
-          new Date(a.user_problem!.last_revised_at!).getTime() -
-          new Date(b.user_problem!.last_revised_at!).getTime()
-      );
-
-    const pending = solved
-      .filter((p) => !isSameDay(p.user_problem?.last_revised_at, today))
-      .sort(byRoundRobin);
-
-    const remainingSlots = Math.max(0, limit - revisedToday.length);
-    return [...revisedToday, ...pending.slice(0, remainingSlots)].slice(0, limit);
+  getDailyRevisions(
+    userId: string,
+    limit: number,
+    options: Omit<RevisionQueueOptions, "limit"> = {}
+  ): ProblemWithProgress[] {
+    return selectRevisionQueue(this.getProblemsWithProgress(userId), {
+      limit,
+      ...options,
+    });
   }
 
   markRevised(userId: string, problemId: string) {

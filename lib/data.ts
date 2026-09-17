@@ -8,6 +8,10 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
 import { enrichProblemsFromCsv, enrichProblemFromCsv } from "@/lib/problems-enrich";
+import {
+  selectRevisionQueue,
+  type RevisionQueueOptions,
+} from "@/lib/revision/selectRevisionQueue";
 import type {
   DashboardStats,
   Difficulty,
@@ -223,49 +227,22 @@ export async function getDashboardStats(
 }
 
 export async function getDailyRevisions(
-  limit = DAILY_REVISION_LIMIT
+  limit = DAILY_REVISION_LIMIT,
+  options: Omit<RevisionQueueOptions, "limit"> = {}
 ): Promise<ProblemWithProgress[]> {
   const user = await getCurrentUser();
   if (!user) return [];
 
   if (isLocalMode()) {
-    return getMemoryStore().getDailyRevisions(getLocalUserId(), limit);
+    return getMemoryStore().getDailyRevisions(
+      getLocalUserId(),
+      limit,
+      options
+    );
   }
 
   const problems = await getProblemsWithProgress();
-  const today = startOfToday();
-  // Unsolved problems have a logical revision count of zero but never enter
-  // this queue. Solved problems with count zero are eligible for their first
-  // revision and correctly appear before already-revised problems.
-  const solved = problems.filter((p) => p.status === "solved");
-
-  const byRoundRobin = (a: ProblemWithProgress, b: ProblemWithProgress) => {
-    const aCount = a.user_problem?.revision_count ?? 0;
-    const bCount = b.user_problem?.revision_count ?? 0;
-    if (aCount !== bCount) return aCount - bCount;
-    const aTime = a.user_problem?.last_revised_at
-      ? new Date(a.user_problem.last_revised_at).getTime()
-      : 0;
-    const bTime = b.user_problem?.last_revised_at
-      ? new Date(b.user_problem.last_revised_at).getTime()
-      : 0;
-    return aTime - bTime;
-  };
-
-  const revisedToday = solved
-    .filter((p) => isSameDay(p.user_problem?.last_revised_at, today))
-    .sort(
-      (a, b) =>
-        new Date(a.user_problem!.last_revised_at!).getTime() -
-        new Date(b.user_problem!.last_revised_at!).getTime()
-    );
-
-  const pending = solved
-    .filter((p) => !isSameDay(p.user_problem?.last_revised_at, today))
-    .sort(byRoundRobin);
-
-  const remainingSlots = Math.max(0, limit - revisedToday.length);
-  return [...revisedToday, ...pending.slice(0, remainingSlots)].slice(0, limit);
+  return selectRevisionQueue(problems, { limit, ...options });
 }
 
 export async function getInterviewSessions(): Promise<InterviewSession[]> {

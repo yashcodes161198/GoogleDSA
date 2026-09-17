@@ -1,8 +1,10 @@
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { markProblemRevised } from "@/app/actions";
+import { RotateCcw } from "lucide-react";
+import { markProblemRevised, refreshRevisionQueue } from "@/app/actions";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -11,9 +13,8 @@ import { ProblemLinks } from "@/components/ProblemLinks";
 import { ProblemSolveTimer } from "@/components/ProblemSolveTimer";
 import { ProblemTimerProvider, useProblemTimer } from "@/components/ProblemTimerContext";
 import { resolveProblemLinks } from "@/lib/problem-links";
+import { resetRevisionQueue } from "@/lib/revision/selectRevisionQueue";
 import type { ProblemWithProgress } from "@/lib/types";
-
-type RevisionUpdate = { problemId: string; revised: boolean };
 
 function isRevisedToday(problem: ProblemWithProgress): boolean {
   const at = problem.user_problem?.last_revised_at;
@@ -37,43 +38,80 @@ export function ReviseCard({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const initialRevised = new Set(
-    problems.filter(isRevisedToday).map((p) => p.id)
+  const [queue, setQueue] = useState(problems);
+  const [revisedIds, setRevisedIds] = useState(
+    () => new Set(problems.filter(isRevisedToday).map((p) => p.id))
   );
 
-  const [optimisticRevised, setOptimisticRevised] = useOptimistic(
-    initialRevised,
-    (state, update: RevisionUpdate) => {
-      const next = new Set(state);
-      if (update.revised) next.add(update.problemId);
-      else next.delete(update.problemId);
-      return next;
-    }
-  );
-
-  const revisedCount = optimisticRevised.size;
+  const revisedCount = queue.filter((problem) =>
+    revisedIds.has(problem.id)
+  ).length;
 
   const toggleRevised = (problemId: string, revised: boolean) => {
     if (!revised) return;
     startTransition(async () => {
       setErrorMessage(null);
-      setOptimisticRevised({ problemId, revised: true });
+      setRevisedIds((current) => new Set(current).add(problemId));
       try {
         const result = await markProblemRevised(problemId);
         if (!result.ok) {
           setErrorMessage(result.error);
+          setRevisedIds((current) => {
+            const next = new Set(current);
+            next.delete(problemId);
+            return next;
+          });
+          return;
         }
         router.refresh();
       } catch (err) {
         console.error(err);
         setErrorMessage("Could not save this revision. Please try again.");
+        setRevisedIds((current) => {
+          const next = new Set(current);
+          next.delete(problemId);
+          return next;
+        });
         router.refresh();
       }
     });
   };
 
-  if (problems.length === 0) {
+  const resetQueue = () => {
+    startTransition(async () => {
+      setErrorMessage(null);
+      const checkedIds = new Set(
+        queue
+          .filter((problem) => revisedIds.has(problem.id))
+          .map((problem) => problem.id)
+      );
+      const uncheckedIds = queue
+        .filter((problem) => !checkedIds.has(problem.id))
+        .map((problem) => problem.id);
+      const result = await refreshRevisionQueue(
+        queue.map((problem) => problem.id),
+        uncheckedIds
+      );
+
+      if (!result.ok) {
+        setErrorMessage(result.error);
+        return;
+      }
+
+      const next = resetRevisionQueue(
+        queue,
+        checkedIds,
+        result.replacements,
+        dailyLimit
+      );
+      setQueue(next);
+      setRevisedIds(
+        new Set(next.filter(isRevisedToday).map((problem) => problem.id))
+      );
+    });
+  };
+
+  if (queue.length === 0) {
     return (
       <Card>
         <CardContent className="py-12 text-center">
@@ -87,21 +125,22 @@ export function ReviseCard({
     );
   }
 
-  const allDone = revisedCount >= problems.length;
+  const allDone = revisedCount >= queue.length;
 
   const initialBestSolve = Object.fromEntries(
-    problems.map((p) => [p.id, p.user_problem?.best_solve_seconds ?? null])
+    queue.map((p) => [p.id, p.user_problem?.best_solve_seconds ?? null])
   );
 
   return (
     <ProblemTimerProvider initialBestSolve={initialBestSolve}>
       <ReviseCardContent
-        problems={problems}
+        problems={queue}
         revisedCount={revisedCount}
         allDone={allDone}
         errorMessage={errorMessage}
-        optimisticRevised={optimisticRevised}
+        revisedIds={revisedIds}
         pending={pending}
+        resetQueue={resetQueue}
         toggleRevised={toggleRevised}
       />
     </ProblemTimerProvider>
@@ -113,16 +152,18 @@ function ReviseCardContent({
   revisedCount,
   allDone,
   errorMessage,
-  optimisticRevised,
+  revisedIds,
   pending,
+  resetQueue,
   toggleRevised,
 }: {
   problems: ProblemWithProgress[];
   revisedCount: number;
   allDone: boolean;
   errorMessage: string | null;
-  optimisticRevised: Set<string>;
+  revisedIds: Set<string>;
   pending: boolean;
+  resetQueue: () => void;
   toggleRevised: (problemId: string, revised: boolean) => void;
 }) {
   const { onLeetCodeClick, stopAndPersist } = useProblemTimer();
@@ -139,11 +180,25 @@ function ReviseCardContent({
         <p className="text-sm text-zinc-500">
           {revisedCount} of {problems.length} revised today
         </p>
-        {allDone && (
-          <p className="text-sm font-medium text-emerald-600">
-            Today&apos;s revision complete
-          </p>
-        )}
+        <div className="flex items-center gap-3">
+          {allDone && (
+            <p className="text-sm font-medium text-emerald-600">
+              Today&apos;s revision complete
+            </p>
+          )}
+          <Tooltip label="Replace revised questions">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              aria-label="Replace revised questions"
+              disabled={pending}
+              onClick={resetQueue}
+            >
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </Tooltip>
+        </div>
       </div>
       {errorMessage && (
         <p role="alert" className="text-sm text-red-600">
@@ -153,7 +208,7 @@ function ReviseCardContent({
 
       <div className="grid gap-4">
         {problems.map((problem, index) => {
-          const revised = optimisticRevised.has(problem.id);
+          const revised = revisedIds.has(problem.id);
           const revisionCount = problem.user_problem?.revision_count ?? 0;
 
           return (

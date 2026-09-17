@@ -11,7 +11,7 @@ export default async function RevisePage() {
         <h1 className="text-2xl font-bold sm:text-3xl">Revise</h1>
         <p className="mt-1 text-zinc-500">
           Round-robin through solved problems · up to {DAILY_REVISION_LIMIT} per day ·{" "}
-          {queue.length} queued today
+          solved at least 48 hours ago · {queue.length} queued today
         </p>
       </div>
       <ReviseCard problems={queue} dailyLimit={DAILY_REVISION_LIMIT} />

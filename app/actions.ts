@@ -2,10 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { isLocalMode } from "@/lib/config";
+import { DAILY_REVISION_LIMIT, isLocalMode } from "@/lib/config";
 import { getLocalUserId, getMemoryStore } from "@/lib/memory/store";
 import {
   expireStaleInterviewSessions,
+  getDailyRevisions,
   getProblemsWithProgress,
   getCurrentUser,
 } from "@/lib/data";
@@ -255,6 +256,38 @@ export async function markProblemRevised(problemId: string) {
     return {
       ok: false as const,
       error: "Could not save this revision. Please try again.",
+    };
+  }
+}
+
+export async function refreshRevisionQueue(
+  currentIds: string[],
+  uncheckedIds: string[]
+) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return { ok: false as const, error: "Not authenticated" };
+
+    const current = new Set(currentIds.slice(0, DAILY_REVISION_LIMIT));
+    const preservedCount = new Set(
+      uncheckedIds.filter((id) => current.has(id))
+    ).size;
+    const replacementCount = Math.max(
+      0,
+      DAILY_REVISION_LIMIT - preservedCount
+    );
+
+    const replacements = await getDailyRevisions(replacementCount, {
+      excludeIds: current,
+      includeRevisedToday: false,
+    });
+
+    return { ok: true as const, replacements };
+  } catch (error) {
+    console.error("Failed to refresh revision queue", error);
+    return {
+      ok: false as const,
+      error: "Could not refresh the revision queue. Please try again.",
     };
   }
 }
