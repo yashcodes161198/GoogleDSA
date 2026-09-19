@@ -222,8 +222,11 @@ export async function markProblemRevised(problemId: string) {
     if (!user) return { ok: false as const, error: "Not authenticated" };
 
     if (isLocalMode()) {
-      getMemoryStore().markRevised(getLocalUserId(), problemId);
-      return { ok: true as const };
+      const revisionCount = getMemoryStore().markRevised(
+        getLocalUserId(),
+        problemId
+      );
+      return { ok: true as const, revisionCount };
     }
 
     const supabase = await createClient();

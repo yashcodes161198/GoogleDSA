@@ -112,7 +112,6 @@ export async function getProblemsWithProgress(): Promise<ProblemWithProgress[]> 
 type DashboardStatsRpcRow = {
   total: number;
   solved: number;
-  attempted: number;
   unsolved: number;
   reviewsDue: number;
   byDifficulty: Record<Difficulty, { solved: number; total: number }>;
@@ -133,7 +132,6 @@ async function getDashboardStatsRpc(
   return {
     total: d.total,
     solved: d.solved,
-    attempted: d.attempted,
     unsolved: d.unsolved,
     reviewsDue: d.reviewsDue,
     revisionsDueToday: 0,
@@ -162,7 +160,6 @@ export function computeStatsFromProblems(
   const topicMap = new Map<string, { solved: number; total: number }>();
 
   let solved = 0;
-  let attempted = 0;
   let reviewsDue = 0;
 
   for (const p of problems) {
@@ -176,8 +173,6 @@ export function computeStatsFromProblems(
       ) {
         reviewsDue += 1;
       }
-    } else if (p.status === "attempted") {
-      attempted += 1;
     }
 
     for (const topic of p.topics.length ? p.topics : ["General"]) {
@@ -196,8 +191,7 @@ export function computeStatsFromProblems(
   return {
     total: problems.length,
     solved,
-    attempted,
-    unsolved: problems.length - solved - attempted,
+    unsolved: problems.length - solved,
     reviewsDue,
     revisionsDueToday,
     revisionsDoneToday,

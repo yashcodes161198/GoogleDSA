@@ -280,11 +280,13 @@ class MemoryStore {
       throw new Error("Only solved problems can be revised");
     }
     const now = new Date().toISOString();
-    this.userProblems.set(key, {
+    const next = {
       ...existing,
       revision_count: (existing.revision_count ?? 0) + 1,
       last_revised_at: now,
-    });
+    };
+    this.userProblems.set(key, next);
+    return next.revision_count;
   }
 
   saveSolveSeconds(userId: string, problemId: string, seconds: number): number {

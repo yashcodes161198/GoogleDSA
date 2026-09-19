@@ -10,6 +10,11 @@ import { BestSolveTimeLabel } from "@/components/BestSolveTimeLabel";
 import { ProblemLinks } from "@/components/ProblemLinks";
 import { formatDurationSeconds } from "@/lib/format-duration";
 import { resolveProblemLinks } from "@/lib/problem-links";
+import {
+  getProblemProgressStatus,
+  PROBLEM_PROGRESS_FILTERS,
+  type ProblemProgressStatus,
+} from "@/lib/revision/problemProgressStatus";
 import type { Difficulty, ProblemStatus, ProblemWithProgress } from "@/lib/types";
 
 type StatusUpdate = { id: string; status: ProblemStatus };
@@ -23,14 +28,6 @@ function ProblemActions({
 }) {
   return (
     <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-      <Button
-        size="sm"
-        variant={problem.status === "attempted" ? "default" : "outline"}
-        className="min-h-11"
-        onClick={() => onStatusChange(problem.id, "attempted")}
-      >
-        Attempted
-      </Button>
       <Button
         size="sm"
         variant={problem.status === "solved" ? "default" : "outline"}
@@ -54,7 +51,7 @@ function ProblemActions({
 export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) {
   const [search, setSearch] = useState("");
   const [difficulty, setDifficulty] = useState<Difficulty | "ALL">("ALL");
-  const [status, setStatus] = useState<ProblemStatus | "ALL">("ALL");
+  const [status, setStatus] = useState<ProblemProgressStatus | "ALL">("ALL");
   const [topic, setTopic] = useState("ALL");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState<number | "all">(50);
@@ -76,7 +73,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
     return optimisticProblems.filter((p) => {
       if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
       if (difficulty !== "ALL" && p.difficulty !== difficulty) return false;
-      if (status !== "ALL" && p.status !== status) return false;
+      if (status !== "ALL" && getProblemProgressStatus(p) !== status) return false;
       if (topic !== "ALL" && !p.topics.includes(topic)) return false;
       return true;
     });
@@ -129,12 +126,16 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
         <select
           className={selectClassName}
           value={status}
-          onChange={(e) => setStatus(e.target.value as ProblemStatus | "ALL")}
+          onChange={(e) =>
+            setStatus(e.target.value as ProblemProgressStatus | "ALL")
+          }
         >
           <option value="ALL">All statuses</option>
-          <option value="unsolved">Unsolved</option>
-          <option value="attempted">Attempted</option>
-          <option value="solved">Solved</option>
+          {PROBLEM_PROGRESS_FILTERS.map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
         </select>
         <select
           className={`${selectClassName} col-span-2 md:col-span-1`}
@@ -173,7 +174,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
                 seconds={p.user_problem?.best_solve_seconds}
                 className="text-sm text-zinc-500"
               />
-              <StatusBadge status={p.status} />
+              <StatusBadge status={getProblemProgressStatus(p)} />
               <ProblemActions problem={p} onStatusChange={setStatusFor} />
             </CardContent>
           </Card>
@@ -217,17 +218,13 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
                     : "—"}
                 </td>
                 <td className="px-5 py-3">
-                  <StatusBadge status={p.status} className="w-24 justify-center" />
+                  <StatusBadge
+                    status={getProblemProgressStatus(p)}
+                    className="w-32 justify-center"
+                  />
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant={p.status === "attempted" ? "default" : "outline"}
-                      onClick={() => setStatusFor(p.id, "attempted")}
-                    >
-                      Attempted
-                    </Button>
                     <Button
                       size="sm"
                       variant={p.status === "solved" ? "default" : "outline"}

@@ -1,7 +1,13 @@
+import { readFileSync } from "node:fs";
 import {
   resetRevisionQueue,
   selectRevisionQueue,
 } from "../lib/revision/selectRevisionQueue";
+import { getProblemProgressStatus } from "../lib/revision/problemProgressStatus";
+import {
+  applyOptimisticRevision,
+  reconcileRevisionCount,
+} from "../lib/revision/optimisticRevision";
 import type { ProblemWithProgress } from "../lib/types";
 
 function assert(condition: boolean, message: string) {
@@ -138,6 +144,80 @@ assert(
   resetRevisionQueue(current, new Set(current.map((p) => p.id)), [], 10)
     .length === 0,
   "return fewer than ten when no replacements exist"
+);
+
+assert(
+  getProblemProgressStatus(problem("status-unsolved", {
+    status: "unsolved",
+    revisionCount: 8,
+  })) === "unsolved",
+  "unsolved takes precedence over historical revision count"
+);
+assert(
+  getProblemProgressStatus(problem("status-solved")) === "solved",
+  "solved with no revisions has the solved status"
+);
+assert(
+  [1, 2, 3, 4, 20]
+    .map((revisionCount) =>
+      getProblemProgressStatus(
+        problem(`status-${revisionCount}`, { revisionCount })
+      )
+    )
+    .join() ===
+    "revised-once,revised-twice,revised-three,revised-many,revised-many",
+  "map revision counts to exclusive status buckets"
+);
+
+const beforeOptimisticRevision = problem("optimistic", { revisionCount: 2 });
+const optimisticRevision = applyOptimisticRevision(
+  beforeOptimisticRevision,
+  now.toISOString()
+);
+assert(
+  optimisticRevision.user_problem?.revision_count === 3 &&
+    optimisticRevision.user_problem.last_revised_at === now.toISOString(),
+  "apply the revision count and timestamp before the server responds"
+);
+assert(
+  beforeOptimisticRevision.user_problem?.revision_count === 2,
+  "keep the original problem available for rollback"
+);
+assert(
+  reconcileRevisionCount(optimisticRevision, 4).user_problem?.revision_count ===
+    4,
+  "reconcile optimistic state with the atomic server count"
+);
+
+const reviseCardSource = readFileSync(
+  new URL("../components/ReviseCard.tsx", import.meta.url),
+  "utf8"
+);
+assert(
+  reviseCardSource.indexOf("void toggleRevised(problemId)") <
+    reviseCardSource.indexOf("void stopAndPersist(problemId)"),
+  "mark the UI revised before starting timer persistence"
+);
+assert(
+  !reviseCardSource.includes("router.refresh()"),
+  "do not fetch the revise page again after marking a problem"
+);
+
+const migrationSource = readFileSync(
+  new URL(
+    "../supabase/migrations/010_remove_attempted_status.sql",
+    import.meta.url
+  ),
+  "utf8"
+);
+assert(
+  migrationSource.includes("SET status = 'unsolved'") &&
+    migrationSource.includes("WHERE status = 'attempted'"),
+  "migrate legacy attempted rows to unsolved"
+);
+assert(
+  migrationSource.includes("CHECK (status IN ('unsolved', 'solved'))"),
+  "restrict persisted problem status to unsolved and solved"
 );
 
 console.log("Revision queue tests passed");

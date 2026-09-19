@@ -4,7 +4,6 @@ import type { DashboardStats } from "@/lib/types";
 export function StatsCards({ stats }: { stats: DashboardStats }) {
   const items = [
     { label: "Solved", value: stats.solved, sub: `of ${stats.total}` },
-    { label: "Attempted", value: stats.attempted, sub: "in progress" },
     { label: "Remaining", value: stats.unsolved, sub: "to cover" },
     {
       label: "To revise today",
@@ -14,7 +13,7 @@ export function StatsCards({ stats }: { stats: DashboardStats }) {
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-3">
       {items.map((item) => (
         <Card key={item.label}>
           <CardHeader className="pb-2">

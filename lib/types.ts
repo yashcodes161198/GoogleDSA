@@ -1,5 +1,5 @@
 export type Difficulty = "EASY" | "MEDIUM" | "HARD";
-export type ProblemStatus = "unsolved" | "attempted" | "solved";
+export type ProblemStatus = "unsolved" | "solved";
 export type ProblemLinkProvider = "leetcode" | "gfg" | "tuf";
 
 export interface ProblemLink {
@@ -82,7 +82,6 @@ export interface InterviewSessionSummary {
 export interface DashboardStats {
   total: number;
   solved: number;
-  attempted: number;
   unsolved: number;
   reviewsDue: number;
   revisionsDueToday: number;

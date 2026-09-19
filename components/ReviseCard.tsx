@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { RotateCcw } from "lucide-react";
 import { markProblemRevised, refreshRevisionQueue } from "@/app/actions";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,10 @@ import { ProblemLinks } from "@/components/ProblemLinks";
 import { ProblemSolveTimer } from "@/components/ProblemSolveTimer";
 import { ProblemTimerProvider, useProblemTimer } from "@/components/ProblemTimerContext";
 import { resolveProblemLinks } from "@/lib/problem-links";
+import {
+  applyOptimisticRevision,
+  reconcileRevisionCount,
+} from "@/lib/revision/optimisticRevision";
 import { resetRevisionQueue } from "@/lib/revision/selectRevisionQueue";
 import type { ProblemWithProgress } from "@/lib/types";
 
@@ -35,10 +38,10 @@ export function ReviseCard({
   problems: ProblemWithProgress[];
   dailyLimit: number;
 }) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [refreshPending, startRefreshTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [queue, setQueue] = useState(problems);
+  const [savingIds, setSavingIds] = useState(() => new Set<string>());
   const [revisedIds, setRevisedIds] = useState(
     () => new Set(problems.filter(isRevisedToday).map((p) => p.id))
   );
@@ -47,38 +50,62 @@ export function ReviseCard({
     revisedIds.has(problem.id)
   ).length;
 
-  const toggleRevised = (problemId: string, revised: boolean) => {
-    if (!revised) return;
-    startTransition(async () => {
-      setErrorMessage(null);
-      setRevisedIds((current) => new Set(current).add(problemId));
-      try {
-        const result = await markProblemRevised(problemId);
-        if (!result.ok) {
-          setErrorMessage(result.error);
-          setRevisedIds((current) => {
-            const next = new Set(current);
-            next.delete(problemId);
-            return next;
-          });
-          return;
-        }
-        router.refresh();
-      } catch (err) {
-        console.error(err);
-        setErrorMessage("Could not save this revision. Please try again.");
-        setRevisedIds((current) => {
-          const next = new Set(current);
-          next.delete(problemId);
-          return next;
-        });
-        router.refresh();
+  const toggleRevised = async (problemId: string) => {
+    const previousProblem = queue.find((problem) => problem.id === problemId);
+    if (!previousProblem) return;
+
+    const rollback = (message: string) => {
+      setErrorMessage(message);
+      setQueue((current) =>
+        current.map((problem) =>
+          problem.id === problemId ? previousProblem : problem
+        )
+      );
+      setRevisedIds((current) => {
+        const next = new Set(current);
+        next.delete(problemId);
+        return next;
+      });
+    };
+
+    setErrorMessage(null);
+    setQueue((current) =>
+      current.map((problem) =>
+        problem.id === problemId
+          ? applyOptimisticRevision(problem, new Date().toISOString())
+          : problem
+      )
+    );
+    setRevisedIds((current) => new Set(current).add(problemId));
+    setSavingIds((current) => new Set(current).add(problemId));
+
+    try {
+      const result = await markProblemRevised(problemId);
+      if (!result.ok) {
+        rollback(result.error);
+        return;
       }
-    });
+      setQueue((current) =>
+        current.map((problem) =>
+          problem.id === problemId
+            ? reconcileRevisionCount(problem, result.revisionCount)
+            : problem
+        )
+      );
+    } catch (err) {
+      console.error(err);
+      rollback("Could not save this revision. Please try again.");
+    } finally {
+      setSavingIds((current) => {
+        const next = new Set(current);
+        next.delete(problemId);
+        return next;
+      });
+    }
   };
 
   const resetQueue = () => {
-    startTransition(async () => {
+    startRefreshTransition(async () => {
       setErrorMessage(null);
       const checkedIds = new Set(
         queue
@@ -139,7 +166,8 @@ export function ReviseCard({
         allDone={allDone}
         errorMessage={errorMessage}
         revisedIds={revisedIds}
-        pending={pending}
+        savingIds={savingIds}
+        refreshPending={refreshPending}
         resetQueue={resetQueue}
         toggleRevised={toggleRevised}
       />
@@ -153,7 +181,8 @@ function ReviseCardContent({
   allDone,
   errorMessage,
   revisedIds,
-  pending,
+  savingIds,
+  refreshPending,
   resetQueue,
   toggleRevised,
 }: {
@@ -162,16 +191,17 @@ function ReviseCardContent({
   allDone: boolean;
   errorMessage: string | null;
   revisedIds: Set<string>;
-  pending: boolean;
+  savingIds: Set<string>;
+  refreshPending: boolean;
   resetQueue: () => void;
-  toggleRevised: (problemId: string, revised: boolean) => void;
+  toggleRevised: (problemId: string) => void;
 }) {
   const { onLeetCodeClick, stopAndPersist } = useProblemTimer();
 
-  const handleRevisedChange = async (problemId: string, checked: boolean) => {
+  const handleRevisedChange = (problemId: string, checked: boolean) => {
     if (!checked) return;
-    await stopAndPersist(problemId);
-    toggleRevised(problemId, checked);
+    void toggleRevised(problemId);
+    void stopAndPersist(problemId);
   };
 
   return (
@@ -192,7 +222,7 @@ function ReviseCardContent({
               size="sm"
               variant="outline"
               aria-label="Replace revised questions"
-              disabled={pending}
+              disabled={refreshPending || savingIds.size > 0}
               onClick={resetQueue}
             >
               <RotateCcw className="h-4 w-4" aria-hidden="true" />
@@ -220,7 +250,7 @@ function ReviseCardContent({
                       <Checkbox
                         checked={revised}
                         aria-label="Mark as revised"
-                        disabled={revised || pending}
+                        disabled={revised || savingIds.has(problem.id)}
                         onChange={(checked) =>
                           void handleRevisedChange(problem.id, checked)
                         }
