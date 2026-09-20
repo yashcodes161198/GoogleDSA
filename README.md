@@ -54,6 +54,8 @@ cp .env.local.example .env.local
 3. Copy your project URL and anon key into `.env.local`.
 4. Copy the **service role key** (Settings → API) into `.env.local` for seeding only.
 
+To add shared catalog questions in production, grant **`app_metadata.role = "admin"`** to one account. See [`docs/ADMIN_SETUP.md`](docs/ADMIN_SETUP.md).
+
 ### 3. Seed problems
 
 ```bash

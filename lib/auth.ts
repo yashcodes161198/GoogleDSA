@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { isLocalMode, LOCAL_ADMIN } from "@/lib/config";
+import { isAdminUser } from "@/lib/auth-admin";
 import { createClient } from "@/lib/supabase/server";
+
+export { isAdminUser } from "@/lib/auth-admin";
 
 export const getUser = cache(async () => {
   if (isLocalMode()) {
@@ -18,6 +21,12 @@ export const getUser = cache(async () => {
 export async function requireUser() {
   const user = await getUser();
   if (!user) redirect("/login");
+  return user;
+}
+
+export async function requireAdmin() {
+  const user = await requireUser();
+  if (!isAdminUser(user)) redirect("/problems");
   return user;
 }
 

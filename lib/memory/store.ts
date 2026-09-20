@@ -41,6 +41,23 @@ class MemoryStore {
     return [...this.problems].sort((a, b) => b.frequency - a.frequency);
   }
 
+  hasProblemSlug(slug: string): boolean {
+    this.ensureSeeded();
+    return this.problems.some((p) => p.slug === slug);
+  }
+
+  addProblem(problem: Problem): { ok: true } | { ok: false; error: string } {
+    this.ensureSeeded();
+    if (this.problems.some((p) => p.slug === problem.slug)) {
+      return {
+        ok: false,
+        error: "A question with the same links or title already exists.",
+      };
+    }
+    this.problems.push(problem);
+    return { ok: true };
+  }
+
   getProblemsWithProgress(userId: string): ProblemWithProgress[] {
     const problems = this.getProblemsCatalog();
     return problems.map((problem) => {

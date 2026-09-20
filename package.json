@@ -15,6 +15,8 @@
     "lint": "eslint",
     "test:interview": "tsx scripts/test-interview-config.ts && tsx scripts/test-custom-interview-ui.ts",
     "test:revision": "tsx scripts/test-revision-queue.ts",
+    "test:new-problem": "tsx scripts/test-new-problem-input.ts",
+    "test:admin": "tsx scripts/test-admin-auth.ts",
     "seed": "tsx scripts/seed-problems.ts",
     "merge-striver": "tsx scripts/merge-striver-into-csv.ts",
     "migrate:009": "tsx scripts/apply-migration-009.ts"

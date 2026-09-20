@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { DAILY_REVISION_LIMIT, isLocalMode } from "@/lib/config";
@@ -11,6 +12,7 @@ import {
   getCurrentUser,
 } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
+import { isAdminUser } from "@/lib/auth";
 import { selectInterviewProblems } from "@/lib/interview/selectProblems";
 import {
   DEFAULT_INTERVIEW_CONFIG,
@@ -19,6 +21,12 @@ import {
   validateInterviewConfig,
 } from "@/lib/interview/config";
 import { initialSrsOnSolve } from "@/lib/srs/sm2";
+import {
+  formValuesFromFormData,
+  parseNewProblemForm,
+  problemInsertRow,
+  type NewProblemFormValues,
+} from "@/lib/problems/parseNewProblemInput";
 import type { ProblemStatus } from "@/lib/types";
 
 export type StartInterviewResult =
@@ -558,4 +566,105 @@ export async function endInterviewSession(
   revalidatePath("/dashboard");
   revalidatePath("/problems");
   revalidatePath("/revise");
+}
+
+export type AddQuestionActionState = {
+  error: string;
+  fieldErrors?: Partial<Record<keyof NewProblemFormValues, string>>;
+  values: NewProblemFormValues;
+} | null;
+
+function isDuplicateSlugError(error: { code?: string; message?: string }): boolean {
+  return error.code === "23505" || /duplicate key/i.test(error.message ?? "");
+}
+
+export async function addQuestionAction(
+  _prevState: AddQuestionActionState,
+  formData: FormData
+): Promise<AddQuestionActionState> {
+  const values = formValuesFromFormData(formData);
+
+  const user = await getCurrentUser();
+  if (!user) {
+    return {
+      error: "Not authenticated",
+      values,
+    };
+  }
+  if (!isAdminUser(user)) {
+    return {
+      error: "Only admins can add questions.",
+      values,
+    };
+  }
+
+  const parsed = parseNewProblemForm(formData);
+  if (!parsed.ok) {
+    return {
+      error: parsed.error,
+      fieldErrors: parsed.fieldErrors,
+      values: parsed.values,
+    };
+  }
+
+  const id = randomUUID();
+  const row = problemInsertRow(parsed.data, id);
+
+  if (isLocalMode()) {
+    const result = getMemoryStore().addProblem(row);
+    if (!result.ok) {
+      return { error: result.error, values };
+    }
+  } else {
+    const supabase = await createClient();
+    const { data: existing } = await supabase
+      .from("problems")
+      .select("id")
+      .eq("slug", parsed.data.slug)
+      .maybeSingle();
+
+    if (existing) {
+      return {
+        error: "A question with the same links or title already exists.",
+        values,
+      };
+    }
+
+    const { error } = await supabase.from("problems").insert({
+      id,
+      slug: parsed.data.slug,
+      title: parsed.data.title,
+      difficulty: parsed.data.difficulty,
+      frequency: parsed.data.frequency,
+      acceptance_rate: parsed.data.acceptance_rate,
+      link: parsed.data.link,
+      links: parsed.data.links,
+      topics: parsed.data.topics,
+    });
+
+    if (error) {
+      if (isDuplicateSlugError(error)) {
+        return {
+          error: "A question with the same links or title already exists.",
+          values,
+        };
+      }
+      console.error("Failed to add question", error);
+      if (error.code === "42501") {
+        return {
+          error:
+            "Adding questions requires admin access. Apply migration 012_problems_admin_insert_policy.sql and set app_metadata.role to admin (see docs/ADMIN_SETUP.md).",
+          values,
+        };
+      }
+      return {
+        error: "Could not save this question. Please try again.",
+        values,
+      };
+    }
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/problems");
+  redirect("/problems?added=1");
 }
