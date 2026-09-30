@@ -54,11 +54,10 @@ function ProblemActions({
   const canRevise = problem.status === "solved";
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+    <div className="flex flex-nowrap items-center gap-2">
       <Button
         size="sm"
         variant={problem.status === "solved" ? "default" : "outline"}
-        className="min-h-11"
         onClick={() => onStatusChange(problem.id, "solved")}
       >
         Solved
@@ -66,7 +65,6 @@ function ProblemActions({
       <Button
         size="sm"
         variant="outline"
-        className="min-h-11"
         disabled={!canRevise}
         title={canRevise ? "Increase revision count by 1" : "Solve this question before revising"}
         onClick={() => onRevise(problem.id)}
@@ -76,7 +74,6 @@ function ProblemActions({
       <Button
         size="sm"
         variant="ghost"
-        className="col-span-2 min-h-11 sm:col-span-1"
         onClick={() => onStatusChange(problem.id, "unsolved")}
       >
         Reset
@@ -318,7 +315,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
                     className="w-32 justify-center"
                   />
                 </td>
-                <td className="px-4 py-3">
+                <td className="whitespace-nowrap px-4 py-3">
                   <ProblemActions
                     problem={p}
                     onStatusChange={setStatusFor}
