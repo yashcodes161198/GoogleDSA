@@ -234,6 +234,9 @@ export async function markProblemRevised(problemId: string) {
         getLocalUserId(),
         problemId
       );
+      revalidatePath("/problems");
+      revalidatePath("/revise");
+      revalidatePath("/dashboard");
       return { ok: true as const, revisionCount };
     }
 
@@ -258,6 +261,9 @@ export async function markProblemRevised(problemId: string) {
       };
     }
 
+    revalidatePath("/problems");
+    revalidatePath("/revise");
+    revalidatePath("/dashboard");
     return {
       ok: true as const,
       revisionCount: Number(revisionCount),

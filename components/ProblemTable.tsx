@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition, useOptimistic } from "react";
-import { updateProblemStatus } from "@/app/actions";
+import { markProblemRevised, updateProblemStatus } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,17 +15,44 @@ import {
   PROBLEM_PROGRESS_FILTERS,
   type ProblemProgressStatus,
 } from "@/lib/revision/problemProgressStatus";
+import {
+  applyOptimisticRevision,
+  reconcileRevisionCount,
+} from "@/lib/revision/optimisticRevision";
 import type { Difficulty, ProblemStatus, ProblemWithProgress } from "@/lib/types";
 
-type StatusUpdate = { id: string; status: ProblemStatus };
+type ProblemTableUpdate =
+  | { kind: "status"; id: string; status: ProblemStatus }
+  | { kind: "revise"; id: string; revisedAt: string }
+  | { kind: "reconcile"; id: string; revisionCount: number };
+
+function applyProblemTableUpdate(
+  state: ProblemWithProgress[],
+  update: ProblemTableUpdate
+): ProblemWithProgress[] {
+  return state.map((problem) => {
+    if (problem.id !== update.id) return problem;
+    if (update.kind === "status") {
+      return { ...problem, status: update.status };
+    }
+    if (update.kind === "revise") {
+      return applyOptimisticRevision(problem, update.revisedAt);
+    }
+    return reconcileRevisionCount(problem, update.revisionCount);
+  });
+}
 
 function ProblemActions({
   problem,
   onStatusChange,
+  onRevise,
 }: {
   problem: ProblemWithProgress;
   onStatusChange: (id: string, status: ProblemStatus) => void;
+  onRevise: (id: string) => void;
 }) {
+  const canRevise = problem.status === "solved";
+
   return (
     <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
       <Button
@@ -35,6 +62,16 @@ function ProblemActions({
         onClick={() => onStatusChange(problem.id, "solved")}
       >
         Solved
+      </Button>
+      <Button
+        size="sm"
+        variant="outline"
+        className="min-h-11"
+        disabled={!canRevise}
+        title={canRevise ? "Increase revision count by 1" : "Solve this question before revising"}
+        onClick={() => onRevise(problem.id)}
+      >
+        +1 revision
       </Button>
       <Button
         size="sm"
@@ -55,12 +92,24 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
   const [topic, setTopic] = useState("ALL");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState<number | "all">(50);
+  const [revisionError, setRevisionError] = useState<string | null>(null);
+  const [savedRevisions, setSavedRevisions] = useState<Record<string, number>>({});
   const [pending, startTransition] = useTransition();
 
+  const problemsWithSaved = useMemo(() => {
+    const savedIds = Object.keys(savedRevisions);
+    if (savedIds.length === 0) return problems;
+    return problems.map((problem) => {
+      const saved = savedRevisions[problem.id];
+      if (saved == null || !problem.user_problem) return problem;
+      if (problem.user_problem.revision_count >= saved) return problem;
+      return reconcileRevisionCount(problem, saved);
+    });
+  }, [problems, savedRevisions]);
+
   const [optimisticProblems, updateOptimistic] = useOptimistic(
-    problems,
-    (state, update: StatusUpdate) =>
-      state.map((p) => (p.id === update.id ? { ...p, status: update.status } : p))
+    problemsWithSaved,
+    applyProblemTableUpdate
   );
 
   const topics = useMemo(() => {
@@ -96,8 +145,45 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
 
   const setStatusFor = (problemId: string, next: ProblemStatus) => {
     startTransition(async () => {
-      updateOptimistic({ id: problemId, status: next });
+      updateOptimistic({ kind: "status", id: problemId, status: next });
       await updateProblemStatus(problemId, next);
+    });
+  };
+
+  const incrementRevision = (problemId: string) => {
+    const current = optimisticProblems.find((problem) => problem.id === problemId);
+    if (!current || current.status !== "solved") return;
+
+    const previousCount = current.user_problem?.revision_count ?? 0;
+
+    startTransition(async () => {
+      setRevisionError(null);
+      updateOptimistic({
+        kind: "revise",
+        id: problemId,
+        revisedAt: new Date().toISOString(),
+      });
+
+      const result = await markProblemRevised(problemId);
+      if (!result.ok) {
+        updateOptimistic({
+          kind: "reconcile",
+          id: problemId,
+          revisionCount: previousCount,
+        });
+        setRevisionError(result.error);
+        return;
+      }
+
+      setSavedRevisions((current) => ({
+        ...current,
+        [problemId]: result.revisionCount,
+      }));
+      updateOptimistic({
+        kind: "reconcile",
+        id: problemId,
+        revisionCount: result.revisionCount,
+      });
     });
   };
 
@@ -155,6 +241,11 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
         Showing {pageRows.length} of {filtered.length} problems
         {pending && " · Saving..."}
       </p>
+      {revisionError && (
+        <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+          {revisionError}
+        </p>
+      )}
 
       {/* Mobile: card list */}
       <div className="space-y-3 md:hidden">
@@ -175,7 +266,11 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
                 className="text-sm text-zinc-500"
               />
               <StatusBadge status={getProblemProgressStatus(p)} />
-              <ProblemActions problem={p} onStatusChange={setStatusFor} />
+              <ProblemActions
+                problem={p}
+                onStatusChange={setStatusFor}
+                onRevise={incrementRevision}
+              />
             </CardContent>
           </Card>
         ))}
@@ -224,22 +319,11 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
                   />
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant={p.status === "solved" ? "default" : "outline"}
-                      onClick={() => setStatusFor(p.id, "solved")}
-                    >
-                      Solved
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setStatusFor(p.id, "unsolved")}
-                    >
-                      Reset
-                    </Button>
-                  </div>
+                  <ProblemActions
+                    problem={p}
+                    onStatusChange={setStatusFor}
+                    onRevise={incrementRevision}
+                  />
                 </td>
               </tr>
             ))}
