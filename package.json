@@ -19,6 +19,8 @@
     "test:admin": "tsx scripts/test-admin-auth.ts",
     "seed": "tsx scripts/seed-problems.ts",
     "merge-striver": "tsx scripts/merge-striver-into-csv.ts",
+    "merge-checklist": "tsx scripts/merge-checklist-into-csv.ts",
+    "sync-checklist-frequency": "tsx scripts/sync-checklist-frequency.ts",
     "migrate:009": "tsx scripts/apply-migration-009.ts"
   },
   "dependencies": {
