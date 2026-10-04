@@ -21,17 +21,6 @@ import {
 } from "@/lib/revision/optimisticRevision";
 import type { Difficulty, ProblemStatus, ProblemWithProgress } from "@/lib/types";
 
-const FREQUENCY_FILTERS = [
-  { value: "ALL", label: "All frequencies" },
-  { value: "50", label: "50% and above" },
-  { value: "40", label: "40% and above" },
-  { value: "30", label: "30% and above" },
-  { value: "20", label: "20% and above" },
-  { value: "10", label: "10% and above" },
-] as const;
-
-type FrequencyFilter = (typeof FREQUENCY_FILTERS)[number]["value"];
-
 type ProblemTableUpdate =
   | { kind: "status"; id: string; status: ProblemStatus }
   | { kind: "revise"; id: string; revisedAt: string }
@@ -98,7 +87,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
   const [difficulty, setDifficulty] = useState<Difficulty | "ALL">("ALL");
   const [status, setStatus] = useState<ProblemProgressStatus | "ALL">("ALL");
   const [topic, setTopic] = useState("ALL");
-  const [frequency, setFrequency] = useState<FrequencyFilter>("ALL");
+  const [frequencyInput, setFrequencyInput] = useState("");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState<number | "all">(50);
   const [revisionError, setRevisionError] = useState<string | null>(null);
@@ -133,12 +122,19 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
       if (difficulty !== "ALL" && p.difficulty !== difficulty) return false;
       if (status !== "ALL" && getProblemProgressStatus(p) !== status) return false;
       if (topic !== "ALL" && !p.topics.includes(topic)) return false;
-      if (frequency !== "ALL" && p.frequency < Number(frequency)) return false;
+      const enteredFrequency = Number(frequencyInput);
+      if (
+        frequencyInput.trim() !== "" &&
+        Number.isFinite(enteredFrequency) &&
+        Math.round(p.frequency * 10) !== Math.round(enteredFrequency * 10)
+      ) {
+        return false;
+      }
       return true;
     });
-  }, [optimisticProblems, search, difficulty, status, topic, frequency]);
+  }, [optimisticProblems, search, difficulty, status, topic, frequencyInput]);
 
-  const filterKey = `${search}|${difficulty}|${status}|${topic}|${frequency}|${pageSize}`;
+  const filterKey = `${search}|${difficulty}|${status}|${topic}|${frequencyInput}|${pageSize}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {
     setPrevFilterKey(filterKey);
@@ -245,18 +241,17 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
             </option>
           ))}
         </select>
-        <select
+        <Input
+          type="number"
+          inputMode="decimal"
+          min={0}
+          max={100}
+          step="0.1"
           aria-label="Frequency"
-          className={selectClassName}
-          value={frequency}
-          onChange={(e) => setFrequency(e.target.value as FrequencyFilter)}
-        >
-          {FREQUENCY_FILTERS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          placeholder="Frequency %"
+          value={frequencyInput}
+          onChange={(e) => setFrequencyInput(e.target.value)}
+        />
       </div>
 
       <p className="text-sm text-zinc-500">
