@@ -16,23 +16,20 @@ export default async function LeaderboardPage() {
   const weekLabel = formatLeaderboardWeek();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold sm:text-3xl">Leaderboard</h1>
         <p className="mt-1 text-zinc-500">
           Week of {weekLabel} · resets Monday 00:00 IST
         </p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Points</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+        <details className="mt-3 text-sm text-zinc-500">
+          <summary className="w-fit cursor-pointer hover:text-zinc-700 dark:hover:text-zinc-300">
+            How points work
+          </summary>
+          <div className="mt-3 max-w-md rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+            <table className="w-full">
               <thead>
-                <tr className="text-left text-zinc-500">
+                <tr className="text-left">
                   <th className="pb-2 font-medium">Event</th>
                   <th className="pb-2 font-medium">Medium</th>
                   <th className="pb-2 font-medium">Hard</th>
@@ -41,7 +38,7 @@ export default async function LeaderboardPage() {
               <tbody>
                 {RULES.map((rule) => (
                   <tr key={rule.event} className="border-t border-zinc-200 dark:border-zinc-800">
-                    <td className="py-2">{rule.event}</td>
+                    <td className="py-2 text-zinc-700 dark:text-zinc-300">{rule.event}</td>
                     <td className="py-2">{rule.medium}</td>
                     <td className="py-2">{rule.hard}</td>
                   </tr>
@@ -49,11 +46,8 @@ export default async function LeaderboardPage() {
               </tbody>
             </table>
           </div>
-          <p className="mt-3 text-sm text-zinc-500">
-            A solve scores once. Each revision of that question scores again, with the first revision worth more than later ones.
-          </p>
-        </CardContent>
-      </Card>
+        </details>
+      </div>
 
       <Card>
         <CardHeader>
