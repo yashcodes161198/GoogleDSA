@@ -1,5 +1,11 @@
 import { randomUUID } from "crypto";
 import { LOCAL_ADMIN } from "@/lib/config";
+import {
+  leaderboardPoints,
+  leaderboardWeekBounds,
+  rankLeaderboardTotals,
+  type LeaderboardEventType,
+} from "@/lib/leaderboard/points";
 import { loadProblemsFromCsv } from "@/lib/problems-csv";
 import { initialSrsOnSolve } from "@/lib/srs/sm2";
 import {
@@ -11,11 +17,21 @@ import type {
   InterviewSession,
   InterviewSessionProblem,
   InterviewSessionStatus,
+  LeaderboardEntry,
   Problem,
   ProblemStatus,
   ProblemWithProgress,
   UserProblem,
 } from "@/lib/types";
+
+type LeaderboardEvent = {
+  user_id: string;
+  problem_id: string;
+  event_type: LeaderboardEventType;
+  points: number;
+  revision_number: number | null;
+  created_at: string;
+};
 
 type UserProblemRow = UserProblem;
 
@@ -28,6 +44,7 @@ class MemoryStore {
   userProblems = new Map<string, UserProblemRow>();
   interviewSessions: InterviewSession[] = [];
   interviewSessionProblems: InterviewSessionProblem[] = [];
+  leaderboardEvents: LeaderboardEvent[] = [];
   private seeded = false;
 
   ensureSeeded() {
@@ -303,7 +320,91 @@ class MemoryStore {
       last_revised_at: now,
     };
     this.userProblems.set(key, next);
+    this.awardRevision(userId, problemId, next.revision_count);
     return next.revision_count;
+  }
+
+  awardSolve(userId: string, problemId: string, at = new Date()): number {
+    return this.recordLeaderboardEvent(userId, problemId, "solve", null, at);
+  }
+
+  awardRevision(
+    userId: string,
+    problemId: string,
+    revisionNumber: number,
+    at = new Date()
+  ): number {
+    return this.recordLeaderboardEvent(
+      userId,
+      problemId,
+      "revision",
+      revisionNumber,
+      at
+    );
+  }
+
+  getWeeklyLeaderboard(now = new Date()): LeaderboardEntry[] {
+    const { start, end } = leaderboardWeekBounds(now);
+    const totals = new Map<string, number>();
+    for (const event of this.leaderboardEvents) {
+      const at = new Date(event.created_at).getTime();
+      if (at < start.getTime() || at >= end.getTime()) continue;
+      totals.set(event.user_id, (totals.get(event.user_id) ?? 0) + event.points);
+    }
+
+    return rankLeaderboardTotals(
+      [...totals.entries()].map(([user_id, points]) => ({
+        user_id,
+        display_name: this.leaderboardName(user_id),
+        points,
+      }))
+    );
+  }
+
+  private leaderboardName(userId: string): string {
+    if (userId === LOCAL_ADMIN.id) {
+      return LOCAL_ADMIN.email.split("@")[0] || "Player";
+    }
+    return "Player";
+  }
+
+  private recordLeaderboardEvent(
+    userId: string,
+    problemId: string,
+    eventType: LeaderboardEventType,
+    revisionNumber: number | null,
+    at: Date
+  ): number {
+    this.ensureSeeded();
+    const problem = this.problems.find((item) => item.id === problemId);
+    if (!problem) return 0;
+
+    const points = leaderboardPoints(
+      problem.difficulty,
+      eventType,
+      revisionNumber ?? undefined
+    );
+    if (points <= 0) return 0;
+
+    const duplicate = this.leaderboardEvents.some((event) => {
+      if (event.user_id !== userId || event.problem_id !== problemId) return false;
+      if (eventType === "solve") return event.event_type === "solve";
+      return (
+        event.event_type === "revision" &&
+        event.revision_number === revisionNumber
+      );
+    });
+    if (duplicate) return 0;
+
+    this.leaderboardEvents.push({
+      user_id: userId,
+      problem_id: problemId,
+      event_type: eventType,
+      points,
+      revision_number: revisionNumber,
+      created_at: at.toISOString(),
+    });
+    return points;
   }
 
   saveSolveSeconds(userId: string, problemId: string, seconds: number): number {
@@ -334,6 +435,7 @@ class MemoryStore {
       repetitions: srs.repetitions,
       next_review_at: srs.next_review_at.toISOString(),
     });
+    this.awardSolve(userId, problemId);
   }
 }
 

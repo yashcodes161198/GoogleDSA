@@ -18,6 +18,7 @@ import type {
   InterviewSession,
   InterviewSessionProblem,
   InterviewSessionSummary,
+  LeaderboardEntry,
   Problem,
   ProblemStatus,
   ProblemWithProgress,
@@ -80,6 +81,36 @@ const getProblemsCatalog = cache(async () => {
   if (error) throw error;
   return enrichProblemsFromCsv((data as Problem[]) ?? []);
 });
+
+export async function getWeeklyLeaderboard(): Promise<{
+  entries: LeaderboardEntry[];
+  unavailable: boolean;
+}> {
+  if (isLocalMode()) {
+    return {
+      entries: getMemoryStore().getWeeklyLeaderboard(),
+      unavailable: false,
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_weekly_leaderboard");
+  if (error) {
+    if (error.code === "PGRST202" || error.code === "42883") {
+      console.error("Weekly leaderboard is not installed", error);
+      return { entries: [], unavailable: true };
+    }
+    throw error;
+  }
+
+  const entries = ((data ?? []) as LeaderboardEntry[]).map((entry) => ({
+    user_id: entry.user_id,
+    display_name: entry.display_name,
+    points: Number(entry.points),
+    rank: Number(entry.rank),
+  }));
+  return { entries, unavailable: false };
+}
 
 export async function getProblemsWithProgress(): Promise<ProblemWithProgress[]> {
   const user = await getCurrentUser();

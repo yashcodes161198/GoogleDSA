@@ -13,7 +13,7 @@ export function MobileTabBar() {
       className="fixed inset-x-0 bottom-0 z-50 border-t border-zinc-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden dark:border-zinc-800 dark:bg-zinc-950"
       aria-label="Main navigation"
     >
-      <div className="mx-auto grid max-w-6xl grid-cols-4">
+      <div className="mx-auto grid max-w-6xl grid-cols-5">
         {navLinks.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href);
           return (

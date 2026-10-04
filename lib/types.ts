@@ -79,6 +79,13 @@ export interface InterviewSessionSummary {
   problemTitles: string[];
 }
 
+export interface LeaderboardEntry {
+  user_id: string;
+  display_name: string;
+  points: number;
+  rank: number;
+}
+
 export interface DashboardStats {
   total: number;
   solved: number;

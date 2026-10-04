@@ -49,6 +49,23 @@ function startInterviewErrorMessage(error: unknown): string {
   return "Could not start the interview. Please verify the Supabase schema and problems catalog, then try again.";
 }
 
+async function awardLeaderboardSolve(problemId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("award_leaderboard_solve", {
+    p_problem_id: problemId,
+  });
+  if (error) console.error("Failed to award leaderboard solve points", error);
+}
+
+async function awardLeaderboardRevision(problemId: string, revisionNumber: number) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("award_leaderboard_revision", {
+    p_problem_id: problemId,
+    p_revision_number: revisionNumber,
+  });
+  if (error) console.error("Failed to award leaderboard revision points", error);
+}
+
 export async function updateProblemStatus(problemId: string, status: ProblemStatus) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
@@ -69,6 +86,9 @@ export async function updateProblemStatus(problemId: string, status: ProblemStat
       });
     }
     store.upsertUserProblem(getLocalUserId(), problemId, patch);
+    if (status === "solved") {
+      store.awardSolve(getLocalUserId(), problemId);
+    }
   } else {
     const supabase = await createClient();
     const payload: Record<string, unknown> = {
@@ -92,11 +112,15 @@ export async function updateProblemStatus(problemId: string, status: ProblemStat
       onConflict: "user_id,problem_id",
     });
     if (error) throw error;
+    if (status === "solved") {
+      await awardLeaderboardSolve(problemId);
+    }
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/problems");
   revalidatePath("/revise");
+  revalidatePath("/leaderboard");
 }
 
 export async function updateProblemNotes(problemId: string, notes: string) {
@@ -237,6 +261,7 @@ export async function markProblemRevised(problemId: string) {
       revalidatePath("/problems");
       revalidatePath("/revise");
       revalidatePath("/dashboard");
+      revalidatePath("/leaderboard");
       return { ok: true as const, revisionCount };
     }
 
@@ -261,9 +286,12 @@ export async function markProblemRevised(problemId: string) {
       };
     }
 
+    await awardLeaderboardRevision(problemId, Number(revisionCount));
+
     revalidatePath("/problems");
     revalidatePath("/revise");
     revalidatePath("/dashboard");
+    revalidatePath("/leaderboard");
     return {
       ok: true as const,
       revisionCount: Number(revisionCount),
@@ -489,6 +517,7 @@ async function syncInterviewCompletionToProgress(
     { onConflict: "user_id,problem_id" }
   );
   if (error) throw error;
+  await awardLeaderboardSolve(problemId);
 }
 
 export async function updateInterviewProblem(
@@ -526,6 +555,7 @@ export async function updateInterviewProblem(
     revalidatePath("/dashboard");
     revalidatePath("/problems");
     revalidatePath("/revise");
+    revalidatePath("/leaderboard");
   }
 }
 
@@ -572,6 +602,7 @@ export async function endInterviewSession(
   revalidatePath("/dashboard");
   revalidatePath("/problems");
   revalidatePath("/revise");
+  revalidatePath("/leaderboard");
 }
 
 export type AddQuestionActionState = {
