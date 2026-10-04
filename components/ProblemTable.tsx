@@ -21,6 +21,17 @@ import {
 } from "@/lib/revision/optimisticRevision";
 import type { Difficulty, ProblemStatus, ProblemWithProgress } from "@/lib/types";
 
+const FREQUENCY_FILTERS = [
+  { value: "ALL", label: "All frequencies" },
+  { value: "50", label: "50% and above" },
+  { value: "40", label: "40% and above" },
+  { value: "30", label: "30% and above" },
+  { value: "20", label: "20% and above" },
+  { value: "10", label: "10% and above" },
+] as const;
+
+type FrequencyFilter = (typeof FREQUENCY_FILTERS)[number]["value"];
+
 type ProblemTableUpdate =
   | { kind: "status"; id: string; status: ProblemStatus }
   | { kind: "revise"; id: string; revisedAt: string }
@@ -87,6 +98,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
   const [difficulty, setDifficulty] = useState<Difficulty | "ALL">("ALL");
   const [status, setStatus] = useState<ProblemProgressStatus | "ALL">("ALL");
   const [topic, setTopic] = useState("ALL");
+  const [frequency, setFrequency] = useState<FrequencyFilter>("ALL");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState<number | "all">(50);
   const [revisionError, setRevisionError] = useState<string | null>(null);
@@ -121,11 +133,12 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
       if (difficulty !== "ALL" && p.difficulty !== difficulty) return false;
       if (status !== "ALL" && getProblemProgressStatus(p) !== status) return false;
       if (topic !== "ALL" && !p.topics.includes(topic)) return false;
+      if (frequency !== "ALL" && p.frequency < Number(frequency)) return false;
       return true;
     });
-  }, [optimisticProblems, search, difficulty, status, topic]);
+  }, [optimisticProblems, search, difficulty, status, topic, frequency]);
 
-  const filterKey = `${search}|${difficulty}|${status}|${topic}|${pageSize}`;
+  const filterKey = `${search}|${difficulty}|${status}|${topic}|${frequency}|${pageSize}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {
     setPrevFilterKey(filterKey);
@@ -189,7 +202,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         <Input
           className="col-span-2 md:col-span-1"
           placeholder="Search problems..."
@@ -221,7 +234,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
           ))}
         </select>
         <select
-          className={`${selectClassName} col-span-2 md:col-span-1`}
+          className={selectClassName}
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
         >
@@ -229,6 +242,18 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
           {topics.map((t) => (
             <option key={t} value={t}>
               {t}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Frequency"
+          className={selectClassName}
+          value={frequency}
+          onChange={(e) => setFrequency(e.target.value as FrequencyFilter)}
+        >
+          {FREQUENCY_FILTERS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
