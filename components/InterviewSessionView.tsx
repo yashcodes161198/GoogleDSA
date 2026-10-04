@@ -2,7 +2,8 @@
 
 import { useCallback, useOptimistic, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { endInterviewSession, updateInterviewProblem } from "@/app/actions";
+import { endInterviewSession, setProblemFavorite, updateInterviewProblem } from "@/app/actions";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import { InterviewTimer } from "@/components/InterviewTimer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,9 @@ import { resolveProblemLinks } from "@/lib/problem-links";
 import type { InterviewSession, InterviewSessionProblem } from "@/lib/types";
 import Link from "next/link";
 
-type CompletionUpdate = { problemId: string; completed: boolean };
+type SessionUpdate =
+  | { kind: "complete"; problemId: string; completed: boolean }
+  | { kind: "favorite"; problemId: string; favorite: boolean };
 
 export function InterviewSessionView({
   session,
@@ -29,12 +32,14 @@ export function InterviewSessionView({
   const [pending, startTransition] = useTransition();
   const isActive = session.status === "active";
 
-  const [optimisticProblems, setOptimisticCompletion] = useOptimistic(
+  const [optimisticProblems, applySessionUpdate] = useOptimistic(
     problems,
-    (state, update: CompletionUpdate) =>
-      state.map((p) =>
-        p.problem_id === update.problemId ? { ...p, completed: update.completed } : p
-      )
+    (state, update: SessionUpdate) =>
+      state.map((p) => {
+        if (p.problem_id !== update.problemId) return p;
+        if (update.kind === "complete") return { ...p, completed: update.completed };
+        return { ...p, is_favorite: update.favorite };
+      })
   );
 
   const completedCount = optimisticProblems.filter((p) => p.completed).length;
@@ -48,7 +53,7 @@ export function InterviewSessionView({
 
   const toggleComplete = (problemId: string, completed: boolean, notes?: string | null) => {
     startTransition(async () => {
-      setOptimisticCompletion({ problemId, completed });
+      applySessionUpdate({ kind: "complete", problemId, completed });
       try {
         await updateInterviewProblem(session.id, problemId, completed, notes ?? undefined);
       } catch (err) {
@@ -63,6 +68,21 @@ export function InterviewSessionView({
         await updateInterviewProblem(session.id, problemId, completed, notes);
       } catch (err) {
         console.error(err);
+      }
+    });
+  };
+
+  const toggleFavorite = (problemId: string) => {
+    const current = optimisticProblems.find((problem) => problem.problem_id === problemId);
+    if (!current) return;
+    const next = !(current.is_favorite ?? false);
+    startTransition(async () => {
+      applySessionUpdate({ kind: "favorite", problemId, favorite: next });
+      try {
+        await setProblemFavorite(problemId, next);
+      } catch (err) {
+        console.error(err);
+        applySessionUpdate({ kind: "favorite", problemId, favorite: !next });
       }
     });
   };
@@ -98,6 +118,7 @@ export function InterviewSessionView({
         pending={pending}
         finish={finish}
         toggleComplete={toggleComplete}
+        toggleFavorite={toggleFavorite}
         saveNotes={saveNotes}
       />
     </ProblemTimerProvider>
@@ -112,6 +133,7 @@ function InterviewSessionContent({
   pending,
   finish,
   toggleComplete,
+  toggleFavorite,
   saveNotes,
 }: {
   session: InterviewSession;
@@ -125,6 +147,7 @@ function InterviewSessionContent({
     completed: boolean,
     notes?: string | null
   ) => void;
+  toggleFavorite: (problemId: string) => void;
   saveNotes: (problemId: string, completed: boolean, notes: string) => void;
 }) {
   const { onLeetCodeClick, stopAndPersist } = useProblemTimer();
@@ -207,6 +230,10 @@ function InterviewSessionContent({
                         }
                       />
                     </Tooltip>
+                    <FavoriteButton
+                      favorite={sp.is_favorite === true}
+                      onToggle={() => toggleFavorite(sp.problem_id)}
+                    />
                     <span className="text-zinc-400">#{sp.position}</span>
                     {problem.title}
                     {sp.global_status === "solved" && (

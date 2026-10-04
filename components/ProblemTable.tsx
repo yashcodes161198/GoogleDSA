@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState, useTransition, useOptimistic } from "react";
-import { markProblemRevised, updateProblemStatus } from "@/app/actions";
+import { markProblemRevised, setProblemFavorite, updateProblemStatus } from "@/app/actions";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,12 +20,16 @@ import {
   applyOptimisticRevision,
   reconcileRevisionCount,
 } from "@/lib/revision/optimisticRevision";
+import { withProblemFavorite } from "@/lib/problems/favorite";
 import type { Difficulty, ProblemStatus, ProblemWithProgress } from "@/lib/types";
+
+type FavoriteFilter = "ALL" | "FAVORITES";
 
 type ProblemTableUpdate =
   | { kind: "status"; id: string; status: ProblemStatus }
   | { kind: "revise"; id: string; revisedAt: string }
-  | { kind: "reconcile"; id: string; revisionCount: number };
+  | { kind: "reconcile"; id: string; revisionCount: number }
+  | { kind: "favorite"; id: string; favorite: boolean };
 
 function applyProblemTableUpdate(
   state: ProblemWithProgress[],
@@ -37,6 +42,9 @@ function applyProblemTableUpdate(
     }
     if (update.kind === "revise") {
       return applyOptimisticRevision(problem, update.revisedAt);
+    }
+    if (update.kind === "favorite") {
+      return withProblemFavorite(problem, update.favorite);
     }
     return reconcileRevisionCount(problem, update.revisionCount);
   });
@@ -88,6 +96,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
   const [status, setStatus] = useState<ProblemProgressStatus | "ALL">("ALL");
   const [topic, setTopic] = useState("ALL");
   const [frequencyInput, setFrequencyInput] = useState("");
+  const [favoriteFilter, setFavoriteFilter] = useState<FavoriteFilter>("ALL");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState<number | "all">(50);
   const [revisionError, setRevisionError] = useState<string | null>(null);
@@ -122,6 +131,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
       if (difficulty !== "ALL" && p.difficulty !== difficulty) return false;
       if (status !== "ALL" && getProblemProgressStatus(p) !== status) return false;
       if (topic !== "ALL" && !p.topics.includes(topic)) return false;
+      if (favoriteFilter === "FAVORITES" && !p.user_problem?.is_favorite) return false;
       const enteredFrequency = Number(frequencyInput);
       if (
         frequencyInput.trim() !== "" &&
@@ -132,9 +142,9 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
       }
       return true;
     });
-  }, [optimisticProblems, search, difficulty, status, topic, frequencyInput]);
+  }, [optimisticProblems, search, difficulty, status, topic, frequencyInput, favoriteFilter]);
 
-  const filterKey = `${search}|${difficulty}|${status}|${topic}|${frequencyInput}|${pageSize}`;
+  const filterKey = `${search}|${difficulty}|${status}|${topic}|${frequencyInput}|${favoriteFilter}|${pageSize}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {
     setPrevFilterKey(filterKey);
@@ -148,6 +158,23 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
     pageSize === "all"
       ? filtered
       : filtered.slice(safePage * pageSize, safePage * pageSize + pageSize);
+
+  const toggleFavorite = (problemId: string) => {
+    const current = optimisticProblems.find((problem) => problem.id === problemId);
+    if (!current) return;
+    const next = !(current.user_problem?.is_favorite ?? false);
+    startTransition(async () => {
+      updateOptimistic({ kind: "favorite", id: problemId, favorite: next });
+      try {
+        await setProblemFavorite(problemId, next);
+      } catch (err) {
+        updateOptimistic({ kind: "favorite", id: problemId, favorite: !next });
+        setRevisionError(
+          err instanceof Error ? err.message : "Could not update favorite."
+        );
+      }
+    });
+  };
 
   const setStatusFor = (problemId: string, next: ProblemStatus) => {
     startTransition(async () => {
@@ -198,7 +225,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         <Input
           className="col-span-2 md:col-span-1"
           placeholder="Search problems..."
@@ -241,6 +268,15 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
             </option>
           ))}
         </select>
+        <select
+          className={selectClassName}
+          aria-label="Favorites"
+          value={favoriteFilter}
+          onChange={(e) => setFavoriteFilter(e.target.value as FavoriteFilter)}
+        >
+          <option value="ALL">All problems</option>
+          <option value="FAVORITES">Favorites</option>
+        </select>
         <Input
           type="number"
           inputMode="decimal"
@@ -270,7 +306,13 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
           <Card key={p.id}>
             <CardContent className="space-y-3 pt-4">
               <div className="flex items-start justify-between gap-3">
-                <span className="font-medium leading-snug">{p.title}</span>
+                <div className="flex min-w-0 items-start gap-1">
+                  <FavoriteButton
+                    favorite={p.user_problem?.is_favorite === true}
+                    onToggle={() => toggleFavorite(p.id)}
+                  />
+                  <span className="pt-1 font-medium leading-snug">{p.title}</span>
+                </div>
                 <DifficultyBadge difficulty={p.difficulty} />
               </div>
               <ProblemLinks links={resolveProblemLinks(p)} />
@@ -312,7 +354,13 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
               <tr key={p.id} className="border-t border-zinc-200 dark:border-zinc-800">
                 <td className="px-4 py-3">
                   <div className="space-y-2">
-                    <span className="font-medium">{p.title}</span>
+                    <div className="flex items-center gap-1">
+                      <FavoriteButton
+                        favorite={p.user_problem?.is_favorite === true}
+                        onToggle={() => toggleFavorite(p.id)}
+                      />
+                      <span className="font-medium">{p.title}</span>
+                    </div>
                     <ProblemLinks links={resolveProblemLinks(p)} linkClassName="text-xs" />
                   </div>
                 </td>

@@ -57,6 +57,7 @@ function problem(
       last_revised_at: options.revisedAt ?? null,
       last_solve_seconds: null,
       best_solve_seconds: null,
+      is_favorite: false,
     },
   };
 }

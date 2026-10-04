@@ -113,10 +113,19 @@ class MemoryStore {
         patch.last_solve_seconds ?? existing?.last_solve_seconds ?? null,
       best_solve_seconds:
         patch.best_solve_seconds ?? existing?.best_solve_seconds ?? null,
+      is_favorite: patch.is_favorite ?? existing?.is_favorite ?? false,
       status: patch.status,
     };
     this.userProblems.set(key, row);
     return row;
+  }
+
+  setProblemFavorite(userId: string, problemId: string, favorite: boolean) {
+    const existing = this.userProblems.get(userProblemKey(userId, problemId));
+    this.upsertUserProblem(userId, problemId, {
+      status: (existing?.status ?? "unsolved") as ProblemStatus,
+      is_favorite: favorite,
+    });
   }
 
   expireStaleInterviewSessions(userId: string) {
@@ -193,6 +202,7 @@ class MemoryStore {
     const globalStatusByProblem = new Map<string, ProblemStatus>();
     const lastSolveByProblem = new Map<string, number | null>();
     const bestSolveByProblem = new Map<string, number | null>();
+    const favoriteByProblem = new Map<string, boolean>();
     for (const row of rows) {
       const up = this.userProblems.get(userProblemKey(userId, row.problem_id));
       globalStatusByProblem.set(
@@ -207,6 +217,7 @@ class MemoryStore {
         row.problem_id,
         up?.best_solve_seconds ?? null
       );
+      favoriteByProblem.set(row.problem_id, up?.is_favorite ?? false);
     }
 
     return {
@@ -216,6 +227,7 @@ class MemoryStore {
         global_status: globalStatusByProblem.get(row.problem_id) ?? "unsolved",
         last_solve_seconds: lastSolveByProblem.get(row.problem_id) ?? null,
         best_solve_seconds: bestSolveByProblem.get(row.problem_id) ?? null,
+        is_favorite: favoriteByProblem.get(row.problem_id) ?? false,
       })),
     };
   }

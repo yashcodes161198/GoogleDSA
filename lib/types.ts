@@ -40,6 +40,7 @@ export interface UserProblem {
   last_revised_at: string | null;
   last_solve_seconds: number | null;
   best_solve_seconds: number | null;
+  is_favorite: boolean;
 }
 
 export interface ProblemWithProgress extends Problem {
@@ -69,6 +70,8 @@ export interface InterviewSessionProblem {
   last_solve_seconds?: number | null;
   /** Fastest recorded solve time in seconds (from user_problems). */
   best_solve_seconds?: number | null;
+  /** Catalog favorite — independent of this interview session. */
+  is_favorite?: boolean;
 }
 
 export interface InterviewSessionSummary {

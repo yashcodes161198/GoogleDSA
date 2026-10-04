@@ -123,6 +123,45 @@ export async function updateProblemStatus(problemId: string, status: ProblemStat
   revalidatePath("/leaderboard");
 }
 
+export async function setProblemFavorite(problemId: string, favorite: boolean) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+
+  if (isLocalMode()) {
+    getMemoryStore().setProblemFavorite(getLocalUserId(), problemId, favorite);
+  } else {
+    const supabase = await createClient();
+    const { data: existing } = await supabase
+      .from("user_problems")
+      .select("status")
+      .eq("user_id", user.id)
+      .eq("problem_id", problemId)
+      .maybeSingle();
+
+    const { error } = await supabase.from("user_problems").upsert(
+      {
+        user_id: user.id,
+        problem_id: problemId,
+        status: existing?.status ?? "unsolved",
+        is_favorite: favorite,
+      },
+      { onConflict: "user_id,problem_id" }
+    );
+    if (error) {
+      if (error.code === "42703" || error.message.includes("is_favorite")) {
+        throw new Error(
+          "Favorites are not available yet. Apply the latest database migration."
+        );
+      }
+      throw error;
+    }
+  }
+
+  revalidatePath("/problems");
+  revalidatePath("/revise");
+  revalidatePath("/interview", "layout");
+}
+
 export async function updateProblemNotes(problemId: string, notes: string) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");

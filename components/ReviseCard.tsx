@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { RotateCcw } from "lucide-react";
-import { markProblemRevised, refreshRevisionQueue } from "@/app/actions";
+import { markProblemRevised, refreshRevisionQueue, setProblemFavorite } from "@/app/actions";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,6 +18,7 @@ import {
   reconcileRevisionCount,
 } from "@/lib/revision/optimisticRevision";
 import { resetRevisionQueue } from "@/lib/revision/selectRevisionQueue";
+import { withProblemFavorite } from "@/lib/problems/favorite";
 import type { ProblemWithProgress } from "@/lib/types";
 
 function isRevisedToday(problem: ProblemWithProgress): boolean {
@@ -104,6 +106,33 @@ export function ReviseCard({
     }
   };
 
+  const toggleFavorite = (problemId: string) => {
+    const previous = queue.find((problem) => problem.id === problemId);
+    if (!previous) return;
+    const next = !(previous.user_problem?.is_favorite ?? false);
+    setErrorMessage(null);
+    setQueue((current) =>
+      current.map((problem) =>
+        problem.id === problemId ? withProblemFavorite(problem, next) : problem
+      )
+    );
+
+    startRefreshTransition(async () => {
+      try {
+        await setProblemFavorite(problemId, next);
+      } catch (err) {
+        setQueue((current) =>
+          current.map((problem) =>
+            problem.id === problemId ? previous : problem
+          )
+        );
+        setErrorMessage(
+          err instanceof Error ? err.message : "Could not update favorite."
+        );
+      }
+    });
+  };
+
   const resetQueue = () => {
     startRefreshTransition(async () => {
       setErrorMessage(null);
@@ -170,6 +199,7 @@ export function ReviseCard({
         refreshPending={refreshPending}
         resetQueue={resetQueue}
         toggleRevised={toggleRevised}
+        toggleFavorite={toggleFavorite}
       />
     </ProblemTimerProvider>
   );
@@ -185,6 +215,7 @@ function ReviseCardContent({
   refreshPending,
   resetQueue,
   toggleRevised,
+  toggleFavorite,
 }: {
   problems: ProblemWithProgress[];
   revisedCount: number;
@@ -195,6 +226,7 @@ function ReviseCardContent({
   refreshPending: boolean;
   resetQueue: () => void;
   toggleRevised: (problemId: string) => void;
+  toggleFavorite: (problemId: string) => void;
 }) {
   const { onLeetCodeClick, stopAndPersist } = useProblemTimer();
 
@@ -256,6 +288,10 @@ function ReviseCardContent({
                         }
                       />
                     </Tooltip>
+                    <FavoriteButton
+                      favorite={problem.user_problem?.is_favorite === true}
+                      onToggle={() => toggleFavorite(problem.id)}
+                    />
                     <span className="text-zinc-400">#{index + 1}</span>
                     {problem.title}
                     {revisionCount > 0 && (
