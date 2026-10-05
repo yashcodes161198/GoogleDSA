@@ -16,7 +16,8 @@ export default async function NewProblemPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Add question</h1>
         <p className="mt-1 text-zinc-500">
-          Expand the shared catalog with title, links, topics, and metadata.
+          Add a question to the shared library with its practice links and
+          topics.
         </p>
       </div>
       <AddQuestionForm />

@@ -6,7 +6,13 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
@@ -32,7 +38,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         setMessage("Check your email to confirm your account, then sign in.");
       }
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) {
         setError(error.message);
       } else {
@@ -61,7 +70,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       <CardHeader>
         <CardTitle>{mode === "login" ? "Sign in" : "Create account"}</CardTitle>
         <CardDescription>
-          Track Google DSA questions, mock interviews, and spaced repetition.
+          Your problems, daily revision, and interview practice in one place.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -79,29 +88,49 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-zinc-200 dark:border-zinc-800" />
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-zinc-500 dark:bg-zinc-950">or</span>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-white px-2 text-zinc-500 dark:bg-zinc-950">
+              or
+            </span>
           </div>
         </div>
 
         <form onSubmit={handleEmailAuth} className="space-y-3">
-          <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-          />
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {message && <p className="text-sm text-green-600">{message}</p>}
+          <label className="field-label">
+            Email
+            <Input
+              autoComplete="email"
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </label>
+          <label className="field-label">
+            Password
+            <Input
+              autoComplete={
+                mode === "login" ? "current-password" : "new-password"
+              }
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+          </label>
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
+          {message && (
+            <p role="status" className="text-sm text-[var(--success)]">
+              {message}
+            </p>
+          )}
           <Button type="submit" className="w-full" disabled={loading}>
             {mode === "login" ? "Sign in" : "Sign up"}
           </Button>

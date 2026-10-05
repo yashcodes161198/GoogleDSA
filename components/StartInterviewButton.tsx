@@ -4,7 +4,13 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { startNewInterviewAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   DEFAULT_INTERVIEW_CONFIG,
@@ -36,10 +42,7 @@ export function StartInterviewButton({
   });
   const total = counts.medium + counts.hard;
 
-  const updateCount = (
-    difficulty: keyof typeof counts,
-    value: string
-  ) => {
+  const updateCount = (difficulty: keyof typeof counts, value: string) => {
     const parsed = Number.parseInt(value, 10);
     setCounts((current) => ({
       ...current,
@@ -75,7 +78,7 @@ export function StartInterviewButton({
               aria-checked={customize}
               onClick={() => setCustomize((value) => !value)}
               className={`relative h-7 w-12 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
-                customize ? "bg-blue-600" : "bg-zinc-300 dark:bg-zinc-700"
+                customize ? "bg-accent" : "bg-zinc-300 dark:bg-zinc-700"
               }`}
             >
               <span

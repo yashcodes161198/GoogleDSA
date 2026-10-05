@@ -17,7 +17,7 @@ export default function Loading() {
         <Skeleton className="h-10 w-full" />
       </div>
       <Skeleton className="h-5 w-56" />
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-3 xl:hidden">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i}>
             <CardContent className="space-y-3 pt-4">
@@ -29,7 +29,7 @@ export default function Loading() {
           </Card>
         ))}
       </div>
-      <div className="hidden overflow-x-auto rounded-xl border border-zinc-200 md:block dark:border-zinc-800">
+      <div className="hidden overflow-x-auto rounded-xl border border-zinc-200 xl:block dark:border-zinc-800">
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}

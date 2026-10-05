@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { navLinks } from "@/lib/nav-links";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { BookOpen, LogOut } from "lucide-react";
 
 export function AppNav({
@@ -17,7 +16,6 @@ export function AppNav({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-
   const signOut = async () => {
     if (localMode) {
       router.push("/dashboard");
@@ -29,48 +27,59 @@ export function AppNav({
     router.push("/login");
     router.refresh();
   };
-
   return (
-    <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <div className="flex items-center gap-6">
-          <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-            <BookOpen className="h-5 w-5 text-blue-600" />
-            <span className="hidden sm:inline">Google DSA</span>
-          </Link>
-          <nav className="hidden items-center gap-1 md:flex">
-            {navLinks.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  pathname.startsWith(href)
-                    ? "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                    : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-        <div className="flex items-center gap-3">
-          {email && (
-            <span className="hidden text-sm text-zinc-500 sm:inline">{email}</span>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={signOut}
-            className="px-2 sm:px-3"
-            aria-label="Sign out"
+    <header className="app-sidebar">
+      <div className="flex items-center justify-between gap-4 md:block">
+        <Link href="/dashboard" className="brand md:px-2">
+          <span className="brand-icon">
+            <BookOpen size={19} aria-hidden="true" />
+          </span>
+          <span>Google DSA</span>
+        </Link>
+        <span className="text-xs text-muted md:hidden">Practice workspace</span>
+      </div>
+      <nav
+        className="mt-10 hidden space-y-1 md:block"
+        aria-label="Main navigation"
+      >
+        {navLinks.map(({ href, label, icon: Icon }) => (
+          <Link
+            key={href}
+            href={href}
+            className="nav-link"
+            aria-current={pathname.startsWith(href) ? "page" : undefined}
           >
-            <LogOut className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Sign out</span>
-          </Button>
+            <Icon size={18} strokeWidth={1.7} aria-hidden="true" />
+            {label}
+          </Link>
+        ))}
+      </nav>
+      <div className="mt-4 flex items-center justify-between gap-2 md:mt-auto md:block">
+        <div className="sidebar-account">
+          <span className="avatar" aria-hidden="true">
+            {email?.[0]?.toUpperCase() ?? "G"}
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs font-medium">
+              {localMode ? "Local preview" : "Your workspace"}
+            </p>
+            <p
+              className="mt-1 truncate text-xs text-muted"
+              title={email ?? undefined}
+            >
+              {email}
+            </p>
+          </div>
         </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={signOut}
+          className="md:mt-3 md:w-full md:justify-start"
+          aria-label="Sign out"
+        >
+          <LogOut size={15} aria-hidden="true" /> Sign out
+        </Button>
       </div>
     </header>
   );

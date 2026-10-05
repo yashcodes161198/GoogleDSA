@@ -5,12 +5,14 @@ export function Checkbox({
   checked,
   onChange,
   disabled,
+  id,
   className,
   "aria-label": ariaLabel,
 }: {
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
+  id?: string;
   className?: string;
   "aria-label"?: string;
 }) {
@@ -19,11 +21,12 @@ export function Checkbox({
       className={cn(
         "relative inline-flex h-6 w-6 shrink-0 items-center justify-center",
         disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer",
-        className
+        className,
       )}
     >
       <input
         type="checkbox"
+        id={id}
         checked={checked}
         disabled={disabled}
         aria-label={ariaLabel}
@@ -36,13 +39,13 @@ export function Checkbox({
           checked
             ? "border-emerald-600 bg-emerald-600"
             : "border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-950",
-          "peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 peer-focus-visible:ring-offset-2 dark:peer-focus-visible:ring-offset-zinc-950"
+          "peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 peer-focus-visible:ring-offset-2 dark:peer-focus-visible:ring-offset-zinc-950",
         )}
       >
         <Check
           className={cn(
             "h-4 w-4 text-white transition-opacity",
-            checked ? "opacity-100" : "opacity-0"
+            checked ? "opacity-100" : "opacity-0",
           )}
           strokeWidth={3}
         />

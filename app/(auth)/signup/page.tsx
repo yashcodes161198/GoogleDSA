@@ -12,8 +12,8 @@ export default async function SignupPage() {
   await redirectIfAuthenticated();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 px-4 dark:bg-black">
-      <div className="mb-8 flex items-center gap-2 text-2xl font-bold">
+    <div className="auth-layout">
+      <div className="brand">
         <BookOpen className="h-7 w-7 text-blue-600" />
         Google DSA Prep
       </div>

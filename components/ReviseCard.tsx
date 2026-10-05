@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { RotateCcw } from "lucide-react";
-import { markProblemRevised, refreshRevisionQueue, setProblemFavorite } from "@/app/actions";
+import {
+  markProblemRevised,
+  refreshRevisionQueue,
+  setProblemFavorite,
+} from "@/app/actions";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +16,10 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { DifficultyBadge } from "@/components/ui/badge";
 import { ProblemLinks } from "@/components/ProblemLinks";
 import { ProblemSolveTimer } from "@/components/ProblemSolveTimer";
-import { ProblemTimerProvider, useProblemTimer } from "@/components/ProblemTimerContext";
+import {
+  ProblemTimerProvider,
+  useProblemTimer,
+} from "@/components/ProblemTimerContext";
 import { resolveProblemLinks } from "@/lib/problem-links";
 import {
   applyOptimisticRevision,
@@ -45,11 +53,11 @@ export function ReviseCard({
   const [queue, setQueue] = useState(problems);
   const [savingIds, setSavingIds] = useState(() => new Set<string>());
   const [revisedIds, setRevisedIds] = useState(
-    () => new Set(problems.filter(isRevisedToday).map((p) => p.id))
+    () => new Set(problems.filter(isRevisedToday).map((p) => p.id)),
   );
 
   const revisedCount = queue.filter((problem) =>
-    revisedIds.has(problem.id)
+    revisedIds.has(problem.id),
   ).length;
 
   const toggleRevised = async (problemId: string) => {
@@ -60,8 +68,8 @@ export function ReviseCard({
       setErrorMessage(message);
       setQueue((current) =>
         current.map((problem) =>
-          problem.id === problemId ? previousProblem : problem
-        )
+          problem.id === problemId ? previousProblem : problem,
+        ),
       );
       setRevisedIds((current) => {
         const next = new Set(current);
@@ -75,8 +83,8 @@ export function ReviseCard({
       current.map((problem) =>
         problem.id === problemId
           ? applyOptimisticRevision(problem, new Date().toISOString())
-          : problem
-      )
+          : problem,
+      ),
     );
     setRevisedIds((current) => new Set(current).add(problemId));
     setSavingIds((current) => new Set(current).add(problemId));
@@ -91,8 +99,8 @@ export function ReviseCard({
         current.map((problem) =>
           problem.id === problemId
             ? reconcileRevisionCount(problem, result.revisionCount)
-            : problem
-        )
+            : problem,
+        ),
       );
     } catch (err) {
       console.error(err);
@@ -113,8 +121,8 @@ export function ReviseCard({
     setErrorMessage(null);
     setQueue((current) =>
       current.map((problem) =>
-        problem.id === problemId ? withProblemFavorite(problem, next) : problem
-      )
+        problem.id === problemId ? withProblemFavorite(problem, next) : problem,
+      ),
     );
 
     startRefreshTransition(async () => {
@@ -123,11 +131,11 @@ export function ReviseCard({
       } catch (err) {
         setQueue((current) =>
           current.map((problem) =>
-            problem.id === problemId ? previous : problem
-          )
+            problem.id === problemId ? previous : problem,
+          ),
         );
         setErrorMessage(
-          err instanceof Error ? err.message : "Could not update favorite."
+          err instanceof Error ? err.message : "Could not update favorite.",
         );
       }
     });
@@ -139,14 +147,14 @@ export function ReviseCard({
       const checkedIds = new Set(
         queue
           .filter((problem) => revisedIds.has(problem.id))
-          .map((problem) => problem.id)
+          .map((problem) => problem.id),
       );
       const uncheckedIds = queue
         .filter((problem) => !checkedIds.has(problem.id))
         .map((problem) => problem.id);
       const result = await refreshRevisionQueue(
         queue.map((problem) => problem.id),
-        uncheckedIds
+        uncheckedIds,
       );
 
       if (!result.ok) {
@@ -158,11 +166,11 @@ export function ReviseCard({
         queue,
         checkedIds,
         result.replacements,
-        dailyLimit
+        dailyLimit,
       );
       setQueue(next);
       setRevisedIds(
-        new Set(next.filter(isRevisedToday).map((problem) => problem.id))
+        new Set(next.filter(isRevisedToday).map((problem) => problem.id)),
       );
     });
   };
@@ -176,6 +184,9 @@ export function ReviseCard({
             Solve more problems or come back tomorrow for your next batch of{" "}
             {dailyLimit}.
           </p>
+          <Link href="/problems" className="button-link mt-5">
+            Browse problems
+          </Link>
         </CardContent>
       </Card>
     );
@@ -184,7 +195,7 @@ export function ReviseCard({
   const allDone = revisedCount >= queue.length;
 
   const initialBestSolve = Object.fromEntries(
-    queue.map((p) => [p.id, p.user_problem?.best_solve_seconds ?? null])
+    queue.map((p) => [p.id, p.user_problem?.best_solve_seconds ?? null]),
   );
 
   return (
@@ -238,7 +249,7 @@ function ReviseCardContent({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="surface flex flex-wrap items-center justify-between gap-3 p-4">
         <p className="text-sm text-zinc-500">
           {revisedCount} of {problems.length} revised today
         </p>
@@ -257,62 +268,79 @@ function ReviseCardContent({
               disabled={refreshPending || savingIds.size > 0}
               onClick={resetQueue}
             >
-              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              <RotateCcw className="h-4 w-4" aria-hidden="true" /> Replace
+              revised
             </Button>
           </Tooltip>
         </div>
       </div>
       {errorMessage && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-destructive">
           {errorMessage}
         </p>
       )}
 
-      <div className="grid gap-4">
+      <div className="revision-list">
         {problems.map((problem, index) => {
           const revised = revisedIds.has(problem.id);
           const revisionCount = problem.user_problem?.revision_count ?? 0;
 
           return (
-            <Card key={problem.id}>
+            <Card
+              key={problem.id}
+              className="practice-card"
+              data-complete={revised}
+            >
               <CardHeader>
-                <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <CardTitle className="flex flex-wrap items-center gap-3">
-                    <Tooltip label="Mark as revised">
-                      <Checkbox
-                        checked={revised}
-                        aria-label="Mark as revised"
-                        disabled={revised || savingIds.has(problem.id)}
-                        onChange={(checked) =>
-                          void handleRevisedChange(problem.id, checked)
-                        }
-                      />
-                    </Tooltip>
-                    <FavoriteButton
-                      favorite={problem.user_problem?.is_favorite === true}
-                      onToggle={() => toggleFavorite(problem.id)}
-                    />
-                    <span className="text-zinc-400">#{index + 1}</span>
-                    {problem.title}
-                    {revisionCount > 0 && (
-                      <span className="text-xs font-normal text-zinc-500">
-                        Revised {revisionCount} time
-                        {revisionCount === 1 ? "" : "s"} total
-                      </span>
-                    )}
-                  </CardTitle>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="mb-2 text-xs text-muted">
+                      Question {index + 1} · {revisionCount} revision
+                      {revisionCount === 1 ? "" : "s"}
+                    </p>
+                    <CardTitle className="leading-snug">
+                      {problem.title}
+                    </CardTitle>
+                  </div>
+                  <FavoriteButton
+                    favorite={problem.user_problem?.is_favorite === true}
+                    onToggle={() => toggleFavorite(problem.id)}
+                  />
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-3">
                   <DifficultyBadge difficulty={problem.difficulty} />
+                  <p className="text-xs leading-relaxed text-muted">
+                    {problem.topics.join(", ") || "General"}
+                  </p>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-zinc-500">
-                  {problem.topics.join(", ") || "General"}
-                </p>
+              <CardContent className="space-y-4">
                 <ProblemSolveTimer problemId={problem.id} />
                 <ProblemLinks
                   links={resolveProblemLinks(problem)}
                   onLinkClick={() => onLeetCodeClick(problem.id)}
                 />
+                <div className="flex items-center gap-3 border-t border-line pt-4 text-sm font-medium">
+                  <Checkbox
+                    id={`revised-${problem.id}`}
+                    checked={revised}
+                    aria-label={`Mark ${problem.title} as revised`}
+                    disabled={revised || savingIds.has(problem.id)}
+                    onChange={(checked) =>
+                      void handleRevisedChange(problem.id, checked)
+                    }
+                  />
+                  <label
+                    htmlFor={`revised-${problem.id}`}
+                    className="cursor-pointer"
+                  >
+                    {savingIds.has(problem.id)
+                      ? "Saving revision…"
+                      : revised
+                        ? "Revised today"
+                        : "Mark as revised"}
+                  </label>
+                </div>
               </CardContent>
             </Card>
           );

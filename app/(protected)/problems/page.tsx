@@ -1,3 +1,4 @@
+import { PageHeading } from "@/components/PageHeading";
 import Link from "next/link";
 import { ProblemTable } from "@/components/ProblemTable";
 import { getUser, isAdminUser } from "@/lib/auth";
@@ -18,22 +19,16 @@ export default async function ProblemsPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold sm:text-3xl">Problems</h1>
-          <p className="mt-1 text-zinc-500">
-            Track progress across all Google interview questions
-          </p>
-        </div>
+      <PageHeading
+        title="Problems"
+        description="Your question library. Track what you solve and what you revisit."
+      >
         {canAddQuestion && (
-          <Link
-            href="/problems/new"
-            className="inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-zinc-300 bg-transparent px-3 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900"
-          >
+          <Link href="/problems/new" className="button-link secondary">
             Add question
           </Link>
         )}
-      </div>
+      </PageHeading>
       {showAddedBanner && (
         <p
           className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"

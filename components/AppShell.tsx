@@ -18,9 +18,14 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black">
+    <div className="app-shell">
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
       <AppNav email={email} localMode={localMode} />
-      <main className="mx-auto max-w-6xl px-4 py-8 pb-20 md:pb-8">{children}</main>
+      <main id="main-content" tabIndex={-1} className="app-main">
+        {children}
+      </main>
       <MobileTabBar />
     </div>
   );

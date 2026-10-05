@@ -20,11 +20,12 @@ export function MobileTabBar() {
             <Link
               key={href}
               href={href}
+              aria-current={active ? "page" : undefined}
               className={cn(
                 "flex min-h-11 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[10px] font-medium transition-colors",
                 active
                   ? "text-blue-700 dark:text-blue-300"
-                  : "text-zinc-500 dark:text-zinc-400"
+                  : "text-zinc-500 dark:text-zinc-400",
               )}
             >
               <Icon className="h-5 w-5" aria-hidden />

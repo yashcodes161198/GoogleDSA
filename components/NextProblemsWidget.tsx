@@ -14,7 +14,7 @@ export function NextProblemsWidget({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Next up</CardTitle>
+        <CardTitle>Next problems to practice</CardTitle>
         {daysToFinish !== null && (
           <p className="text-sm text-zinc-500">
             ~{daysToFinish} days to finish all at 3/day
@@ -26,11 +26,8 @@ export function NextProblemsWidget({
           <p className="text-sm text-zinc-500">You&apos;re all caught up!</p>
         ) : (
           recommendations.map(({ problem, reason }) => (
-            <div
-              key={problem.id}
-              className="rounded-lg border border-zinc-200 p-3 dark:border-zinc-800"
-            >
-              <div className="flex items-center gap-2">
+            <div key={problem.id} className="border-t border-line py-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-medium">{problem.title}</span>
                 <DifficultyBadge difficulty={problem.difficulty} />
               </div>

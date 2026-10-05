@@ -1,7 +1,11 @@
 "use client";
 
 import { useMemo, useState, useTransition, useOptimistic } from "react";
-import { markProblemRevised, setProblemFavorite, updateProblemStatus } from "@/app/actions";
+import {
+  markProblemRevised,
+  setProblemFavorite,
+  updateProblemStatus,
+} from "@/app/actions";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +25,11 @@ import {
   reconcileRevisionCount,
 } from "@/lib/revision/optimisticRevision";
 import { withProblemFavorite } from "@/lib/problems/favorite";
-import type { Difficulty, ProblemStatus, ProblemWithProgress } from "@/lib/types";
+import type {
+  Difficulty,
+  ProblemStatus,
+  ProblemWithProgress,
+} from "@/lib/types";
 
 type FavoriteFilter = "ALL" | "FAVORITES";
 
@@ -33,7 +41,7 @@ type ProblemTableUpdate =
 
 function applyProblemTableUpdate(
   state: ProblemWithProgress[],
-  update: ProblemTableUpdate
+  update: ProblemTableUpdate,
 ): ProblemWithProgress[] {
   return state.map((problem) => {
     if (problem.id !== update.id) return problem;
@@ -62,10 +70,11 @@ function ProblemActions({
   const canRevise = problem.status === "solved";
 
   return (
-    <div className="flex flex-nowrap items-center gap-2">
+    <div className="problem-actions">
       <Button
         size="sm"
-        variant={problem.status === "solved" ? "default" : "outline"}
+        variant="outline"
+        aria-pressed={problem.status === "solved"}
         onClick={() => onStatusChange(problem.id, "solved")}
       >
         Solved
@@ -74,7 +83,11 @@ function ProblemActions({
         size="sm"
         variant="outline"
         disabled={!canRevise}
-        title={canRevise ? "Increase revision count by 1" : "Solve this question before revising"}
+        title={
+          canRevise
+            ? "Increase revision count by 1"
+            : "Solve this question before revising"
+        }
         onClick={() => onRevise(problem.id)}
       >
         +1 revision
@@ -90,7 +103,11 @@ function ProblemActions({
   );
 }
 
-export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) {
+export function ProblemTable({
+  problems,
+}: {
+  problems: ProblemWithProgress[];
+}) {
   const [search, setSearch] = useState("");
   const [difficulty, setDifficulty] = useState<Difficulty | "ALL">("ALL");
   const [status, setStatus] = useState<ProblemProgressStatus | "ALL">("ALL");
@@ -100,7 +117,9 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState<number | "all">(50);
   const [revisionError, setRevisionError] = useState<string | null>(null);
-  const [savedRevisions, setSavedRevisions] = useState<Record<string, number>>({});
+  const [savedRevisions, setSavedRevisions] = useState<Record<string, number>>(
+    {},
+  );
   const [pending, startTransition] = useTransition();
 
   const problemsWithSaved = useMemo(() => {
@@ -116,7 +135,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
 
   const [optimisticProblems, updateOptimistic] = useOptimistic(
     problemsWithSaved,
-    applyProblemTableUpdate
+    applyProblemTableUpdate,
   );
 
   const topics = useMemo(() => {
@@ -127,11 +146,14 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
 
   const filtered = useMemo(() => {
     return optimisticProblems.filter((p) => {
-      if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
+      if (search && !p.title.toLowerCase().includes(search.toLowerCase()))
+        return false;
       if (difficulty !== "ALL" && p.difficulty !== difficulty) return false;
-      if (status !== "ALL" && getProblemProgressStatus(p) !== status) return false;
+      if (status !== "ALL" && getProblemProgressStatus(p) !== status)
+        return false;
       if (topic !== "ALL" && !p.topics.includes(topic)) return false;
-      if (favoriteFilter === "FAVORITES" && !p.user_problem?.is_favorite) return false;
+      if (favoriteFilter === "FAVORITES" && !p.user_problem?.is_favorite)
+        return false;
       const enteredFrequency = Number(frequencyInput);
       if (
         frequencyInput.trim() !== "" &&
@@ -142,7 +164,15 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
       }
       return true;
     });
-  }, [optimisticProblems, search, difficulty, status, topic, frequencyInput, favoriteFilter]);
+  }, [
+    optimisticProblems,
+    search,
+    difficulty,
+    status,
+    topic,
+    frequencyInput,
+    favoriteFilter,
+  ]);
 
   const filterKey = `${search}|${difficulty}|${status}|${topic}|${frequencyInput}|${favoriteFilter}|${pageSize}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
@@ -160,7 +190,9 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
       : filtered.slice(safePage * pageSize, safePage * pageSize + pageSize);
 
   const toggleFavorite = (problemId: string) => {
-    const current = optimisticProblems.find((problem) => problem.id === problemId);
+    const current = optimisticProblems.find(
+      (problem) => problem.id === problemId,
+    );
     if (!current) return;
     const next = !(current.user_problem?.is_favorite ?? false);
     startTransition(async () => {
@@ -170,7 +202,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
       } catch (err) {
         updateOptimistic({ kind: "favorite", id: problemId, favorite: !next });
         setRevisionError(
-          err instanceof Error ? err.message : "Could not update favorite."
+          err instanceof Error ? err.message : "Could not update favorite.",
         );
       }
     });
@@ -179,12 +211,21 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
   const setStatusFor = (problemId: string, next: ProblemStatus) => {
     startTransition(async () => {
       updateOptimistic({ kind: "status", id: problemId, status: next });
-      await updateProblemStatus(problemId, next);
+      setRevisionError(null);
+      try {
+        await updateProblemStatus(problemId, next);
+      } catch {
+        setRevisionError(
+          "Could not save the problem status. Please try again.",
+        );
+      }
     });
   };
 
   const incrementRevision = (problemId: string) => {
-    const current = optimisticProblems.find((problem) => problem.id === problemId);
+    const current = optimisticProblems.find(
+      (problem) => problem.id === problemId,
+    );
     if (!current || current.status !== "solved") return;
 
     const previousCount = current.user_problem?.revision_count ?? 0;
@@ -220,191 +261,249 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
     });
   };
 
-  const selectClassName =
-    "h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950";
+  const clearFilters = () => {
+    setSearch("");
+    setDifficulty("ALL");
+    setStatus("ALL");
+    setTopic("ALL");
+    setFavoriteFilter("ALL");
+    setFrequencyInput("");
+  };
+  const hasFilters =
+    search ||
+    difficulty !== "ALL" ||
+    status !== "ALL" ||
+    topic !== "ALL" ||
+    favoriteFilter !== "ALL" ||
+    frequencyInput;
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        <Input
-          className="col-span-2 md:col-span-1"
-          placeholder="Search problems..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <select
-          className={selectClassName}
-          value={difficulty}
-          onChange={(e) => setDifficulty(e.target.value as Difficulty | "ALL")}
-        >
-          <option value="ALL">All difficulties</option>
-          <option value="EASY">Easy</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="HARD">Hard</option>
-        </select>
-        <select
-          className={selectClassName}
-          value={status}
-          onChange={(e) =>
-            setStatus(e.target.value as ProblemProgressStatus | "ALL")
-          }
-        >
-          <option value="ALL">All statuses</option>
-          {PROBLEM_PROGRESS_FILTERS.map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <select
-          className={selectClassName}
-          value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-        >
-          <option value="ALL">All topics</option>
-          {topics.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
-        <select
-          className={selectClassName}
-          aria-label="Favorites"
-          value={favoriteFilter}
-          onChange={(e) => setFavoriteFilter(e.target.value as FavoriteFilter)}
-        >
-          <option value="ALL">All problems</option>
-          <option value="FAVORITES">Favorites</option>
-        </select>
-        <Input
-          type="number"
-          inputMode="decimal"
-          min={0}
-          max={100}
-          step="0.1"
-          aria-label="Frequency"
-          placeholder="Frequency %"
-          value={frequencyInput}
-          onChange={(e) => setFrequencyInput(e.target.value)}
-        />
+      <div className="surface filter-panel">
+        <div className="filter-grid">
+          <label className="field-label col-span-2 sm:col-span-1">
+            Search problems
+            <Input
+              placeholder="Search by title…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
+          <label className="field-label">
+            Difficulty
+            <select
+              className="field-control"
+              value={difficulty}
+              onChange={(e) =>
+                setDifficulty(e.target.value as Difficulty | "ALL")
+              }
+            >
+              <option value="ALL">All difficulties</option>
+              <option value="EASY">Easy</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HARD">Hard</option>
+            </select>
+          </label>
+          <label className="field-label">
+            Progress
+            <select
+              className="field-control"
+              value={status}
+              onChange={(e) =>
+                setStatus(e.target.value as ProblemProgressStatus | "ALL")
+              }
+            >
+              <option value="ALL">All statuses</option>
+              {PROBLEM_PROGRESS_FILTERS.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field-label">
+            Topic
+            <select
+              className="field-control"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+            >
+              <option value="ALL">All topics</option>
+              {topics.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field-label">
+            Favorites
+            <select
+              className="field-control"
+              value={favoriteFilter}
+              onChange={(e) =>
+                setFavoriteFilter(e.target.value as FavoriteFilter)
+              }
+            >
+              <option value="ALL">All problems</option>
+              <option value="FAVORITES">Favorites</option>
+            </select>
+          </label>
+          <label className="field-label">
+            Frequency (%)
+            <Input
+              type="number"
+              inputMode="decimal"
+              min={0}
+              max={100}
+              step="0.1"
+              placeholder="Any"
+              value={frequencyInput}
+              onChange={(e) => setFrequencyInput(e.target.value)}
+            />
+          </label>
+        </div>
       </div>
-
-      <p className="text-sm text-zinc-500">
-        Showing {pageRows.length} of {filtered.length} problems
-        {pending && " · Saving..."}
-      </p>
+      <div className="flex min-h-9 flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted" role="status">
+          {filtered.length} problem{filtered.length === 1 ? "" : "s"}
+          {pending ? " · Saving…" : ` · Showing ${pageRows.length}`}
+        </p>
+        {hasFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            Clear filters
+          </Button>
+        )}
+      </div>
       {revisionError && (
-        <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+        <p className="text-sm text-destructive" role="alert">
           {revisionError}
         </p>
       )}
 
-      {/* Mobile: card list */}
-      <div className="space-y-3 md:hidden">
-        {pageRows.map((p) => (
-          <Card key={p.id}>
-            <CardContent className="space-y-3 pt-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 items-start gap-1">
-                  <FavoriteButton
-                    favorite={p.user_problem?.is_favorite === true}
-                    onToggle={() => toggleFavorite(p.id)}
-                  />
-                  <span className="pt-1 font-medium leading-snug">{p.title}</span>
-                </div>
-                <DifficultyBadge difficulty={p.difficulty} />
-              </div>
-              <ProblemLinks links={resolveProblemLinks(p)} />
-              <p className="text-sm text-zinc-500">
-                {p.frequency.toFixed(1)}% · {p.topics.slice(0, 3).join(", ")}
-                {p.topics.length > 3 ? "..." : ""}
-              </p>
-              <BestSolveTimeLabel
-                seconds={p.user_problem?.best_solve_seconds}
-                className="text-sm text-zinc-500"
-              />
-              <StatusBadge status={getProblemProgressStatus(p)} />
-              <ProblemActions
-                problem={p}
-                onStatusChange={setStatusFor}
-                onRevise={incrementRevision}
-              />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Desktop: table */}
-      <div className="hidden overflow-x-auto rounded-xl border border-zinc-200 md:block dark:border-zinc-800">
-        <table className="min-w-full text-sm">
-          <thead className="bg-zinc-50 text-left dark:bg-zinc-900">
-            <tr>
-              <th className="px-4 py-3 font-medium">Title</th>
-              <th className="px-4 py-3 font-medium">Difficulty</th>
-              <th className="px-4 py-3 font-medium">Frequency</th>
-              <th className="px-4 py-3 font-medium">Topics</th>
-              <th className="px-4 py-3 font-medium">Best time</th>
-              <th className="px-5 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+      {pageRows.length === 0 ? (
+        <div className="surface empty-state">
+          <h2 className="font-semibold">No matching problems</h2>
+          <p>
+            Try another title or clear your filters to see the full catalog.
+          </p>
+          <Button variant="outline" onClick={clearFilters}>
+            Clear filters
+          </Button>
+        </div>
+      ) : (
+        <>
+          <div className="space-y-3 xl:hidden">
             {pageRows.map((p) => (
-              <tr key={p.id} className="border-t border-zinc-200 dark:border-zinc-800">
-                <td className="px-4 py-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-1">
+              <Card key={p.id}>
+                <CardContent className="space-y-3 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-start gap-1">
                       <FavoriteButton
                         favorite={p.user_problem?.is_favorite === true}
                         onToggle={() => toggleFavorite(p.id)}
                       />
-                      <span className="font-medium">{p.title}</span>
+                      <span className="pt-1 font-medium leading-snug">
+                        {p.title}
+                      </span>
                     </div>
-                    <ProblemLinks links={resolveProblemLinks(p)} linkClassName="text-xs" />
+                    <DifficultyBadge difficulty={p.difficulty} />
                   </div>
-                </td>
-                <td className="px-4 py-3">
-                  <DifficultyBadge difficulty={p.difficulty} />
-                </td>
-                <td className="px-4 py-3">{p.frequency.toFixed(1)}%</td>
-                <td className="px-4 py-3 text-zinc-500">
-                  {p.topics.slice(0, 3).join(", ")}
-                  {p.topics.length > 3 ? "..." : ""}
-                </td>
-                <td className="px-4 py-3 tabular-nums text-zinc-500">
-                  {p.user_problem?.best_solve_seconds != null
-                    ? formatDurationSeconds(p.user_problem.best_solve_seconds)
-                    : "—"}
-                </td>
-                <td className="px-5 py-3">
-                  <StatusBadge
-                    status={getProblemProgressStatus(p)}
-                    className="w-32 justify-center"
-                  />
-                </td>
-                <td className="whitespace-nowrap px-4 py-3">
+                  <p className="text-xs leading-relaxed text-muted">
+                    {p.topics.join(", ")} · {p.frequency.toFixed(1)}% frequency
+                  </p>
+                  <ProblemLinks links={resolveProblemLinks(p)} />
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <StatusBadge status={getProblemProgressStatus(p)} />
+                    <BestSolveTimeLabel
+                      seconds={p.user_problem?.best_solve_seconds}
+                      className="text-xs text-muted"
+                    />
+                  </div>
                   <ProblemActions
                     problem={p}
                     onStatusChange={setStatusFor}
                     onRevise={incrementRevision}
                   />
-                </td>
-              </tr>
+                </CardContent>
+              </Card>
             ))}
-          </tbody>
-        </table>
-      </div>
-
+          </div>
+          <div className="surface hidden overflow-x-auto xl:block">
+            <table className="problem-table">
+              <caption className="sr-only">
+                Problem catalog with difficulty, frequency, solve time and
+                progress actions
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Problem</th>
+                  <th scope="col">Difficulty</th>
+                  <th scope="col">Frequency</th>
+                  <th scope="col">Best time</th>
+                  <th scope="col">Your progress</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pageRows.map((p) => (
+                  <tr key={p.id}>
+                    <td className="problem-cell">
+                      <div className="flex items-start gap-1">
+                        <FavoriteButton
+                          favorite={p.user_problem?.is_favorite === true}
+                          onToggle={() => toggleFavorite(p.id)}
+                        />
+                        <span className="problem-title pt-1">{p.title}</span>
+                      </div>
+                      <p className="mt-1 text-xs leading-relaxed text-muted">
+                        {p.topics.join(", ")}
+                      </p>
+                      <ProblemLinks
+                        className="mt-2"
+                        links={resolveProblemLinks(p)}
+                        linkClassName="text-xs"
+                      />
+                    </td>
+                    <td>
+                      <DifficultyBadge difficulty={p.difficulty} />
+                    </td>
+                    <td className="tabular-nums text-muted">
+                      {p.frequency.toFixed(1)}%
+                    </td>
+                    <td className="whitespace-nowrap font-mono text-xs text-muted">
+                      {p.user_problem?.best_solve_seconds != null
+                        ? formatDurationSeconds(
+                            p.user_problem.best_solve_seconds,
+                          )
+                        : "—"}
+                    </td>
+                    <td>
+                      <div className="space-y-2">
+                        <StatusBadge status={getProblemProgressStatus(p)} />
+                        <ProblemActions
+                          problem={p}
+                          onStatusChange={setStatusFor}
+                          onRevise={incrementRevision}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-zinc-500">Rows per page</span>
+        <label className="flex items-center gap-2 text-sm text-muted">
+          Rows per page
           <select
-            aria-label="Rows per page"
-            className="h-9 rounded-lg border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+            className="field-control w-auto"
             value={pageSize === "all" ? "all" : String(pageSize)}
             onChange={(e) =>
-              setPageSize(e.target.value === "all" ? "all" : Number(e.target.value))
+              setPageSize(
+                e.target.value === "all" ? "all" : Number(e.target.value),
+              )
             }
           >
             <option value="25">25</option>
@@ -412,10 +511,10 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
             <option value="100">100</option>
             <option value="all">All</option>
           </select>
-        </div>
+        </label>
         {pageCount > 1 && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-zinc-500">
+            <span className="text-sm text-muted">
               Page {safePage + 1} of {pageCount}
             </span>
             <Button
@@ -424,7 +523,7 @@ export function ProblemTable({ problems }: { problems: ProblemWithProgress[] }) 
               disabled={safePage === 0}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
             >
-              Prev
+              Previous
             </Button>
             <Button
               size="sm"

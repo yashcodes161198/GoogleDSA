@@ -22,10 +22,10 @@ export function ProblemSolveTimer({ problemId }: { problemId: string }) {
   const running = isRunning(problemId);
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="practice-timer">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="font-mono text-2xl font-semibold tracking-wide tabular-nums">
+          <p className="font-mono text-xl font-medium tabular-nums">
             {formatDurationMs(displayMs)}
           </p>
           <BestSolveTimeLabel seconds={bestSaved} />

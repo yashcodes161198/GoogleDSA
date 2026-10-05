@@ -1,3 +1,5 @@
+import { PageHeading } from "@/components/PageHeading";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { InterviewSessionView } from "@/components/InterviewSessionView";
 import { getInterviewSession } from "@/lib/data";
@@ -14,13 +16,14 @@ export default async function InterviewSessionPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold sm:text-3xl">Interview session</h1>
-        <p className="mt-1 text-zinc-500">
-          Started {new Date(data.session.started_at).toLocaleString()} ·{" "}
-          <span className="capitalize">{data.session.status}</span>
-        </p>
-      </div>
+      <PageHeading
+        title="Interview session"
+        description={`Started ${new Date(data.session.started_at).toLocaleString()} · ${data.session.status}`}
+      >
+        <Link href="/interview" className="button-link secondary">
+          All interviews
+        </Link>
+      </PageHeading>
       <InterviewSessionView session={data.session} problems={data.problems} />
     </div>
   );
