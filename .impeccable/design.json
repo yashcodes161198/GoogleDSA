@@ -1,0 +1,488 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-05T10:05:16.132Z",
+  "title": "Design System: GoogleDSA",
+  "extensions": {
+    "colorMeta": {
+      "background": {
+        "role": "neutral",
+        "displayName": "Background",
+        "tonalRamp": [
+          "oklch(15% 0.0045 258.32)",
+          "oklch(26% 0.0045 258.32)",
+          "oklch(37% 0.0045 258.32)",
+          "oklch(48% 0.0045 258.32)",
+          "oklch(59% 0.0045 258.32)",
+          "oklch(70% 0.0045 258.32)",
+          "oklch(81% 0.0045 258.32)",
+          "oklch(95% 0.0045 258.32)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Foreground",
+        "tonalRamp": [
+          "oklch(15% 0.0273 257.53)",
+          "oklch(26% 0.0273 257.53)",
+          "oklch(37% 0.0273 257.53)",
+          "oklch(48% 0.0273 257.53)",
+          "oklch(59% 0.0273 257.53)",
+          "oklch(70% 0.0273 257.53)",
+          "oklch(81% 0.0273 257.53)",
+          "oklch(95% 0.0273 257.53)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0000 89.88)",
+          "oklch(26% 0.0000 89.88)",
+          "oklch(37% 0.0000 89.88)",
+          "oklch(48% 0.0000 89.88)",
+          "oklch(59% 0.0000 89.88)",
+          "oklch(70% 0.0000 89.88)",
+          "oklch(81% 0.0000 89.88)",
+          "oklch(95% 0.0000 89.88)"
+        ]
+      },
+      "surface-subtle": {
+        "role": "neutral",
+        "displayName": "Surface Subtle",
+        "tonalRamp": [
+          "oklch(15% 0.0080 253.85)",
+          "oklch(26% 0.0080 253.85)",
+          "oklch(37% 0.0080 253.85)",
+          "oklch(48% 0.0080 253.85)",
+          "oklch(59% 0.0080 253.85)",
+          "oklch(70% 0.0080 253.85)",
+          "oklch(81% 0.0080 253.85)",
+          "oklch(95% 0.0080 253.85)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "tonalRamp": [
+          "oklch(15% 0.0115 252.09)",
+          "oklch(26% 0.0115 252.09)",
+          "oklch(37% 0.0115 252.09)",
+          "oklch(48% 0.0115 252.09)",
+          "oklch(59% 0.0115 252.09)",
+          "oklch(70% 0.0115 252.09)",
+          "oklch(81% 0.0115 252.09)",
+          "oklch(95% 0.0115 252.09)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15% 0.0329 256.56)",
+          "oklch(26% 0.0329 256.56)",
+          "oklch(37% 0.0329 256.56)",
+          "oklch(48% 0.0329 256.56)",
+          "oklch(59% 0.0329 256.56)",
+          "oklch(70% 0.0329 256.56)",
+          "oklch(81% 0.0329 256.56)",
+          "oklch(95% 0.0329 256.56)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Accent",
+        "tonalRamp": [
+          "oklch(15% 0.1515 265.46)",
+          "oklch(26% 0.1515 265.46)",
+          "oklch(37% 0.1515 265.46)",
+          "oklch(48% 0.1515 265.46)",
+          "oklch(59% 0.1515 265.46)",
+          "oklch(70% 0.1515 265.46)",
+          "oklch(81% 0.1515 265.46)",
+          "oklch(95% 0.1515 265.46)"
+        ]
+      },
+      "accent-hover": {
+        "role": "primary",
+        "displayName": "Accent Hover",
+        "tonalRamp": [
+          "oklch(15% 0.1347 265.34)",
+          "oklch(26% 0.1347 265.34)",
+          "oklch(37% 0.1347 265.34)",
+          "oklch(48% 0.1347 265.34)",
+          "oklch(59% 0.1347 265.34)",
+          "oklch(70% 0.1347 265.34)",
+          "oklch(81% 0.1347 265.34)",
+          "oklch(95% 0.1347 265.34)"
+        ]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Accent Soft",
+        "tonalRamp": [
+          "oklch(15% 0.0186 265.98)",
+          "oklch(26% 0.0186 265.98)",
+          "oklch(37% 0.0186 265.98)",
+          "oklch(48% 0.0186 265.98)",
+          "oklch(59% 0.0186 265.98)",
+          "oklch(70% 0.0186 265.98)",
+          "oklch(81% 0.0186 265.98)",
+          "oklch(95% 0.0186 265.98)"
+        ]
+      },
+      "accent-text": {
+        "role": "primary",
+        "displayName": "Accent Text",
+        "tonalRamp": [
+          "oklch(15% 0.1365 265.48)",
+          "oklch(26% 0.1365 265.48)",
+          "oklch(37% 0.1365 265.48)",
+          "oklch(48% 0.1365 265.48)",
+          "oklch(59% 0.1365 265.48)",
+          "oklch(70% 0.1365 265.48)",
+          "oklch(81% 0.1365 265.48)",
+          "oklch(95% 0.1365 265.48)"
+        ]
+      },
+      "success": {
+        "role": "neutral",
+        "displayName": "Success",
+        "tonalRamp": [
+          "oklch(15% 0.0926 159.29)",
+          "oklch(26% 0.0926 159.29)",
+          "oklch(37% 0.0926 159.29)",
+          "oklch(48% 0.0926 159.29)",
+          "oklch(59% 0.0926 159.29)",
+          "oklch(70% 0.0926 159.29)",
+          "oklch(81% 0.0926 159.29)",
+          "oklch(95% 0.0926 159.29)"
+        ]
+      },
+      "outline-border": {
+        "role": "neutral",
+        "displayName": "Outline Border",
+        "tonalRamp": [
+          "oklch(15% 0.0202 252.91)",
+          "oklch(26% 0.0202 252.91)",
+          "oklch(37% 0.0202 252.91)",
+          "oklch(48% 0.0202 252.91)",
+          "oklch(59% 0.0202 252.91)",
+          "oklch(70% 0.0202 252.91)",
+          "oklch(81% 0.0202 252.91)",
+          "oklch(95% 0.0202 252.91)"
+        ]
+      },
+      "dark-background": {
+        "role": "neutral",
+        "displayName": "Dark Background",
+        "tonalRamp": [
+          "oklch(15% 0.0134 258.37)",
+          "oklch(26% 0.0134 258.37)",
+          "oklch(37% 0.0134 258.37)",
+          "oklch(48% 0.0134 258.37)",
+          "oklch(59% 0.0134 258.37)",
+          "oklch(70% 0.0134 258.37)",
+          "oklch(81% 0.0134 258.37)",
+          "oklch(95% 0.0134 258.37)"
+        ]
+      },
+      "dark-foreground": {
+        "role": "neutral",
+        "displayName": "Dark Foreground",
+        "tonalRamp": [
+          "oklch(15% 0.0069 247.90)",
+          "oklch(26% 0.0069 247.90)",
+          "oklch(37% 0.0069 247.90)",
+          "oklch(48% 0.0069 247.90)",
+          "oklch(59% 0.0069 247.90)",
+          "oklch(70% 0.0069 247.90)",
+          "oklch(81% 0.0069 247.90)",
+          "oklch(95% 0.0069 247.90)"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0193 258.36)",
+          "oklch(26% 0.0193 258.36)",
+          "oklch(37% 0.0193 258.36)",
+          "oklch(48% 0.0193 258.36)",
+          "oklch(59% 0.0193 258.36)",
+          "oklch(70% 0.0193 258.36)",
+          "oklch(81% 0.0193 258.36)",
+          "oklch(95% 0.0193 258.36)"
+        ]
+      },
+      "dark-surface-subtle": {
+        "role": "neutral",
+        "displayName": "Dark Surface Subtle",
+        "tonalRamp": [
+          "oklch(15% 0.0247 258.35)",
+          "oklch(26% 0.0247 258.35)",
+          "oklch(37% 0.0247 258.35)",
+          "oklch(48% 0.0247 258.35)",
+          "oklch(59% 0.0247 258.35)",
+          "oklch(70% 0.0247 258.35)",
+          "oklch(81% 0.0247 258.35)",
+          "oklch(95% 0.0247 258.35)"
+        ]
+      },
+      "dark-line": {
+        "role": "neutral",
+        "displayName": "Dark Line",
+        "tonalRamp": [
+          "oklch(15% 0.0312 257.68)",
+          "oklch(26% 0.0312 257.68)",
+          "oklch(37% 0.0312 257.68)",
+          "oklch(48% 0.0312 257.68)",
+          "oklch(59% 0.0312 257.68)",
+          "oklch(70% 0.0312 257.68)",
+          "oklch(81% 0.0312 257.68)",
+          "oklch(95% 0.0312 257.68)"
+        ]
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "Dark Muted",
+        "tonalRamp": [
+          "oklch(15% 0.0279 257.04)",
+          "oklch(26% 0.0279 257.04)",
+          "oklch(37% 0.0279 257.04)",
+          "oklch(48% 0.0279 257.04)",
+          "oklch(59% 0.0279 257.04)",
+          "oklch(70% 0.0279 257.04)",
+          "oklch(81% 0.0279 257.04)",
+          "oklch(95% 0.0279 257.04)"
+        ]
+      },
+      "dark-accent": {
+        "role": "primary",
+        "displayName": "Dark Accent",
+        "tonalRamp": [
+          "oklch(15% 0.1506 265.12)",
+          "oklch(26% 0.1506 265.12)",
+          "oklch(37% 0.1506 265.12)",
+          "oklch(48% 0.1506 265.12)",
+          "oklch(59% 0.1506 265.12)",
+          "oklch(70% 0.1506 265.12)",
+          "oklch(81% 0.1506 265.12)",
+          "oklch(95% 0.1506 265.12)"
+        ]
+      },
+      "dark-accent-hover": {
+        "role": "primary",
+        "displayName": "Dark Accent Hover",
+        "tonalRamp": [
+          "oklch(15% 0.1501 265.18)",
+          "oklch(26% 0.1501 265.18)",
+          "oklch(37% 0.1501 265.18)",
+          "oklch(48% 0.1501 265.18)",
+          "oklch(59% 0.1501 265.18)",
+          "oklch(70% 0.1501 265.18)",
+          "oklch(81% 0.1501 265.18)",
+          "oklch(95% 0.1501 265.18)"
+        ]
+      },
+      "dark-accent-soft": {
+        "role": "primary",
+        "displayName": "Dark Accent Soft",
+        "tonalRamp": [
+          "oklch(15% 0.0504 261.03)",
+          "oklch(26% 0.0504 261.03)",
+          "oklch(37% 0.0504 261.03)",
+          "oklch(48% 0.0504 261.03)",
+          "oklch(59% 0.0504 261.03)",
+          "oklch(70% 0.0504 261.03)",
+          "oklch(81% 0.0504 261.03)",
+          "oklch(95% 0.0504 261.03)"
+        ]
+      },
+      "dark-accent-text": {
+        "role": "primary",
+        "displayName": "Dark Accent Text",
+        "tonalRamp": [
+          "oklch(15% 0.0893 266.91)",
+          "oklch(26% 0.0893 266.91)",
+          "oklch(37% 0.0893 266.91)",
+          "oklch(48% 0.0893 266.91)",
+          "oklch(59% 0.0893 266.91)",
+          "oklch(70% 0.0893 266.91)",
+          "oklch(81% 0.0893 266.91)",
+          "oklch(95% 0.0893 266.91)"
+        ]
+      },
+      "dark-success": {
+        "role": "neutral",
+        "displayName": "Dark Success",
+        "tonalRamp": [
+          "oklch(15% 0.0937 158.81)",
+          "oklch(26% 0.0937 158.81)",
+          "oklch(37% 0.0937 158.81)",
+          "oklch(48% 0.0937 158.81)",
+          "oklch(59% 0.0937 158.81)",
+          "oklch(70% 0.0937 158.81)",
+          "oklch(81% 0.0937 158.81)",
+          "oklch(95% 0.0937 158.81)"
+        ]
+      },
+      "dark-outline-border": {
+        "role": "neutral",
+        "displayName": "Dark Outline Border",
+        "tonalRamp": [
+          "oklch(15% 0.0301 254.19)",
+          "oklch(26% 0.0301 254.19)",
+          "oklch(37% 0.0301 254.19)",
+          "oklch(48% 0.0301 254.19)",
+          "oklch(59% 0.0301 254.19)",
+          "oklch(70% 0.0301 254.19)",
+          "oklch(81% 0.0301 254.19)",
+          "oklch(95% 0.0301 254.19)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Page headline",
+        "purpose": "Primary page titles."
+      },
+      "section": {
+        "displayName": "Section heading",
+        "purpose": "Compact panel headings."
+      },
+      "title": {
+        "displayName": "Card title",
+        "purpose": "Question and card headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions and controls."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Fields and supporting metadata."
+      },
+      "duration": {
+        "displayName": "Duration",
+        "purpose": "Monospace countdown and solve measurements."
+      }
+    },
+    "shadows": [],
+    "motion": [],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "xl",
+        "value": "1200px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Frequent practice actions use the quiet blue fill.",
+      "html": "<button class=\"ds-primary\">Start revision</button>",
+      "css": ".ds-primary,.ds-outline,.ds-ghost{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:8px 16px;border-radius:7px;font:500 14px var(--font-geist-sans,Geist,sans-serif);cursor:pointer;transition:background-color .15s,color .15s,border-color .15s}.ds-primary:disabled,.ds-outline:disabled,.ds-ghost:disabled{opacity:.5;cursor:not-allowed}.ds-primary{border:0;background:var(--accent,#3659b5);color:#fff}.ds-primary:hover{background:var(--accent-hover,#294796)}.ds-primary:focus-visible{outline:2px solid var(--accent-text,#304fa0);outline-offset:3px}.ds-outline:focus-visible{outline:2px solid var(--accent-text,#304fa0);outline-offset:3px}.ds-ghost:focus-visible{outline:2px solid var(--accent-text,#304fa0);outline-offset:3px}@media(prefers-reduced-motion:reduce){.ds-primary,.ds-outline,.ds-ghost{transition:none}}"
+    },
+    {
+      "name": "Outline button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary actions and session-ending controls stay subordinate.",
+      "html": "<button class=\"ds-outline\">End session</button>",
+      "css": ".ds-primary,.ds-outline,.ds-ghost{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:8px 16px;border-radius:7px;font:500 14px var(--font-geist-sans,Geist,sans-serif);cursor:pointer;transition:background-color .15s,color .15s,border-color .15s}.ds-primary:disabled,.ds-outline:disabled,.ds-ghost:disabled{opacity:.5;cursor:not-allowed}.ds-outline{border:1px solid #bac4d0;background:transparent;color:var(--foreground,#202936)}.ds-outline:hover{background:var(--background,#f5f7fa)}@media(prefers-color-scheme:dark){.ds-outline{border-color:#384453}.ds-outline:hover{background:#242c37}}.ds-primary:focus-visible{outline:2px solid var(--accent-text,#304fa0);outline-offset:3px}.ds-outline:focus-visible{outline:2px solid var(--accent-text,#304fa0);outline-offset:3px}.ds-ghost:focus-visible{outline:2px solid var(--accent-text,#304fa0);outline-offset:3px}@media(prefers-reduced-motion:reduce){.ds-primary,.ds-outline,.ds-ghost{transition:none}}"
+    },
+    {
+      "name": "Ghost button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Low-emphasis utility actions.",
+      "html": "<button class=\"ds-ghost\">Clear filters</button>",
+      "css": ".ds-primary,.ds-outline,.ds-ghost{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:8px 16px;border-radius:7px;font:500 14px var(--font-geist-sans,Geist,sans-serif);cursor:pointer;transition:background-color .15s,color .15s,border-color .15s}.ds-primary:disabled,.ds-outline:disabled,.ds-ghost:disabled{opacity:.5;cursor:not-allowed}.ds-ghost{border:0;background:transparent;color:var(--foreground,#202936)}.ds-ghost:hover{background:var(--surface-subtle,#edf1f6)}@media(prefers-color-scheme:dark){.ds-ghost:hover{background:#303946}}.ds-primary:focus-visible{outline:2px solid var(--accent-text,#304fa0);outline-offset:3px}.ds-outline:focus-visible{outline:2px solid var(--accent-text,#304fa0);outline-offset:3px}.ds-ghost:focus-visible{outline:2px solid var(--accent-text,#304fa0);outline-offset:3px}@media(prefers-reduced-motion:reduce){.ds-primary,.ds-outline,.ds-ghost{transition:none}}"
+    },
+    {
+      "name": "Search field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Persistent labeled search; secondary filters collapse on narrow screens.",
+      "html": "<label class=\"ds-label\">Search problems<input class=\"ds-field\" placeholder=\"Search by title…\" /></label>",
+      "css": ".ds-label{display:flex;flex-direction:column;gap:6px;color:var(--muted,#586577);font:550 12px var(--font-geist-sans,Geist,sans-serif)}.ds-field{width:100%;height:40px;padding:8px 10px;border:1px solid var(--line,#dce2e9);border-radius:7px;background:var(--surface,#fff);color:var(--foreground,#202936);font:400 13px var(--font-geist-sans,Geist,sans-serif);caret-color:var(--accent-text,#304fa0)}.ds-field::placeholder{color:var(--muted,#586577)}.ds-field:focus-visible{outline:2px solid var(--accent-text,#304fa0);outline-offset:3px}"
+    },
+    {
+      "name": "Current navigation",
+      "kind": "nav",
+      "refersTo": "navigation-active",
+      "description": "Tinted selected item within the desktop work navigation.",
+      "html": "<nav aria-label=\"Main navigation\"><a class=\"ds-nav\" href=\"#dashboard\" aria-current=\"page\">Dashboard</a><a class=\"ds-nav\" href=\"#problems\">Problems</a></nav>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:12px;min-height:44px;padding:10px 12px;border-radius:7px;color:var(--muted,#586577);font:500 14px var(--font-geist-sans,Geist,sans-serif);text-decoration:none}.ds-nav:hover{background:var(--surface-subtle,#edf1f6);color:var(--foreground,#202936)}.ds-nav[aria-current=page]{background:var(--accent-soft,#e9effc);color:var(--accent-text,#304fa0)}.ds-nav:focus-visible{outline:2px solid var(--accent-text,#304fa0);outline-offset:3px}"
+    },
+    {
+      "name": "Revision label",
+      "kind": "chip",
+      "refersTo": "revision-label",
+      "description": "All revision-count labels share a single blue treatment.",
+      "html": "<span class=\"ds-revision\">Revised 3 times</span>",
+      "css": ".ds-revision{display:inline-flex;align-items:center;white-space:nowrap;padding:4px 8px;border-radius:6px;background:var(--accent-soft,#e9effc);color:var(--accent-text,#304fa0);font:500 12px var(--font-geist-sans,Geist,sans-serif)}"
+    },
+    {
+      "name": "Practice card",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Flat bordered container for real question work.",
+      "html": "<section class=\"ds-card\"><h2 class=\"ds-title\">Practice question</h2><p class=\"ds-meta\">Question title, topics and provider links come from the catalog.</p></section>",
+      "css": ".ds-card{padding:24px;border:1px solid var(--line,#dce2e9);border-radius:12px;background:var(--surface,#fff);color:var(--foreground,#202936);font-family:var(--font-geist-sans,Geist,sans-serif)}.ds-title{margin:0;font-size:18px;font-weight:600}.ds-meta{margin:8px 0 0;color:var(--muted,#586577);font-size:14px;line-height:1.6}.ds-card[data-complete=true]{border-color:var(--success,#26704d)}"
+    },
+    {
+      "name": "Session question disclosure",
+      "kind": "custom",
+      "description": "Compact session overview reveals its secondary question index.",
+      "html": "<details class=\"ds-questions\"><summary class=\"ds-summary\">Session questions · Show list</summary><nav aria-label=\"Session questions\"><a class=\"ds-question\" href=\"#question-1\">1 · Practice question</a></nav></details>",
+      "css": ".ds-questions{padding:8px 16px;border:1px solid var(--line,#dce2e9);border-radius:12px;background:var(--surface,#fff);color:var(--foreground,#202936);font:500 14px var(--font-geist-sans,Geist,sans-serif)}.ds-summary{min-height:44px;align-content:center;cursor:pointer}.ds-summary:focus-visible{outline:2px solid var(--accent-text,#304fa0);outline-offset:3px}.ds-question{display:flex;gap:10px;padding:12px;border-radius:7px;font-size:13px;text-decoration:none;color:var(--foreground,#202936)}.ds-question:hover{background:var(--surface-subtle,#edf1f6)}.ds-question:focus-visible{outline:2px solid var(--accent-text,#304fa0);outline-offset:3px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Daily study workspace",
+    "overview": "An ordered daily study workspace for practice, revision, and interviews. Clean surfaces, readable work lists, and a quiet blue action treatment keep attention on the next useful action. The visual identity comes from real catalog content and computed progress rather than decoration.\n\nAutomatic light and dark themes follow the device. Both share the same hierarchy, spacing, and component shapes. Mobile layouts reveal secondary controls when requested while keeping search, timers, and frequent actions easy to reach.",
+    "keyCharacteristics": [
+      "Quiet blue actions and selected navigation.",
+      "Flat, bordered surfaces with readable density.",
+      "Textual progress and tabular duration measurements.",
+      "Responsive disclosure with labeled controls."
+    ],
+    "rules": [
+      {
+        "name": "The Revision Label Rule",
+        "body": "Every revision-count label uses the same blue tint and readable blue text; communicate its count in words.",
+        "section": "colors"
+      },
+      {
+        "name": "The Real Count Rule",
+        "body": "Use computed numbers and textual labels for progress; never manufacture a decorative counter or streak.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "Do use semantic CSS variables so light and dark themes stay aligned.",
+      "Do keep search visible and label every secondary filter.",
+      "Do retain provider links, favorites, progress actions, and timer controls in stacked problem entries.",
+      "Do use real catalog content, computed counts, and explicit state labels.",
+      "Do preserve visible keyboard focus, native controls, and reduced-motion support."
+    ],
+    "donts": [
+      "Don't reintroduce note fields or note-save actions.",
+      "Don't invent activity, streaks, attempted status, or decorative progress charts.",
+      "Don't use different colors to rank revision-count labels; their text communicates the count.",
+      "Don't make session-ending controls more prominent than question work.",
+      "Don't add decorative shadows, marketing heroes, or decorative motion."
+    ]
+  }
+}

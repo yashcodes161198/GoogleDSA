@@ -16,14 +16,10 @@ const statusStyles: Record<ProblemProgressStatus, string> = {
   unsolved: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
   solved:
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
-  "revised-once":
-    "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300",
-  "revised-twice":
-    "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300",
-  "revised-three":
-    "bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300",
-  "revised-many":
-    "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/40 dark:text-fuchsia-300",
+  "revised-once": "bg-[var(--accent-soft)] text-[var(--accent-text)]",
+  "revised-twice": "bg-[var(--accent-soft)] text-[var(--accent-text)]",
+  "revised-three": "bg-[var(--accent-soft)] text-[var(--accent-text)]",
+  "revised-many": "bg-[var(--accent-soft)] text-[var(--accent-text)]",
 };
 
 export function Badge({

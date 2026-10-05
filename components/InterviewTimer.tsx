@@ -49,7 +49,7 @@ export function InterviewTimer({
   return (
     <div
       className={cn(
-        "rounded-xl border px-6 py-4 text-center",
+        "session-countdown rounded-xl border px-4 py-3 xl:px-6 xl:py-4",
         expired &&
           "border-red-300 bg-red-50 dark:border-red-900 dark:bg-red-950/30",
         critical &&
@@ -64,7 +64,9 @@ export function InterviewTimer({
       )}
     >
       <p className="text-sm text-zinc-500">Time remaining</p>
-      <p className="font-mono text-4xl font-bold tracking-wider">{display}</p>
+      <p className="font-mono text-2xl font-semibold tabular-nums xl:text-4xl">
+        {display}
+      </p>
       {critical && !expired && (
         <p className="mt-2 text-sm text-red-600">Less than 5 minutes left!</p>
       )}

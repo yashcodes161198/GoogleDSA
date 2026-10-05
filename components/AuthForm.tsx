@@ -68,7 +68,9 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>{mode === "login" ? "Sign in" : "Create account"}</CardTitle>
+        <CardTitle as="h1">
+          {mode === "login" ? "Sign in" : "Create account"}
+        </CardTitle>
         <CardDescription>
           Your problems, daily revision, and interview practice in one place.
         </CardDescription>

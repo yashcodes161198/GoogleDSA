@@ -365,6 +365,8 @@
     width: 100%;
     text-align: left;
     font-size: 13px;
+    table-layout: fixed;
+    min-width: 1160px;
   }
   .problem-table th {
     background: var(--surface-subtle);
@@ -372,24 +374,23 @@
     font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
-    padding: 12px 16px;
+    padding: 12px;
   }
   .problem-table td {
     border-top: 1px solid var(--line);
-    padding: 16px;
-    vertical-align: top;
+    padding: 8px 12px;
+    vertical-align: middle;
   }
   .problem-table tbody tr:hover {
     background: var(--background);
   }
   .problem-table .problem-title {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 550;
     line-height: 1.5;
   }
-  .problem-table .problem-cell {
-    min-width: 240px;
-    width: 40%;
+  .problem-table .problem-actions {
+    flex-wrap: nowrap;
   }
   .problem-actions {
     display: flex;
@@ -433,6 +434,16 @@
     display: grid;
     gap: 16px;
   }
+  .session-countdown {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 12px;
+  }
+  .session-countdown > p:nth-child(n + 3) {
+    width: 100%;
+  }
   .session-question-link {
     display: flex;
     gap: 10px;
@@ -447,17 +458,6 @@
   .session-question-link[aria-current="true"] {
     background: var(--accent-soft);
     color: var(--accent-text);
-  }
-  .notes-field {
-    width: 100%;
-    min-height: 100px;
-    resize: vertical;
-    background: var(--background);
-    border: 1px solid var(--line);
-    border-radius: 7px;
-    padding: 12px;
-    font-size: 14px;
-    line-height: 1.6;
   }
   .skip-link {
     position: fixed;
@@ -532,11 +532,34 @@
       position: sticky;
       top: 24px;
     }
+    .session-countdown {
+      display: block;
+      text-align: center;
+    }
   }
   @media (max-width: 639px) {
     .page-heading {
-      flex-direction: column;
-      gap: 14px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px 12px;
+    }
+    .page-heading > div {
+      display: contents;
+    }
+    .page-heading h1 {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .page-heading p {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+    .page-heading > a {
+      grid-column: 2;
+      grid-row: 1;
+      padding-inline: 12px;
+      font-size: 13px;
+      align-self: start;
     }
     .daily-revision,
     .daily-interview {

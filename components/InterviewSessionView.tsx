@@ -60,33 +60,12 @@ export function InterviewSessionView({
     ]),
   );
 
-  const toggleComplete = (
-    problemId: string,
-    completed: boolean,
-    notes?: string | null,
-  ) => {
+  const toggleComplete = (problemId: string, completed: boolean) => {
     startTransition(async () => {
       setSaveError(null);
       applySessionUpdate({ kind: "complete", problemId, completed });
       try {
-        await updateInterviewProblem(
-          session.id,
-          problemId,
-          completed,
-          notes ?? undefined,
-        );
-      } catch (err) {
-        console.error(err);
-        setSaveError("Could not save this change. Please try again.");
-      }
-    });
-  };
-
-  const saveNotes = (problemId: string, completed: boolean, notes: string) => {
-    startTransition(async () => {
-      setSaveError(null);
-      try {
-        await updateInterviewProblem(session.id, problemId, completed, notes);
+        await updateInterviewProblem(session.id, problemId, completed);
       } catch (err) {
         console.error(err);
         setSaveError("Could not save this change. Please try again.");
@@ -151,7 +130,6 @@ export function InterviewSessionView({
         finish={finish}
         toggleComplete={toggleComplete}
         toggleFavorite={toggleFavorite}
-        saveNotes={saveNotes}
       />
     </ProblemTimerProvider>
   );
@@ -166,7 +144,6 @@ function InterviewSessionContent({
   finish,
   toggleComplete,
   toggleFavorite,
-  saveNotes,
 }: {
   session: InterviewSession;
   isActive: boolean;
@@ -174,31 +151,22 @@ function InterviewSessionContent({
   completedCount: number;
   pending: boolean;
   finish: (status: "completed" | "abandoned") => void;
-  toggleComplete: (
-    problemId: string,
-    completed: boolean,
-    notes?: string | null,
-  ) => void;
+  toggleComplete: (problemId: string, completed: boolean) => void;
   toggleFavorite: (problemId: string) => void;
-  saveNotes: (problemId: string, completed: boolean, notes: string) => void;
 }) {
   const { onLeetCodeClick, stopAndPersist } = useProblemTimer();
   const [showQuestions, setShowQuestions] = useState(false);
 
-  const handleCompleteChange = async (
-    problemId: string,
-    checked: boolean,
-    notes?: string | null,
-  ) => {
+  const handleCompleteChange = async (problemId: string, checked: boolean) => {
     if (checked) {
       await stopAndPersist(problemId);
     }
-    toggleComplete(problemId, checked, notes);
+    toggleComplete(problemId, checked);
   };
 
   return (
-    <div className="session-layout">
-      <aside className="session-rail" aria-label="Interview overview">
+    <div className="session-layout gap-4 sm:gap-6">
+      <aside className="session-rail gap-2 sm:gap-4" aria-label="Interview overview">
         {isActive ? (
           <InterviewTimer
             endsAt={session.ends_at}
@@ -213,8 +181,8 @@ function InterviewSessionContent({
             </Link>
           </div>
         )}
-        <div className="surface p-4">
-          <div className="flex items-center justify-between gap-3">
+        <div className="surface grid grid-cols-[1fr_auto] items-center gap-x-3 px-4 py-2 xl:block xl:p-4">
+          <div className="flex items-center gap-2 xl:justify-between xl:gap-3">
             <h2 className="text-sm font-semibold">Session questions</h2>
             <span className="text-xs tabular-nums text-muted">
               {completedCount} / {optimisticProblems.length}
@@ -222,17 +190,21 @@ function InterviewSessionContent({
           </div>
           <button
             type="button"
-            className="text-link mt-2 min-h-11 xl:hidden"
+            className="text-link min-h-11 text-xs xl:hidden"
             aria-expanded={showQuestions}
             aria-controls="session-question-list"
             onClick={() => setShowQuestions((shown) => !shown)}
           >
-            {showQuestions ? "Hide question list" : "Show question list"}
+            {showQuestions ? "Hide list" : "Show list"}
           </button>
           <nav
             id="session-question-list"
             aria-label="Session questions"
-            className={showQuestions ? "mt-3" : "mt-3 hidden xl:block"}
+            className={
+              showQuestions
+                ? "col-span-2 mt-3"
+                : "col-span-2 mt-3 hidden xl:block"
+            }
           >
             {optimisticProblems.map((sp) => (
               <a
@@ -263,19 +235,25 @@ function InterviewSessionContent({
           <div className="grid grid-cols-2 gap-2">
             <Button
               variant="outline"
+              className="min-h-11"
               disabled={pending}
               onClick={() => finish("abandoned")}
             >
               Abandon
             </Button>
-            <Button disabled={pending} onClick={() => finish("completed")}>
+            <Button
+              variant="outline"
+              className="min-h-11"
+              disabled={pending}
+              onClick={() => finish("completed")}
+            >
               End session
             </Button>
           </div>
         )}
         <p className="text-xs leading-relaxed text-muted">
-          {completedCount} of {optimisticProblems.length} completed. Session
-          completion is tracked separately from your problem library.
+          {completedCount} of {optimisticProblems.length} completed. Completed
+          questions are also marked solved in your problem library.
         </p>
       </aside>
       <div className="grid min-w-0 gap-5">
@@ -289,7 +267,7 @@ function InterviewSessionContent({
               className="practice-card"
               data-complete={sp.completed}
             >
-              <CardHeader>
+              <CardHeader className="p-5 pb-3 sm:p-6 sm:pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="mb-3 text-xs text-muted">
@@ -314,23 +292,12 @@ function InterviewSessionContent({
                   </p>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-5">
+              <CardContent className="space-y-4 p-5 pt-0 sm:space-y-5 sm:p-6 sm:pt-0">
                 <ProblemLinks
                   links={resolveProblemLinks(problem)}
                   onLinkClick={() => onLeetCodeClick(sp.problem_id)}
                 />
                 <ProblemSolveTimer problemId={sp.problem_id} />
-                <label className="block space-y-2 text-sm font-medium">
-                  Approach &amp; notes
-                  <textarea
-                    className="notes-field mt-2 block font-normal"
-                    placeholder="Capture your approach, complexity, and edge cases…"
-                    defaultValue={sp.notes ?? ""}
-                    onBlur={(e) =>
-                      saveNotes(sp.problem_id, sp.completed, e.target.value)
-                    }
-                  />
-                </label>
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
                   <div className="flex items-center gap-3 text-sm font-medium">
                     <Checkbox
@@ -350,11 +317,9 @@ function InterviewSessionContent({
                         : "Mark as completed"}
                     </label>
                   </div>
-                  <span className="text-xs text-muted">
-                    {pending
-                      ? "Saving…"
-                      : "Notes save when you leave the field"}
-                  </span>
+                  {pending && (
+                    <span className="text-xs text-muted">Saving…</span>
+                  )}
                 </div>
               </CardContent>
             </Card>

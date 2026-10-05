@@ -276,8 +276,7 @@ class MemoryStore {
     userId: string,
     sessionId: string,
     problemId: string,
-    completed: boolean,
-    notes?: string
+    completed: boolean
   ) {
     const session = this.interviewSessions.find(
       (s) => s.id === sessionId && s.user_id === userId
@@ -290,7 +289,6 @@ class MemoryStore {
     if (!row) throw new Error("Problem not in session");
 
     row.completed = completed;
-    if (notes !== undefined) row.notes = notes;
   }
 
   endInterviewSession(

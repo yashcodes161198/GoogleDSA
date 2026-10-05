@@ -162,42 +162,6 @@ export async function setProblemFavorite(problemId: string, favorite: boolean) {
   revalidatePath("/interview", "layout");
 }
 
-export async function updateProblemNotes(problemId: string, notes: string) {
-  const user = await getCurrentUser();
-  if (!user) throw new Error("Not authenticated");
-
-  if (isLocalMode()) {
-    const store = getMemoryStore();
-    const existing = store
-      .getProblemsWithProgress(getLocalUserId())
-      .find((p) => p.id === problemId);
-    store.upsertUserProblem(getLocalUserId(), problemId, {
-      status: existing?.status ?? "unsolved",
-      notes,
-    });
-  } else {
-    const supabase = await createClient();
-    const { data: existing } = await supabase
-      .from("user_problems")
-      .select("status")
-      .eq("user_id", user.id)
-      .eq("problem_id", problemId)
-      .maybeSingle();
-
-    const { error } = await supabase.from("user_problems").upsert(
-      {
-        user_id: user.id,
-        problem_id: problemId,
-        notes,
-        status: existing?.status ?? "unsolved",
-      },
-      { onConflict: "user_id,problem_id" }
-    );
-    if (error) throw error;
-  }
-  revalidatePath("/problems");
-}
-
 export type SaveProblemSolveTimeResult =
   | { ok: true; bestSeconds: number }
   | { ok: false; error: string };
@@ -562,8 +526,7 @@ async function syncInterviewCompletionToProgress(
 export async function updateInterviewProblem(
   sessionId: string,
   problemId: string,
-  completed: boolean,
-  notes?: string
+  completed: boolean
 ) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
@@ -573,14 +536,13 @@ export async function updateInterviewProblem(
       getLocalUserId(),
       sessionId,
       problemId,
-      completed,
-      notes
+      completed
     );
   } else {
     const supabase = await createClient();
     const { error } = await supabase
       .from("interview_session_problems")
-      .update({ completed, notes: notes ?? null })
+      .update({ completed })
       .eq("session_id", sessionId)
       .eq("problem_id", problemId);
 

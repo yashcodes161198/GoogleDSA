@@ -150,7 +150,7 @@ export default async function DashboardPage() {
           </Link>
           <p className="mt-4 text-xs">
             {active
-              ? "Your notes and completed questions are saved."
+              ? "Your completed questions are saved."
               : "Use the default session or customize your mix."}
           </p>
         </section>

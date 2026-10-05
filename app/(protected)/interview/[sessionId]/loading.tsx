@@ -1,8 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Matches InterviewSessionView's actual shape (timer, action row, N problem
-// cards with a checkbox/title/difficulty header, a link line, and a notes
-// textarea) rather than falling back to the parent /interview list skeleton.
 export default function Loading() {
   return (
     <div className="space-y-6">
@@ -39,7 +36,10 @@ export default function Loading() {
             </div>
             <Skeleton className="h-4 w-40" />
             <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-16 w-full" />
+            <div className="flex items-center justify-between border-t border-line pt-4">
+              <Skeleton className="h-7 w-16" />
+              <Skeleton className="h-11 w-40" />
+            </div>
           </div>
         ))}
       </div>

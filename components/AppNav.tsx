@@ -36,7 +36,25 @@ export function AppNav({
           </span>
           <span>Google DSA</span>
         </Link>
-        <span className="text-xs text-muted md:hidden">Practice workspace</span>
+        <details className="relative md:hidden">
+          <summary className="flex min-h-11 cursor-pointer items-center text-sm font-medium">
+            Account
+          </summary>
+          <div className="surface absolute right-0 top-full z-50 mt-2 w-56 p-4">
+            <p className="text-xs font-medium">
+              {localMode ? "Local preview" : "Your workspace"}
+            </p>
+            <p className="mt-1 break-all text-xs text-muted">{email}</p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="mt-3 w-full justify-start"
+            >
+              <LogOut size={15} aria-hidden="true" /> Sign out
+            </Button>
+          </div>
+        </details>
       </div>
       <nav
         className="mt-10 hidden space-y-1 md:block"
@@ -54,7 +72,7 @@ export function AppNav({
           </Link>
         ))}
       </nav>
-      <div className="mt-4 flex items-center justify-between gap-2 md:mt-auto md:block">
+      <div className="hidden md:mt-auto md:block">
         <div className="sidebar-account">
           <span className="avatar" aria-hidden="true">
             {email?.[0]?.toUpperCase() ?? "G"}

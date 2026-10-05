@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { DifficultyBadge, StatusBadge } from "@/components/ui/badge";
 import { BestSolveTimeLabel } from "@/components/BestSolveTimeLabel";
 import { ProblemLinks } from "@/components/ProblemLinks";
+import { ProblemConcepts } from "@/components/ProblemConcepts";
 import { formatDurationSeconds } from "@/lib/format-duration";
 import { resolveProblemLinks } from "@/lib/problem-links";
 import {
@@ -25,6 +26,7 @@ import {
   reconcileRevisionCount,
 } from "@/lib/revision/optimisticRevision";
 import { withProblemFavorite } from "@/lib/problems/favorite";
+import { ChevronDown } from "lucide-react";
 import type {
   Difficulty,
   ProblemStatus,
@@ -114,6 +116,7 @@ export function ProblemTable({
   const [topic, setTopic] = useState("ALL");
   const [frequencyInput, setFrequencyInput] = useState("");
   const [favoriteFilter, setFavoriteFilter] = useState<FavoriteFilter>("ALL");
+  const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState<number | "all">(50);
   const [revisionError, setRevisionError] = useState<string | null>(null);
@@ -269,6 +272,13 @@ export function ProblemTable({
     setFavoriteFilter("ALL");
     setFrequencyInput("");
   };
+  const activeSecondaryFilterCount = [
+    difficulty !== "ALL",
+    status !== "ALL",
+    topic !== "ALL",
+    favoriteFilter !== "ALL",
+    frequencyInput.trim() !== "",
+  ].filter(Boolean).length;
   const hasFilters =
     search ||
     difficulty !== "ALL" ||
@@ -289,79 +299,103 @@ export function ProblemTable({
               onChange={(e) => setSearch(e.target.value)}
             />
           </label>
-          <label className="field-label">
-            Difficulty
-            <select
-              className="field-control"
-              value={difficulty}
-              onChange={(e) =>
-                setDifficulty(e.target.value as Difficulty | "ALL")
-              }
-            >
-              <option value="ALL">All difficulties</option>
-              <option value="EASY">Easy</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HARD">Hard</option>
-            </select>
-          </label>
-          <label className="field-label">
-            Progress
-            <select
-              className="field-control"
-              value={status}
-              onChange={(e) =>
-                setStatus(e.target.value as ProblemProgressStatus | "ALL")
-              }
-            >
-              <option value="ALL">All statuses</option>
-              {PROBLEM_PROGRESS_FILTERS.map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field-label">
-            Topic
-            <select
-              className="field-control"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-            >
-              <option value="ALL">All topics</option>
-              {topics.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field-label">
-            Favorites
-            <select
-              className="field-control"
-              value={favoriteFilter}
-              onChange={(e) =>
-                setFavoriteFilter(e.target.value as FavoriteFilter)
-              }
-            >
-              <option value="ALL">All problems</option>
-              <option value="FAVORITES">Favorites</option>
-            </select>
-          </label>
-          <label className="field-label">
-            Frequency (%)
-            <Input
-              type="number"
-              inputMode="decimal"
-              min={0}
-              max={100}
-              step="0.1"
-              placeholder="Any"
-              value={frequencyInput}
-              onChange={(e) => setFrequencyInput(e.target.value)}
+          <button
+            type="button"
+            className="col-span-2 flex min-h-11 items-center justify-between border-t border-line text-sm font-medium sm:hidden"
+            aria-expanded={showFilters}
+            aria-controls="problem-secondary-filters"
+            onClick={() => setShowFilters((shown) => !shown)}
+          >
+            <span>
+              Filters
+              {activeSecondaryFilterCount > 0
+                ? ` (${activeSecondaryFilterCount} active)`
+                : ""}
+            </span>
+            <ChevronDown
+              size={16}
+              className={showFilters ? "rotate-180" : ""}
+              aria-hidden="true"
             />
-          </label>
+          </button>
+          <div
+            id="problem-secondary-filters"
+            className={showFilters ? "contents" : "hidden sm:contents"}
+          >
+            <label className="field-label">
+              Difficulty
+              <select
+                className="field-control"
+                value={difficulty}
+                onChange={(e) =>
+                  setDifficulty(e.target.value as Difficulty | "ALL")
+                }
+              >
+                <option value="ALL">All difficulties</option>
+                <option value="EASY">Easy</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HARD">Hard</option>
+              </select>
+            </label>
+            <label className="field-label">
+              Progress
+              <select
+                className="field-control"
+                value={status}
+                onChange={(e) =>
+                  setStatus(e.target.value as ProblemProgressStatus | "ALL")
+                }
+              >
+                <option value="ALL">All statuses</option>
+                {PROBLEM_PROGRESS_FILTERS.map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field-label">
+              Topic
+              <select
+                className="field-control"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+              >
+                <option value="ALL">All topics</option>
+                {topics.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field-label">
+              Favorites
+              <select
+                className="field-control"
+                value={favoriteFilter}
+                onChange={(e) =>
+                  setFavoriteFilter(e.target.value as FavoriteFilter)
+                }
+              >
+                <option value="ALL">All problems</option>
+                <option value="FAVORITES">Favorites</option>
+              </select>
+            </label>
+            <label className="field-label">
+              Frequency (%)
+              <Input
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={100}
+                step="0.1"
+                placeholder="Any"
+                value={frequencyInput}
+                onChange={(e) => setFrequencyInput(e.target.value)}
+              />
+            </label>
+          </div>
         </div>
       </div>
       <div className="flex min-h-9 flex-wrap items-center justify-between gap-2">
@@ -403,14 +437,15 @@ export function ProblemTable({
                         favorite={p.user_problem?.is_favorite === true}
                         onToggle={() => toggleFavorite(p.id)}
                       />
-                      <span className="pt-1 font-medium leading-snug">
+                      <span className="pt-1 text-base font-medium leading-snug">
                         {p.title}
                       </span>
+                      <ProblemConcepts title={p.title} topics={p.topics} />
                     </div>
                     <DifficultyBadge difficulty={p.difficulty} />
                   </div>
                   <p className="text-xs leading-relaxed text-muted">
-                    {p.topics.join(", ")} · {p.frequency.toFixed(1)}% frequency
+                    {p.frequency.toFixed(1)}% frequency
                   </p>
                   <ProblemLinks links={resolveProblemLinks(p)} />
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -431,6 +466,15 @@ export function ProblemTable({
           </div>
           <div className="surface hidden overflow-x-auto xl:block">
             <table className="problem-table">
+              <colgroup>
+                <col />
+                <col style={{ width: 180 }} />
+                <col style={{ width: 92 }} />
+                <col style={{ width: 94 }} />
+                <col style={{ width: 88 }} />
+                <col style={{ width: 138 }} />
+                <col style={{ width: 264 }} />
+              </colgroup>
               <caption className="sr-only">
                 Problem catalog with difficulty, frequency, solve time and
                 progress actions
@@ -438,31 +482,34 @@ export function ProblemTable({
               <thead>
                 <tr>
                   <th scope="col">Problem</th>
+                  <th scope="col">Open</th>
                   <th scope="col">Difficulty</th>
                   <th scope="col">Frequency</th>
                   <th scope="col">Best time</th>
                   <th scope="col">Your progress</th>
+                  <th scope="col">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {pageRows.map((p) => (
                   <tr key={p.id}>
                     <td className="problem-cell">
-                      <div className="flex items-start gap-1">
+                      <div className="flex min-w-0 items-center gap-1">
                         <FavoriteButton
                           favorite={p.user_problem?.is_favorite === true}
                           onToggle={() => toggleFavorite(p.id)}
                         />
-                        <span className="problem-title pt-1">{p.title}</span>
+                        <span
+                          className="problem-title min-w-0 truncate"
+                          title={p.title}
+                        >
+                          {p.title}
+                        </span>
+                        <ProblemConcepts title={p.title} topics={p.topics} />
                       </div>
-                      <p className="mt-1 text-xs leading-relaxed text-muted">
-                        {p.topics.join(", ")}
-                      </p>
-                      <ProblemLinks
-                        className="mt-2"
-                        links={resolveProblemLinks(p)}
-                        linkClassName="text-xs"
-                      />
+                    </td>
+                    <td>
+                      <ProblemLinks compact links={resolveProblemLinks(p)} />
                     </td>
                     <td>
                       <DifficultyBadge difficulty={p.difficulty} />
@@ -478,14 +525,14 @@ export function ProblemTable({
                         : "—"}
                     </td>
                     <td>
-                      <div className="space-y-2">
-                        <StatusBadge status={getProblemProgressStatus(p)} />
-                        <ProblemActions
-                          problem={p}
-                          onStatusChange={setStatusFor}
-                          onRevise={incrementRevision}
-                        />
-                      </div>
+                      <StatusBadge status={getProblemProgressStatus(p)} />
+                    </td>
+                    <td>
+                      <ProblemActions
+                        problem={p}
+                        onStatusChange={setStatusFor}
+                        onRevise={incrementRevision}
+                      />
                     </td>
                   </tr>
                 ))}

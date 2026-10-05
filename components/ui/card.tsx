@@ -19,9 +19,12 @@ export function CardHeader({
 
 export function CardTitle({
   className,
+  as: Heading = "h2",
   ...props
-}: HTMLAttributes<HTMLHeadingElement>) {
-  return <h3 className={cn("text-lg font-semibold", className)} {...props} />;
+}: HTMLAttributes<HTMLHeadingElement> & { as?: "h1" | "h2" | "h3" }) {
+  return (
+    <Heading className={cn("text-lg font-semibold", className)} {...props} />
+  );
 }
 
 export function CardDescription({
