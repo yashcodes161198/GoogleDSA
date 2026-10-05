@@ -47,9 +47,11 @@ export function PracticeProblemRow({
         <span className="text-xs text-muted">{metadata}</span>
       </div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-x-5 gap-y-3">
-        <ProblemSolveTimer problemId={problem.id} compact />
-        <div className="flex min-h-9 items-center gap-3 text-sm font-medium">
+        <div className="flex min-h-9 items-center gap-1 text-sm font-medium">
           {children}
+        </div>
+        <div className="ml-auto max-w-full">
+          <ProblemSolveTimer problemId={problem.id} compact />
         </div>
       </div>
     </article>

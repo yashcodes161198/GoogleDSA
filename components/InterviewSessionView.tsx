@@ -270,6 +270,7 @@ function InterviewSessionContent({
               metadata={`Question ${sp.position} of ${optimisticProblems.length}${sp.global_status === "solved" ? " (previously solved)" : ""}`}
             >
               <Checkbox
+                className="h-8 w-8"
                 id={`complete-${sp.problem_id}`}
                 checked={sp.completed}
                 aria-label={`Mark ${problem.title} as done in this interview`}

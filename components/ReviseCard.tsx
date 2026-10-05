@@ -292,6 +292,7 @@ function ReviseCardContent({
               metadata={`${revisionCount} revision${revisionCount === 1 ? "" : "s"}`}
             >
               <Checkbox
+                className="h-8 w-8"
                 id={`revised-${problem.id}`}
                 checked={revised}
                 aria-label={`Mark ${problem.title} as revised`}
