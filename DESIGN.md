@@ -148,7 +148,7 @@ Blue is the single action accent. Neutral surfaces and dividers provide structur
 - **Control Outline** (`outline-border`): the shared outline-button border, distinct from panel dividers.
 
 ### Semantic states
-Completion uses `success` for practice-card borders and completion text. Difficulty and solved labels retain their existing green, yellow, red, and emerald semantic utilities; they do not become additional brand accents. Timer warnings remain yellow at 15 minutes and red at 5 minutes or expiry, with explanatory text.
+Completion uses `success` for the practice-row inset marker and completion text. Difficulty and solved labels retain their existing green, yellow, red, and emerald semantic utilities; they do not become additional brand accents. Timer warnings remain yellow at 15 minutes and red at 5 minutes or expiry, with explanatory text.
 
 **The Revision Label Rule.** Every revision-count label uses the same blue tint and readable blue text; communicate its count in words.
 
@@ -177,7 +177,7 @@ At 768px, the global navigation becomes a fixed 216px sidebar with a matching ma
 
 Search stays visible at every width. Below 640px, secondary catalog filters sit behind a labeled Filters disclosure showing the active secondary-filter count. At 640px and above, all filters are exposed in the grid. Catalog entries stay stacked below 1280px and become a compact table at that breakpoint; retain their actions in both forms. Desktop rows use Problem, Open, Difficulty, Frequency, Best time, Your progress, and Action columns. Provider links are short pills, problem titles are 15px and remain on one line, and concepts appear through the adjacent information control on hover, focus, or tap. Long titles retain their full text in the title attribute. Actions remain on one line, with horizontal scrolling confined to the table at narrower desktop widths.
 
-Interview countdowns are inline below 1200px. Session questions start collapsed there and have a Show list / Hide list control; the wide rail exposes the question list. Session layout gaps are 16px on mobile, the rail uses 8px, and these expand to 24px / 16px at 640px. Practice-card content uses 20px mobile padding and 24px from 640px. Ordinary catalog cards use 16px padding.
+Interview countdowns are inline below 1280px. Session questions start collapsed there and have a Show list / Hide list control; the wide rail exposes the question list. Session layout gaps are 16px on mobile, the rail uses 8px, and these expand to 24px / 16px at 640px. Revision and interview questions share a two-line practice row inside one surface with separators: title, concepts control, provider pills, difficulty and context above; compact timer and completion action below. Rows use 16px vertical and 20px horizontal padding, reduced to 16px horizontal on mobile. Titles use 16px type. Groups wrap naturally on narrow screens. Completed rows retain explicit text and a success-colored inset marker. Ordinary catalog cards use 16px padding.
 
 ## Elevation & Depth
 
@@ -196,7 +196,7 @@ Primary buttons use the blue action fill, white text, and a darker hover fill. S
 Revision labels use the same blue treatment for Revised once, Revised twice, Revised 3 times, and Revised 4+ times. Unsolved and solved retain neutral and semantic completion treatments. Counters remain text; badges always name the state.
 
 ### Cards and containers
-Use the surface background, panel radius, and divider border. Padding follows the layout context. Completed practice cards change their border to the success color; they also retain explicit completion text.
+Use the surface background, panel radius, and divider border. Padding follows the layout context. Completed practice rows show a success-colored inset marker and retain explicit completion text.
 
 ### Inputs and fields
 Use visible labels, the surface background, divider stroke, and control radius. Shared fields are 40px tall with 8px 10px padding. Placeholder and label text use secondary ink; the caret uses readable blue. Keep native select and input behavior.

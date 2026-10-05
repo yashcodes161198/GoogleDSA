@@ -415,6 +415,24 @@
     display: grid;
     gap: 16px;
   }
+  .practice-row-list {
+    overflow: hidden;
+  }
+  .practice-row {
+    padding: 16px 20px;
+    scroll-margin-top: 100px;
+  }
+  .practice-row + .practice-row {
+    border-top: 1px solid var(--line);
+  }
+  .practice-row[data-complete="true"] {
+    box-shadow: inset 3px 0 var(--success);
+  }
+  @media (max-width: 639px) {
+    .practice-row {
+      padding: 16px;
+    }
+  }
   .practice-card {
     scroll-margin-top: 100px;
   }

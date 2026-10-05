@@ -7,19 +7,14 @@ import {
   setProblemFavorite,
   updateInterviewProblem,
 } from "@/app/actions";
-import { FavoriteButton } from "@/components/FavoriteButton";
+import { PracticeProblemRow } from "@/components/PracticeProblemRow";
 import { InterviewTimer } from "@/components/InterviewTimer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DifficultyBadge } from "@/components/ui/badge";
-import { ProblemLinks } from "@/components/ProblemLinks";
-import { ProblemSolveTimer } from "@/components/ProblemSolveTimer";
 import {
   ProblemTimerProvider,
   useProblemTimer,
 } from "@/components/ProblemTimerContext";
-import { resolveProblemLinks } from "@/lib/problem-links";
 import type { InterviewSession, InterviewSessionProblem } from "@/lib/types";
 import Link from "next/link";
 import { Check } from "lucide-react";
@@ -166,7 +161,10 @@ function InterviewSessionContent({
 
   return (
     <div className="session-layout gap-4 sm:gap-6">
-      <aside className="session-rail gap-2 sm:gap-4" aria-label="Interview overview">
+      <aside
+        className="session-rail gap-2 sm:gap-4"
+        aria-label="Interview overview"
+      >
         {isActive ? (
           <InterviewTimer
             endsAt={session.ends_at}
@@ -256,73 +254,39 @@ function InterviewSessionContent({
           questions are also marked solved in your problem library.
         </p>
       </aside>
-      <div className="grid min-w-0 gap-5">
+      <div className="surface practice-row-list min-w-0">
         {optimisticProblems.map((sp) => {
           const problem = sp.problem;
           if (!problem) return null;
           return (
-            <Card
+            <PracticeProblemRow
               key={sp.problem_id}
               id={`question-${sp.problem_id}`}
-              className="practice-card"
-              data-complete={sp.completed}
+              problem={problem}
+              favorite={sp.is_favorite === true}
+              onFavoriteToggle={() => toggleFavorite(sp.problem_id)}
+              onLinkClick={() => onLeetCodeClick(sp.problem_id)}
+              complete={sp.completed}
+              metadata={`Question ${sp.position} of ${optimisticProblems.length}${sp.global_status === "solved" ? " (previously solved)" : ""}`}
             >
-              <CardHeader className="p-5 pb-3 sm:p-6 sm:pb-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="mb-3 text-xs text-muted">
-                      Question {sp.position} of {optimisticProblems.length}
-                      {sp.global_status === "solved"
-                        ? " · Previously solved"
-                        : ""}
-                    </p>
-                    <CardTitle className="leading-snug">
-                      {problem.title}
-                    </CardTitle>
-                  </div>
-                  <FavoriteButton
-                    favorite={sp.is_favorite === true}
-                    onToggle={() => toggleFavorite(sp.problem_id)}
-                  />
-                </div>
-                <div className="mt-2 flex flex-wrap items-center gap-3">
-                  <DifficultyBadge difficulty={problem.difficulty} />
-                  <p className="text-xs leading-relaxed text-muted">
-                    {problem.topics.join(", ")}
-                  </p>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4 p-5 pt-0 sm:space-y-5 sm:p-6 sm:pt-0">
-                <ProblemLinks
-                  links={resolveProblemLinks(problem)}
-                  onLinkClick={() => onLeetCodeClick(sp.problem_id)}
-                />
-                <ProblemSolveTimer problemId={sp.problem_id} />
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
-                  <div className="flex items-center gap-3 text-sm font-medium">
-                    <Checkbox
-                      id={`complete-${sp.problem_id}`}
-                      checked={sp.completed}
-                      aria-label={`Mark ${problem.title} as done in this interview`}
-                      onChange={(checked) =>
-                        void handleCompleteChange(sp.problem_id, checked)
-                      }
-                    />
-                    <label
-                      htmlFor={`complete-${sp.problem_id}`}
-                      className="cursor-pointer"
-                    >
-                      {sp.completed
-                        ? "Completed in this interview"
-                        : "Mark as completed"}
-                    </label>
-                  </div>
-                  {pending && (
-                    <span className="text-xs text-muted">Saving…</span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+              <Checkbox
+                id={`complete-${sp.problem_id}`}
+                checked={sp.completed}
+                aria-label={`Mark ${problem.title} as done in this interview`}
+                onChange={(checked) =>
+                  void handleCompleteChange(sp.problem_id, checked)
+                }
+              />
+              <label
+                htmlFor={`complete-${sp.problem_id}`}
+                className="cursor-pointer"
+              >
+                {sp.completed
+                  ? "Completed in this interview"
+                  : "Mark as completed"}
+              </label>
+              {pending && <span className="text-xs text-muted">Saving…</span>}
+            </PracticeProblemRow>
           );
         })}
       </div>
