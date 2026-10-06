@@ -1,6 +1,21 @@
 import type { Difficulty, ProblemWithProgress } from "@/lib/types";
 import type { InterviewDifficultyMix } from "@/lib/interview/config";
 
+export function selectChosenInterviewProblems<T extends { id: string }>(
+  problems: T[],
+  ids: string[],
+): T[] {
+  const byId = new Map(problems.map((problem) => [problem.id, problem]));
+  return ids.map((id) => {
+    const problem = byId.get(id);
+    if (!problem)
+      throw new Error(
+        "A selected question is no longer available. Remove it and choose another question.",
+      );
+    return problem;
+  });
+}
+
 function topicOverlap(a: string[], b: string[]): number {
   const setB = new Set(b);
   return a.filter((t) => setB.has(t)).length;

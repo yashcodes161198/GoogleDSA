@@ -13,17 +13,21 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  InterviewQuestionPicker,
+  type InterviewQuestionOption,
+} from "@/components/InterviewQuestionPicker";
+import {
   DEFAULT_INTERVIEW_CONFIG,
   MAX_INTERVIEW_DURATION_MINUTES,
   MAX_INTERVIEW_PROBLEMS,
   MIN_INTERVIEW_DURATION_MINUTES,
 } from "@/lib/interview/config";
 
-function StartButton() {
+function StartButton({ disabled = false }: { disabled?: boolean }) {
   const { pending } = useFormStatus();
 
   return (
-    <Button type="submit" size="lg" disabled={pending}>
+    <Button type="submit" size="lg" disabled={pending || disabled}>
       {pending ? "Starting..." : "Start new interview"}
     </Button>
   );
@@ -31,15 +35,24 @@ function StartButton() {
 
 export function StartInterviewButton({
   hasActiveSession = false,
+  problems = [],
 }: {
   hasActiveSession?: boolean;
+  problems?: InterviewQuestionOption[];
 }) {
-  const [state, formAction] = useActionState(startNewInterviewAction, null);
+  const [state, formAction, pending] = useActionState(
+    startNewInterviewAction,
+    null,
+  );
   const [customize, setCustomize] = useState(false);
   const [counts, setCounts] = useState({
     medium: 0,
     hard: 0,
   });
+  const [selectionMode, setSelectionMode] = useState<"random" | "picked">(
+    "random",
+  );
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const total = counts.medium + counts.hard;
 
   const updateCount = (difficulty: keyof typeof counts, value: string) => {
@@ -64,97 +77,144 @@ export function StartInterviewButton({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={formAction} className="space-y-3">
-          <div className="flex items-center justify-between gap-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-            <div>
-              <p className="text-sm font-medium">Customize interview</p>
-              <p className="mt-1 text-xs text-zinc-500">
-                Choose the difficulty mix and duration.
-              </p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={customize}
-              onClick={() => setCustomize((value) => !value)}
-              className={`relative h-7 w-12 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
-                customize ? "bg-accent" : "bg-zinc-300 dark:bg-zinc-700"
-              }`}
-            >
-              <span
-                className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                  customize ? "translate-x-5" : "translate-x-0"
-                }`}
-              />
-              <span className="sr-only">Customize interview</span>
-            </button>
-          </div>
-
-          {customize && (
-            <div className="space-y-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-              <input type="hidden" name="customize" value="on" />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="space-y-1.5 text-sm font-medium">
-                  Medium questions
-                  <Input
-                    type="number"
-                    name="mediumCount"
-                    min={0}
-                    max={MAX_INTERVIEW_PROBLEMS}
-                    value={counts.medium}
-                    onChange={(event) =>
-                      updateCount("medium", event.target.value)
-                    }
-                    required
-                  />
-                </label>
-                <label className="space-y-1.5 text-sm font-medium">
-                  Hard questions
-                  <Input
-                    type="number"
-                    name="hardCount"
-                    min={0}
-                    max={MAX_INTERVIEW_PROBLEMS}
-                    value={counts.hard}
-                    onChange={(event) =>
-                      updateCount("hard", event.target.value)
-                    }
-                    required
-                  />
-                </label>
+        <form action={formAction}>
+          <fieldset disabled={pending} className="space-y-3">
+            <div className="flex items-center justify-between gap-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+              <div>
+                <p className="text-sm font-medium">Customize interview</p>
+                <p className="mt-1 text-xs text-zinc-500">
+                  Choose your questions and duration.
+                </p>
               </div>
-
-              <label className="block space-y-1.5 text-sm font-medium">
-                Duration in minutes
-                <Input
-                  type="number"
-                  name="durationMinutes"
-                  min={MIN_INTERVIEW_DURATION_MINUTES}
-                  max={MAX_INTERVIEW_DURATION_MINUTES}
-                  defaultValue={DEFAULT_INTERVIEW_CONFIG.durationMinutes}
-                  required
-                />
-              </label>
-
-              <p
-                className={`text-xs ${
-                  total < 1 || total > MAX_INTERVIEW_PROBLEMS
-                    ? "text-red-600"
-                    : "text-zinc-500"
+              <button
+                type="button"
+                role="switch"
+                aria-checked={customize}
+                onClick={() => setCustomize((value) => !value)}
+                className={`relative h-7 w-12 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
+                  customize ? "bg-accent" : "bg-zinc-300 dark:bg-zinc-700"
                 }`}
               >
-                {total} question{total === 1 ? "" : "s"} total. Maximum{" "}
-                {MAX_INTERVIEW_PROBLEMS}.
-              </p>
+                <span
+                  className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+                    customize ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+                <span className="sr-only">Customize interview</span>
+              </button>
             </div>
-          )}
 
-          {state?.error && (
-            <p className="text-sm text-destructive" role="alert">
-              {state.error}
-            </p>
-          )}
-          <StartButton />
+            {customize && (
+              <div className="space-y-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+                <input type="hidden" name="customize" value="on" />
+                <div>
+                  <p
+                    id="question-selection-label"
+                    className="mb-2 text-sm font-medium"
+                  >
+                    Question selection
+                  </p>
+                  <div
+                    role="radiogroup"
+                    aria-labelledby="question-selection-label"
+                    className="grid grid-cols-2 gap-1 rounded-lg bg-subtle p-1"
+                  >
+                    {(["random", "picked"] as const).map((mode) => (
+                      <label key={mode} className="relative cursor-pointer">
+                        <input
+                          type="radio"
+                          name="selectionMode"
+                          value={mode}
+                          checked={selectionMode === mode}
+                          onChange={() => setSelectionMode(mode)}
+                          className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                        />
+                        <span className="flex min-h-10 items-center justify-center rounded-md px-3 text-sm font-medium text-muted peer-checked:bg-surface peer-checked:text-foreground peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-accent">
+                          {mode === "random" ? "Random" : "Pick questions"}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                {selectionMode === "picked" ? (
+                  <InterviewQuestionPicker
+                    problems={problems}
+                    selectedIds={selectedIds}
+                    onChange={setSelectedIds}
+                  />
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="space-y-1.5 text-sm font-medium">
+                      Medium questions
+                      <Input
+                        type="number"
+                        name="mediumCount"
+                        min={0}
+                        max={MAX_INTERVIEW_PROBLEMS}
+                        value={counts.medium}
+                        onChange={(event) =>
+                          updateCount("medium", event.target.value)
+                        }
+                        required
+                      />
+                    </label>
+                    <label className="space-y-1.5 text-sm font-medium">
+                      Hard questions
+                      <Input
+                        type="number"
+                        name="hardCount"
+                        min={0}
+                        max={MAX_INTERVIEW_PROBLEMS}
+                        value={counts.hard}
+                        onChange={(event) =>
+                          updateCount("hard", event.target.value)
+                        }
+                        required
+                      />
+                    </label>
+                  </div>
+                )}
+
+                <label className="block space-y-1.5 text-sm font-medium">
+                  Duration in minutes
+                  <Input
+                    type="number"
+                    name="durationMinutes"
+                    min={MIN_INTERVIEW_DURATION_MINUTES}
+                    max={MAX_INTERVIEW_DURATION_MINUTES}
+                    defaultValue={DEFAULT_INTERVIEW_CONFIG.durationMinutes}
+                    required
+                  />
+                </label>
+
+                {selectionMode === "random" && (
+                  <p
+                    className={`text-xs ${
+                      total < 1 || total > MAX_INTERVIEW_PROBLEMS
+                        ? "text-red-600"
+                        : "text-zinc-500"
+                    }`}
+                  >
+                    {total} question{total === 1 ? "" : "s"} total. Maximum{" "}
+                    {MAX_INTERVIEW_PROBLEMS}.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {state?.error && (
+              <p className="text-sm text-destructive" role="alert">
+                {state.error}
+              </p>
+            )}
+            <StartButton
+              disabled={
+                customize &&
+                selectionMode === "picked" &&
+                selectedIds.length === 0
+              }
+            />
+          </fieldset>
         </form>
       </CardContent>
     </Card>

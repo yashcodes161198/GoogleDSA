@@ -13,7 +13,7 @@
     "prestart": "node scripts/free-port.mjs 3000",
     "start": "next start",
     "lint": "eslint",
-    "test:interview": "tsx scripts/test-interview-config.ts && tsx scripts/test-custom-interview-ui.ts",
+    "test:interview": "tsx scripts/test-interview-config.ts && tsx scripts/test-custom-interview-ui.ts && tsx scripts/test-picked-interview.ts",
     "test:revision": "tsx scripts/test-revision-queue.ts",
     "test:leaderboard": "tsx scripts/test-leaderboard-points.ts",
     "test:new-problem": "tsx scripts/test-new-problem-input.ts",

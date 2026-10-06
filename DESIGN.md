@@ -207,6 +207,8 @@ Navigation links use muted text, 14px medium type, 10px 12px padding, and a mini
 ### Interview controls
 Time remaining sits beside the monospace countdown on mobile, with warnings below when necessary. The question-list disclosure and textual completion count keep the overview compact. Abandon and End session use subordinate outline buttons. Provider links, per-question solve timers, and completion controls remain accessible in each question card.
 
+Custom setup uses a Random / Pick questions radio control with Random selected initially. Pick questions replaces the difficulty-count fields with a labeled searchable combobox, difficulty badges in results, and an ordered selected list with remove controls. Arrow keys navigate results, Enter adds a question, and Escape dismisses the dropdown. Already selected questions are excluded. Duration stays visible in both modes, and submission is disabled when a picked list is empty. Selected rows and results use bounded scrolling as the list grows; mobile remove controls have 44px targets.
+
 ## Do's and Don'ts
 
 ### Do:

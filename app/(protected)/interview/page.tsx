@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   getActiveInterviewSession,
   getInterviewSessionsWithSummary,
+  getProblemsWithProgress,
 } from "@/lib/data";
 import type { Difficulty, InterviewSessionSummary } from "@/lib/types";
 
@@ -48,9 +49,10 @@ function DifficultyBreakdown({
 }
 
 export default async function InterviewPage() {
-  const [active, summaries] = await Promise.all([
+  const [active, summaries, problems] = await Promise.all([
     getActiveInterviewSession(),
     getInterviewSessionsWithSummary(),
+    getProblemsWithProgress(),
   ]);
 
   const pastSessions = summaries.filter(
@@ -83,7 +85,14 @@ export default async function InterviewPage() {
       )}
 
       <div className="coverage-grid">
-        <StartInterviewButton hasActiveSession={!!active} />
+        <StartInterviewButton
+          hasActiveSession={!!active}
+          problems={problems.map(({ id, title, difficulty }) => ({
+            id,
+            title,
+            difficulty,
+          }))}
+        />
 
         <Card>
           <CardHeader>

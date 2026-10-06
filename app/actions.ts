@@ -13,7 +13,7 @@ import {
 } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminUser } from "@/lib/auth";
-import { selectInterviewProblems } from "@/lib/interview/selectProblems";
+import { selectInterviewProblems, selectChosenInterviewProblems } from "@/lib/interview/selectProblems";
 import {
   DEFAULT_INTERVIEW_CONFIG,
   getInterviewProblemCount,
@@ -352,7 +352,10 @@ export async function startInterviewSession(
     if (configError) throw new Error(configError);
 
     const problems = await getProblemsWithProgress();
-    const selected = selectInterviewProblems(problems, config.difficultyMix);
+    const selected =
+      config.selectedProblemIds !== undefined
+        ? selectChosenInterviewProblems(problems, config.selectedProblemIds)
+        : selectInterviewProblems(problems, config.difficultyMix);
     const problemIds = selected.map((p) => p.id);
     const requestedCount = getInterviewProblemCount(config);
 
@@ -460,9 +463,13 @@ export async function startInterviewSession(
 
 export async function startNewInterviewAction(
   _prevState: { error: string } | null,
-  formData: FormData
+  formData: FormData,
 ): Promise<{ error: string } | null> {
   const customize = formData.get("customize") === "on";
+  const selectionMode = formData.get("selectionMode") ?? "random";
+  if (customize && selectionMode !== "random" && selectionMode !== "picked") {
+    return { error: "Choose random questions or pick your questions." };
+  }
   const config: InterviewConfig = customize
     ? {
         difficultyMix: {
@@ -471,6 +478,9 @@ export async function startNewInterviewAction(
           HARD: Number(formData.get("hardCount")),
         },
         durationMinutes: Number(formData.get("durationMinutes")),
+        ...(selectionMode === "picked"
+          ? { selectedProblemIds: formData.getAll("problemIds").map(String) }
+          : {}),
       }
     : DEFAULT_INTERVIEW_CONFIG;
 
