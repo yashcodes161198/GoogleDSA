@@ -15,6 +15,7 @@
     "lint": "eslint",
     "test:interview": "tsx scripts/test-interview-config.ts && tsx scripts/test-custom-interview-ui.ts && tsx scripts/test-picked-interview.ts",
     "test:revision": "tsx scripts/test-revision-queue.ts",
+    "test:session-library": "tsx scripts/test-session-library.ts",
     "test:leaderboard": "tsx scripts/test-leaderboard-points.ts",
     "test:new-problem": "tsx scripts/test-new-problem-input.ts",
     "test:admin": "tsx scripts/test-admin-auth.ts",

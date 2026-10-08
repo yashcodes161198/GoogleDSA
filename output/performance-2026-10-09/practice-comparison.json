@@ -1,0 +1,106 @@
+{
+  "before": {
+    "samples": 20,
+    "totalMs": {
+      "median": 255.39700000000448,
+      "min": 234.79820000000473,
+      "max": 289.7500999999902
+    },
+    "responseBytes": {
+      "median": 31523,
+      "min": 2834,
+      "max": 60212
+    },
+    "totalResponseBytes": 630464,
+    "backendFetches": 60,
+    "byRoute": {
+      "problems": {
+        "totalMs": {
+          "median": 275.6375499999922,
+          "min": 252.19199999999546,
+          "max": 289.7500999999902
+        },
+        "responseBytes": {
+          "median": 60212,
+          "min": 60210,
+          "max": 60212
+        }
+      },
+      "revise": {
+        "totalMs": {
+          "median": 245.42025000000285,
+          "min": 234.79820000000473,
+          "max": 257.6736000000092
+        },
+        "responseBytes": {
+          "median": 2835,
+          "min": 2834,
+          "max": 2836
+        }
+      }
+    },
+    "firstDocument": {
+      "at": 1791485924635,
+      "method": "GET",
+      "path": "/problems",
+      "rsc": false,
+      "prefetch": false,
+      "status": 200,
+      "bytes": 79449,
+      "headersMs": 619.5643,
+      "totalMs": 741.8073999999997
+    }
+  },
+  "after": {
+    "samples": 20,
+    "totalMs": {
+      "median": 16.647150000000693,
+      "min": 7.949100000001636,
+      "max": 65.86789999999746
+    },
+    "responseBytes": {
+      "median": 1056.5,
+      "min": 954,
+      "max": 1160
+    },
+    "totalResponseBytes": 21136,
+    "backendFetches": 0,
+    "byRoute": {
+      "problems": {
+        "totalMs": {
+          "median": 16.647150000000693,
+          "min": 7.949100000001636,
+          "max": 63.47040000000197
+        },
+        "responseBytes": {
+          "median": 955,
+          "min": 954,
+          "max": 956
+        }
+      },
+      "revise": {
+        "totalMs": {
+          "median": 18.26219999999921,
+          "min": 9.713299999999435,
+          "max": 65.86789999999746
+        },
+        "responseBytes": {
+          "median": 1159,
+          "min": 1157,
+          "max": 1160
+        }
+      }
+    },
+    "firstDocument": {
+      "at": 1791486175213,
+      "method": "GET",
+      "path": "/problems",
+      "rsc": false,
+      "prefetch": false,
+      "status": 200,
+      "bytes": 79054,
+      "headersMs": 918.8697000000011,
+      "totalMs": 979.9511000000002
+    }
+  }
+}

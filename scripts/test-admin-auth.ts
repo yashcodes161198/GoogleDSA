@@ -69,14 +69,16 @@ withLocalMode(false, () => {
   assert(!isAdminUser(null), "null user is not admin");
 });
 
-const problemsPage = readFileSync(
-  new URL("../app/(protected)/problems/page.tsx", import.meta.url),
+const protectedLayout = readFileSync(
+  new URL("../app/(protected)/layout.tsx", import.meta.url),
   "utf8"
 );
 assert(
-  problemsPage.includes("isAdminUser"),
-  "problems page gates Add question link on admin"
+  protectedLayout.includes("canAddQuestion={isAdminUser(user)}"),
+  "protected layout derives session library admin capability on the server"
 );
+const problemsContent = readFileSync(new URL("../components/ProblemsContent.tsx", import.meta.url), "utf8");
+assert(problemsContent.includes("canAddQuestion &&"), "problems page gates Add question link on admin capability");
 
 const newPage = readFileSync(
   new URL("../app/(protected)/problems/new/page.tsx", import.meta.url),

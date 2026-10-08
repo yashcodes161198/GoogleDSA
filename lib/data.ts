@@ -121,10 +121,11 @@ export async function getProblemsWithProgress(): Promise<ProblemWithProgress[]> 
   }
 
   const supabase = await createClient();
-  const [problems, { data: userProblems }] = await Promise.all([
+  const [problems, { data: userProblems, error }] = await Promise.all([
     getProblemsCatalog(),
     supabase.from("user_problems").select("*").eq("user_id", user.id),
   ]);
+  if (error) throw error;
 
   const progressMap = new Map(
     (userProblems as UserProblem[] | null)?.map((up) => [up.problem_id, up]) ?? []

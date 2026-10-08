@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { saveProblemSolveTime } from "@/app/actions";
+import { saveProblemSolveTime, type SaveProblemSolveTimeResult } from "@/app/actions";
 
 type TimerEntry = {
   elapsedMs: number;
@@ -44,9 +44,11 @@ function buildInitialBest(
 export function ProblemTimerProvider({
   children,
   initialBestSolve,
+  saveTime = saveProblemSolveTime,
 }: {
   children: React.ReactNode;
   initialBestSolve: Record<string, number | null | undefined>;
+  saveTime?: (problemId: string, seconds: number) => Promise<SaveProblemSolveTimeResult>;
 }) {
   const [timers, setTimers] = useState<Record<string, TimerEntry>>({});
   const [savedBestSeconds, setSavedBestSeconds] = useState<
@@ -103,7 +105,7 @@ export function ProblemTimerProvider({
   }, []);
 
   const persist = useCallback(async (problemId: string, seconds: number) => {
-    const result = await saveProblemSolveTime(problemId, seconds);
+    const result = await saveTime(problemId, seconds);
     if (!result.ok) {
       setSaveErrors((prev) => ({ ...prev, [problemId]: result.error }));
       return false;
@@ -120,7 +122,7 @@ export function ProblemTimerProvider({
       [problemId]: result.bestSeconds,
     }));
     return true;
-  }, []);
+  }, [saveTime]);
 
   const stop = useCallback(
     async (problemId: string, persistTime = true) => {
@@ -193,8 +195,12 @@ export function ProblemTimerProvider({
   const value = useMemo<ProblemTimerContextValue>(
     () => ({
       getDisplayMs,
-      getBestSavedSeconds: (problemId) =>
-        savedBestSeconds[problemId] ?? initialBestSeconds[problemId] ?? null,
+      getBestSavedSeconds: (problemId) => {
+        const saved = savedBestSeconds[problemId];
+        const refreshed = initialBestSeconds[problemId];
+        if (saved == null) return refreshed ?? null;
+        return refreshed == null ? saved : Math.min(saved, refreshed);
+      },
       getSaveError: (problemId) => saveErrors[problemId] ?? null,
       isRunning: (problemId) => timers[problemId]?.running ?? false,
       start: (problemId) => {

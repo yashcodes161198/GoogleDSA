@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+const anonymous = await fetch('http://127.0.0.1:3100/api/library');
+assert.equal(anonymous.status,401);
+assert.equal(anonymous.headers.get('cache-control'),'private, no-store');
+const signedIn = await fetch('http://127.0.0.1:3101/api/library');
+assert.equal(signedIn.status,200);
+assert.equal(signedIn.headers.get('cache-control'),'private, no-store');
+const data = await signedIn.json();
+assert.equal(data.userId,'00000000-0000-0000-0000-000000000099');
+assert.equal(data.problems.length,681);
+console.log('PASS: library refresh authenticates independently and disables shared caching');

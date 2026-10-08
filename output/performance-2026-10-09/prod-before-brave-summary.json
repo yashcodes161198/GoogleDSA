@@ -1,0 +1,56 @@
+{
+  "phase": "before deployment",
+  "method": "Node wall clock around locator click plus target-content waits; includes extension and locator overhead. Not INP, LCP, browser paint, network or database duration. No throttling applied by agent; existing profile/cache/viewport retained.",
+  "navigation": {
+    "problems": {
+      "n": 10,
+      "medianMs": 3360,
+      "minMs": 2847,
+      "maxMs": 3580
+    },
+    "revise": {
+      "n": 10,
+      "medianMs": 3251.5,
+      "minMs": 1805,
+      "maxMs": 3341
+    }
+  },
+  "reloads": {
+    "problems": {
+      "n": 5,
+      "medianMs": 2510,
+      "minMs": 2134,
+      "maxMs": 2759
+    },
+    "revise": {
+      "n": 5,
+      "medianMs": 1767,
+      "minMs": 1520,
+      "maxMs": 2023
+    }
+  },
+  "feedback": {
+    "n": 5,
+    "medianMs": 443,
+    "minMs": 309,
+    "maxMs": 1087
+  },
+  "settled": {
+    "n": 4,
+    "medianMs": 3092.5,
+    "minMs": 2670,
+    "maxMs": 3849
+  },
+  "loadedWaitControl": {
+    "n": 5,
+    "medianMs": 36,
+    "minMs": 34,
+    "maxMs": 43
+  },
+  "samePageClickControl": {
+    "n": 3,
+    "medianMs": 341,
+    "minMs": 326,
+    "maxMs": 364
+  }
+}

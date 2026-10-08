@@ -66,7 +66,7 @@ async function awardLeaderboardRevision(problemId: string, revisionNumber: numbe
   if (error) console.error("Failed to award leaderboard revision points", error);
 }
 
-export async function updateProblemStatus(problemId: string, status: ProblemStatus) {
+export async function updateProblemStatus(problemId: string, status: ProblemStatus, refreshRoutes = true) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
@@ -117,13 +117,16 @@ export async function updateProblemStatus(problemId: string, status: ProblemStat
     }
   }
 
-  revalidatePath("/dashboard");
-  revalidatePath("/problems");
-  revalidatePath("/revise");
-  revalidatePath("/leaderboard");
+  if (refreshRoutes) {
+    revalidatePath("/dashboard");
+    revalidatePath("/problems");
+    revalidatePath("/revise");
+    revalidatePath("/leaderboard");
+  }
+  return { solvedAt: now };
 }
 
-export async function setProblemFavorite(problemId: string, favorite: boolean) {
+export async function setProblemFavorite(problemId: string, favorite: boolean, refreshRoutes = true) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
@@ -157,9 +160,11 @@ export async function setProblemFavorite(problemId: string, favorite: boolean) {
     }
   }
 
-  revalidatePath("/problems");
-  revalidatePath("/revise");
-  revalidatePath("/interview", "layout");
+  if (refreshRoutes) {
+    revalidatePath("/problems");
+    revalidatePath("/revise");
+    revalidatePath("/interview", "layout");
+  }
 }
 
 export type SaveProblemSolveTimeResult =
@@ -183,7 +188,8 @@ function saveSolveTimeErrorMessage(error: unknown): string {
 
 export async function saveProblemSolveTime(
   problemId: string,
-  seconds: number
+  seconds: number,
+  refreshRoutes = true
 ): Promise<SaveProblemSolveTimeResult> {
   try {
     const user = await getCurrentUser();
@@ -197,9 +203,11 @@ export async function saveProblemSolveTime(
         problemId,
         clamped
       );
-      revalidatePath("/problems");
-      revalidatePath("/revise");
-      revalidatePath("/interview", "layout");
+      if (refreshRoutes) {
+        revalidatePath("/problems");
+        revalidatePath("/revise");
+        revalidatePath("/interview", "layout");
+      }
       return { ok: true, bestSeconds };
     }
 
@@ -241,9 +249,11 @@ export async function saveProblemSolveTime(
       if (error) throw error;
     }
 
-    revalidatePath("/problems");
-    revalidatePath("/revise");
-    revalidatePath("/interview", "layout");
+    if (refreshRoutes) {
+      revalidatePath("/problems");
+      revalidatePath("/revise");
+      revalidatePath("/interview", "layout");
+    }
     return { ok: true, bestSeconds };
   } catch (error) {
     console.error("Failed to save solve time", error);
@@ -251,7 +261,7 @@ export async function saveProblemSolveTime(
   }
 }
 
-export async function markProblemRevised(problemId: string) {
+export async function markProblemRevised(problemId: string, refreshRoutes = true) {
   try {
     const user = await getCurrentUser();
     if (!user) return { ok: false as const, error: "Not authenticated" };
@@ -261,10 +271,12 @@ export async function markProblemRevised(problemId: string) {
         getLocalUserId(),
         problemId
       );
-      revalidatePath("/problems");
-      revalidatePath("/revise");
-      revalidatePath("/dashboard");
-      revalidatePath("/leaderboard");
+      if (refreshRoutes) {
+        revalidatePath("/problems");
+        revalidatePath("/revise");
+        revalidatePath("/dashboard");
+        revalidatePath("/leaderboard");
+      }
       return { ok: true as const, revisionCount };
     }
 
@@ -291,10 +303,12 @@ export async function markProblemRevised(problemId: string) {
 
     await awardLeaderboardRevision(problemId, Number(revisionCount));
 
-    revalidatePath("/problems");
-    revalidatePath("/revise");
-    revalidatePath("/dashboard");
-    revalidatePath("/leaderboard");
+    if (refreshRoutes) {
+      revalidatePath("/problems");
+      revalidatePath("/revise");
+      revalidatePath("/dashboard");
+      revalidatePath("/leaderboard");
+    }
     return {
       ok: true as const,
       revisionCount: Number(revisionCount),

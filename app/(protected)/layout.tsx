@@ -1,12 +1,18 @@
-import { requireUser } from "@/lib/auth";
+import { requireUser, isAdminUser } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
+import { SessionLibraryProvider } from "@/components/SessionLibraryProvider";
+import { getProblemsWithProgress } from "@/lib/data";
+import { isLocalMode } from "@/lib/config";
 
 export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireUser();
+  const [user, problems] = await Promise.all([requireUser(), getProblemsWithProgress()]);
 
-  return <AppShell>{children}</AppShell>;
+  return <SessionLibraryProvider key={user.id} userId={user.id} initialProblems={problems}
+    canAddQuestion={isAdminUser(user)} localMode={isLocalMode()}>
+    <AppShell>{children}</AppShell>
+  </SessionLibraryProvider>;
 }

@@ -1,0 +1,92 @@
+{
+  "measuredAt": "2026-10-08T18:38:31.756Z",
+  "context": "Local machine to Supabase; anonymous only, no user cookies, no service-role usage. These timings do not measure authenticated queries or Vercel-to-Supabase latency.",
+  "localModeEnabled": true,
+  "samples": [
+    {
+      "name": "auth_health",
+      "sample": 1,
+      "status": 200,
+      "headersMs": 934.6,
+      "totalMs": 940.1,
+      "responseBytes": 107
+    },
+    {
+      "name": "auth_health",
+      "sample": 2,
+      "status": 200,
+      "headersMs": 228.2,
+      "totalMs": 228.7,
+      "responseBytes": 107
+    },
+    {
+      "name": "auth_health",
+      "sample": 3,
+      "status": 200,
+      "headersMs": 247.1,
+      "totalMs": 247.9,
+      "responseBytes": 107
+    },
+    {
+      "name": "auth_health",
+      "sample": 4,
+      "status": 200,
+      "headersMs": 261,
+      "totalMs": 261.6,
+      "responseBytes": 107
+    },
+    {
+      "name": "auth_health",
+      "sample": 5,
+      "status": 200,
+      "headersMs": 249,
+      "totalMs": 249.8,
+      "responseBytes": 107
+    },
+    {
+      "name": "catalog_anon_rls",
+      "sample": 1,
+      "status": 200,
+      "headersMs": 889.3,
+      "totalMs": 889.5,
+      "responseBytes": 2,
+      "rows": 0
+    },
+    {
+      "name": "catalog_anon_rls",
+      "sample": 2,
+      "status": 200,
+      "headersMs": 209.8,
+      "totalMs": 210.2,
+      "responseBytes": 2,
+      "rows": 0
+    },
+    {
+      "name": "catalog_anon_rls",
+      "sample": 3,
+      "status": 200,
+      "headersMs": 149.8,
+      "totalMs": 150.4,
+      "responseBytes": 2,
+      "rows": 0
+    },
+    {
+      "name": "catalog_anon_rls",
+      "sample": 4,
+      "status": 200,
+      "headersMs": 155.9,
+      "totalMs": 156.5,
+      "responseBytes": 2,
+      "rows": 0
+    },
+    {
+      "name": "catalog_anon_rls",
+      "sample": 5,
+      "status": 200,
+      "headersMs": 174.7,
+      "totalMs": 175.2,
+      "responseBytes": 2,
+      "rows": 0
+    }
+  ]
+}

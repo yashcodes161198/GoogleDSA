@@ -1,0 +1,80 @@
+{
+  "measuredAt": "2026-10-08T19:13:48.286Z",
+  "finishedAt": "2026-10-08T19:19:43.489Z",
+  "localDate": "2026-10-09 Asia/Calcutta",
+  "origin": "https://google-dsa.vercel.app",
+  "phase": "before deployment",
+  "browser": "Brave via extension",
+  "viewport": {"width":2175,"height":1044},
+  "method": "Node wall clock around locator click plus target-content waits; includes extension and locator overhead. Not INP, LCP, browser paint, network or database duration. No throttling applied by agent; existing profile/cache/viewport retained.",
+  "navigation": [
+    {"round":1,"to":"problems","elapsedMs":3126},
+    {"round":1,"to":"revise","elapsedMs":2225},
+    {"round":2,"to":"problems","elapsedMs":3381},
+    {"round":2,"to":"revise","elapsedMs":2528},
+    {"round":3,"to":"problems","elapsedMs":2847},
+    {"round":3,"to":"revise","elapsedMs":3203},
+    {"round":4,"to":"problems","elapsedMs":3580},
+    {"round":4,"to":"revise","elapsedMs":2493},
+    {"round":5,"to":"problems","elapsedMs":3287},
+    {"round":5,"to":"revise","elapsedMs":1805},
+    {"round":6,"to":"problems","elapsedMs":3171},
+    {"round":6,"to":"revise","elapsedMs":3327},
+    {"round":7,"to":"problems","elapsedMs":3391},
+    {"round":7,"to":"revise","elapsedMs":3317},
+    {"round":8,"to":"problems","elapsedMs":3356},
+    {"round":8,"to":"revise","elapsedMs":3300},
+    {"round":9,"to":"problems","elapsedMs":3371},
+    {"round":9,"to":"revise","elapsedMs":3341},
+    {"round":10,"to":"problems","elapsedMs":3364},
+    {"round":10,"to":"revise","elapsedMs":3322}
+  ],
+  "reloads": [
+    {"to":"revise","sample":1,"elapsedMs":2023},
+    {"to":"revise","sample":2,"elapsedMs":1901},
+    {"to":"revise","sample":3,"elapsedMs":1520},
+    {"to":"revise","sample":4,"elapsedMs":1767},
+    {"to":"revise","sample":5,"elapsedMs":1657},
+    {"to":"problems","sample":1,"elapsedMs":2510},
+    {"to":"problems","sample":2,"elapsedMs":2759},
+    {"to":"problems","sample":3,"elapsedMs":2737},
+    {"to":"problems","sample":4,"elapsedMs":2476},
+    {"to":"problems","sample":5,"elapsedMs":2134}
+  ],
+  "saves": [
+    {"operation":"favorite on","feedbackMs":334,"transitionSettledMs":null,"note":"Short locator timeout interrupted settled-state measurement; excluded from settled summary."},
+    {"operation":"favorite off (restore)","feedbackMs":1087,"transitionSettledMs":3849},
+    {"operation":"favorite off (restore after interrupted sample)","feedbackMs":309,"transitionSettledMs":2854},
+    {"operation":"favorite on","feedbackMs":443,"transitionSettledMs":2670},
+    {"operation":"favorite off (restore)","feedbackMs":1004,"transitionSettledMs":3331}
+  ],
+  "interruptedSaveSamples": 2,
+  "saveSampleNote": "One on-save lacks settled duration; a later on-save was not retained after a short locator timeout. Six reversible writes total, four complete timing samples. No app error was observed.",
+  "initialProblemsNavigationMs":3221,
+  "initialReviseNavigationMs":3131,
+  "problemsContext": {
+    "elements":3041,"rows":50,"summary":"682 problems · Showing 50",
+    "scripts":["/_next/static/chunks/27jktro2p5rq9.js","/_next/static/chunks/2yii6vu9apbyw.js","/_next/static/chunks/2nykiepra7i1k.js","/_next/static/chunks/turbopack-00scqylrw_ubs.js","/_next/static/chunks/05-c3ty_6dwfk.js","/_next/static/chunks/14mrh2-p_w84d.js","/_next/static/chunks/2xzrb42gl6tc7.js","/_next/static/chunks/276p017s8k_a3.js","/_next/static/chunks/3mgz9q-w5o0ju.js","/_next/static/chunks/2e6sujeax6u8v.js","/_next/static/chunks/0cz1d0mv5g_q7.js","/_next/static/chunks/108e0633thw-r.js","/_next/static/chunks/108e0633thw-r.js","/_next/static/chunks/01dkdyukbdpqq.js"]
+  },
+  "reviseContext": {
+    "elements":549,"questionCount":10,"summary":"0 of 10 revised today",
+    "questionTitles":["Minimum Knight Moves","Number of Connected Components in an Undirected Graph","Find Median from Data Stream","Course Schedule II","Word Ladder","Remove K Digits","Coin Change II","Reorganize String","Random Pick with Weight","Pacific Atlantic Water Flow"]
+  },
+  "loadedWaitOverheadMs":[34,36,39,34,43],
+  "samePageClickControls":[{"clickMs":323,"totalMs":364},{"clickMs":285,"totalMs":326},{"clickMs":304,"totalMs":341}],
+  "favoriteTest": {
+    "problem":"Minimum Knight Moves","originalFavorite":false,
+    "persistedAfterReload":true,"restoredAfterReload":true,"finalRestored":true,
+    "otherRowTextUnchanged":true,"restoredFavoriteVisibleInProblems":true
+  },
+  "smoke": {
+    "searchFindsTarget":true,"difficultyExcludesMedium":true,"page25":25,
+    "restoredRows":50,"restoredDefaultFilters":true,
+    "note":"A check using input[type=text] initially returned false because the input has an implicit type. Fresh DOM inspection verified both inputs empty and selects ALL,ALL,ALL,ALL,50."
+  },
+  "allMode": {
+    "elements":36863,"rows":682,"selectAndInspectMs":2213,
+    "note":"Restoring from All initially hit the extension 3-second command deadline. Fresh DOM confirmed All rendered; CSS-scoped retry restored 50 rows. Not an INP measurement."
+  },
+  "consoleWarningsAndErrors":[]
+}

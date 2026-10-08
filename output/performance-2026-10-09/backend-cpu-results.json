@@ -1,0 +1,32 @@
+{
+  "measuredAt": "2026-10-08T18:38:56.265Z",
+  "context": "Local CPU only; actual repository CSV, all-unsolved synthetic progress; warmed functions, 100 samples. Payload is JSON estimate, not RSC wire transfer.",
+  "catalogRows": 681,
+  "firstCsvParseMs": 19.382,
+  "fullCatalogProgressJsonBytes": 329466,
+  "fullCatalogProgressGzipBytes": 55007,
+  "csvParse": {
+    "samples": 100,
+    "medianMs": 7.569,
+    "p95Ms": 13.569,
+    "maxMs": 14.671
+  },
+  "dashboardStats": {
+    "samples": 100,
+    "medianMs": 0.609,
+    "p95Ms": 0.889,
+    "maxMs": 1.384
+  },
+  "revisionQueue": {
+    "samples": 100,
+    "medianMs": 0.02,
+    "p95Ms": 0.032,
+    "maxMs": 0.099
+  },
+  "recommendations": {
+    "samples": 100,
+    "medianMs": 2.116,
+    "p95Ms": 2.632,
+    "maxMs": 2.944
+  }
+}

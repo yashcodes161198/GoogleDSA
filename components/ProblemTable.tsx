@@ -1,11 +1,7 @@
 "use client";
 
-import { useMemo, useState, useTransition, useOptimistic } from "react";
-import {
-  markProblemRevised,
-  setProblemFavorite,
-  updateProblemStatus,
-} from "@/app/actions";
+import { useMemo, useState } from "react";
+import { useSessionLibrary, LibraryRefreshStatus } from "@/components/SessionLibraryProvider";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,11 +17,6 @@ import {
   PROBLEM_PROGRESS_FILTERS,
   type ProblemProgressStatus,
 } from "@/lib/revision/problemProgressStatus";
-import {
-  applyOptimisticRevision,
-  reconcileRevisionCount,
-} from "@/lib/revision/optimisticRevision";
-import { withProblemFavorite } from "@/lib/problems/favorite";
 import { ChevronDown } from "lucide-react";
 import type {
   Difficulty,
@@ -34,31 +25,6 @@ import type {
 } from "@/lib/types";
 
 type FavoriteFilter = "ALL" | "FAVORITES";
-
-type ProblemTableUpdate =
-  | { kind: "status"; id: string; status: ProblemStatus }
-  | { kind: "revise"; id: string; revisedAt: string }
-  | { kind: "reconcile"; id: string; revisionCount: number }
-  | { kind: "favorite"; id: string; favorite: boolean };
-
-function applyProblemTableUpdate(
-  state: ProblemWithProgress[],
-  update: ProblemTableUpdate,
-): ProblemWithProgress[] {
-  return state.map((problem) => {
-    if (problem.id !== update.id) return problem;
-    if (update.kind === "status") {
-      return { ...problem, status: update.status };
-    }
-    if (update.kind === "revise") {
-      return applyOptimisticRevision(problem, update.revisedAt);
-    }
-    if (update.kind === "favorite") {
-      return withProblemFavorite(problem, update.favorite);
-    }
-    return reconcileRevisionCount(problem, update.revisionCount);
-  });
-}
 
 function ProblemActions({
   problem,
@@ -105,11 +71,9 @@ function ProblemActions({
   );
 }
 
-export function ProblemTable({
-  problems,
-}: {
-  problems: ProblemWithProgress[];
-}) {
+export function ProblemTable() {
+  const { problems, pendingIds, store } = useSessionLibrary();
+  const pending = pendingIds.size > 0;
   const [search, setSearch] = useState("");
   const [difficulty, setDifficulty] = useState<Difficulty | "ALL">("ALL");
   const [status, setStatus] = useState<ProblemProgressStatus | "ALL">("ALL");
@@ -119,28 +83,6 @@ export function ProblemTable({
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState<number | "all">(50);
-  const [revisionError, setRevisionError] = useState<string | null>(null);
-  const [savedRevisions, setSavedRevisions] = useState<Record<string, number>>(
-    {},
-  );
-  const [pending, startTransition] = useTransition();
-
-  const problemsWithSaved = useMemo(() => {
-    const savedIds = Object.keys(savedRevisions);
-    if (savedIds.length === 0) return problems;
-    return problems.map((problem) => {
-      const saved = savedRevisions[problem.id];
-      if (saved == null || !problem.user_problem) return problem;
-      if (problem.user_problem.revision_count >= saved) return problem;
-      return reconcileRevisionCount(problem, saved);
-    });
-  }, [problems, savedRevisions]);
-
-  const [optimisticProblems, updateOptimistic] = useOptimistic(
-    problemsWithSaved,
-    applyProblemTableUpdate,
-  );
-
   const topics = useMemo(() => {
     const set = new Set<string>();
     problems.forEach((p) => p.topics.forEach((t) => set.add(t)));
@@ -148,7 +90,7 @@ export function ProblemTable({
   }, [problems]);
 
   const filtered = useMemo(() => {
-    return optimisticProblems.filter((p) => {
+    return problems.filter((p) => {
       if (search && !p.title.toLowerCase().includes(search.toLowerCase()))
         return false;
       if (difficulty !== "ALL" && p.difficulty !== difficulty) return false;
@@ -168,7 +110,7 @@ export function ProblemTable({
       return true;
     });
   }, [
-    optimisticProblems,
+    problems,
     search,
     difficulty,
     status,
@@ -192,76 +134,17 @@ export function ProblemTable({
       ? filtered
       : filtered.slice(safePage * pageSize, safePage * pageSize + pageSize);
 
-  const toggleFavorite = (problemId: string) => {
-    const current = optimisticProblems.find(
-      (problem) => problem.id === problemId,
-    );
-    if (!current) return;
-    const next = !(current.user_problem?.is_favorite ?? false);
-    startTransition(async () => {
-      updateOptimistic({ kind: "favorite", id: problemId, favorite: next });
-      try {
-        await setProblemFavorite(problemId, next);
-      } catch (err) {
-        updateOptimistic({ kind: "favorite", id: problemId, favorite: !next });
-        setRevisionError(
-          err instanceof Error ? err.message : "Could not update favorite.",
-        );
-      }
-    });
+  const toggleFavorite = (id: string) => {
+    const problem = problems.find(p => p.id === id);
+    if (problem) void store.setFavorite(id, !problem.user_problem?.is_favorite).catch(() => {});
   };
-
-  const setStatusFor = (problemId: string, next: ProblemStatus) => {
-    startTransition(async () => {
-      updateOptimistic({ kind: "status", id: problemId, status: next });
-      setRevisionError(null);
-      try {
-        await updateProblemStatus(problemId, next);
-      } catch {
-        setRevisionError(
-          "Could not save the problem status. Please try again.",
-        );
-      }
-    });
+  const setStatusFor = (id: string, status: ProblemStatus) => {
+    void store.setStatus(id, status).catch(() => {});
   };
-
-  const incrementRevision = (problemId: string) => {
-    const current = optimisticProblems.find(
-      (problem) => problem.id === problemId,
-    );
-    if (!current || current.status !== "solved") return;
-
-    const previousCount = current.user_problem?.revision_count ?? 0;
-
-    startTransition(async () => {
-      setRevisionError(null);
-      updateOptimistic({
-        kind: "revise",
-        id: problemId,
-        revisedAt: new Date().toISOString(),
-      });
-
-      const result = await markProblemRevised(problemId);
-      if (!result.ok) {
-        updateOptimistic({
-          kind: "reconcile",
-          id: problemId,
-          revisionCount: previousCount,
-        });
-        setRevisionError(result.error);
-        return;
-      }
-
-      setSavedRevisions((current) => ({
-        ...current,
-        [problemId]: result.revisionCount,
-      }));
-      updateOptimistic({
-        kind: "reconcile",
-        id: problemId,
-        revisionCount: result.revisionCount,
-      });
-    });
+  const incrementRevision = (id: string) => {
+    if (problems.find(p => p.id === id)?.status === "solved") {
+      void store.revise(id).catch(() => {});
+    }
   };
 
   const clearFilters = () => {
@@ -409,11 +292,7 @@ export function ProblemTable({
           </Button>
         )}
       </div>
-      {revisionError && (
-        <p className="text-sm text-destructive" role="alert">
-          {revisionError}
-        </p>
-      )}
+      <LibraryRefreshStatus />
 
       {pageRows.length === 0 ? (
         <div className="surface empty-state">

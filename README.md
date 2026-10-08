@@ -19,6 +19,7 @@ Track ~770 Google interview LeetCode questions, run 2-hour mock interviews with 
 - Supabase (PostgreSQL, Auth, RLS)
 - Vercel (hosting)
 - React `cache()` for request-level deduplication of the shared catalog and auth lookups
+- A user-scoped browser session library for Problems ↔ Revise, with optimistic saves and refresh on focus. See [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) for measured results and tradeoffs.
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for why each of these was chosen and how they fit together.
 

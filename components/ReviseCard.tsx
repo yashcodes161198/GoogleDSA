@@ -1,13 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { RotateCcw } from "lucide-react";
-import {
-  markProblemRevised,
-  refreshRevisionQueue,
-  setProblemFavorite,
-} from "@/app/actions";
+import { useSessionLibrary, LibraryRefreshStatus } from "@/components/SessionLibraryProvider";
 import { PracticeProblemRow } from "@/components/PracticeProblemRow";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,12 +13,7 @@ import {
   ProblemTimerProvider,
   useProblemTimer,
 } from "@/components/ProblemTimerContext";
-import {
-  applyOptimisticRevision,
-  reconcileRevisionCount,
-} from "@/lib/revision/optimisticRevision";
-import { resetRevisionQueue } from "@/lib/revision/selectRevisionQueue";
-import { withProblemFavorite } from "@/lib/problems/favorite";
+import { resetRevisionQueue, selectRevisionQueue } from "@/lib/revision/selectRevisionQueue";
 import type { ProblemWithProgress } from "@/lib/types";
 
 function isRevisedToday(problem: ProblemWithProgress): boolean {
@@ -37,142 +28,40 @@ function isRevisedToday(problem: ProblemWithProgress): boolean {
   );
 }
 
-export function ReviseCard({
-  problems,
-  dailyLimit,
-}: {
-  problems: ProblemWithProgress[];
-  dailyLimit: number;
-}) {
-  const [refreshPending, startRefreshTransition] = useTransition();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [queue, setQueue] = useState(problems);
-  const [savingIds, setSavingIds] = useState(() => new Set<string>());
-  const [revisedIds, setRevisedIds] = useState(
-    () => new Set(problems.filter(isRevisedToday).map((p) => p.id)),
-  );
-
-  const revisedCount = queue.filter((problem) =>
-    revisedIds.has(problem.id),
-  ).length;
-
-  const toggleRevised = async (problemId: string) => {
-    const previousProblem = queue.find((problem) => problem.id === problemId);
-    if (!previousProblem) return;
-
-    const rollback = (message: string) => {
-      setErrorMessage(message);
-      setQueue((current) =>
-        current.map((problem) =>
-          problem.id === problemId ? previousProblem : problem,
-        ),
-      );
-      setRevisedIds((current) => {
-        const next = new Set(current);
-        next.delete(problemId);
-        return next;
-      });
-    };
-
-    setErrorMessage(null);
-    setQueue((current) =>
-      current.map((problem) =>
-        problem.id === problemId
-          ? applyOptimisticRevision(problem, new Date().toISOString())
-          : problem,
-      ),
-    );
-    setRevisedIds((current) => new Set(current).add(problemId));
-    setSavingIds((current) => new Set(current).add(problemId));
-
-    try {
-      const result = await markProblemRevised(problemId);
-      if (!result.ok) {
-        rollback(result.error);
-        return;
-      }
-      setQueue((current) =>
-        current.map((problem) =>
-          problem.id === problemId
-            ? reconcileRevisionCount(problem, result.revisionCount)
-            : problem,
-        ),
-      );
-    } catch (err) {
-      console.error(err);
-      rollback("Could not save this revision. Please try again.");
-    } finally {
-      setSavingIds((current) => {
-        const next = new Set(current);
-        next.delete(problemId);
-        return next;
-      });
-    }
+export function ReviseCard({ dailyLimit }: { dailyLimit: number }) {
+  const { problems: library, pendingIds, refreshVersion, refreshing, store } = useSessionLibrary();
+  const [queueIds, setQueueIds] = useState(() =>
+    selectRevisionQueue(library, { limit: dailyLimit }).map(p => p.id));
+  const [previousVersion, setPreviousVersion] = useState(refreshVersion);
+  if (previousVersion !== refreshVersion) {
+    setPreviousVersion(refreshVersion);
+    const eligible = selectRevisionQueue(library, { limit: library.length });
+    const eligibleIds = new Set(eligible.map(p => p.id));
+    const kept = queueIds.filter(id => eligibleIds.has(id));
+    const keptIds = new Set(kept);
+    setQueueIds([...kept, ...eligible.filter(p => !keptIds.has(p.id)).map(p => p.id)].slice(0, dailyLimit));
+  }
+  const byId = new Map(library.map(p => [p.id, p]));
+  const queue = queueIds.flatMap(id => byId.has(id) ? [byId.get(id)!] : []);
+  const revisedIds = new Set(queue.filter(isRevisedToday).map(p => p.id));
+  const savingIds = new Set(queueIds.filter(id => pendingIds.has(id)));
+  const revisedCount = revisedIds.size;
+  const toggleRevised = (id: string) => store.revise(id).catch(() => {});
+  const toggleFavorite = (id: string) => {
+    const problem = byId.get(id);
+    if (problem) void store.setFavorite(id, !problem.user_problem?.is_favorite).catch(() => {});
   };
-
-  const toggleFavorite = (problemId: string) => {
-    const previous = queue.find((problem) => problem.id === problemId);
-    if (!previous) return;
-    const next = !(previous.user_problem?.is_favorite ?? false);
-    setErrorMessage(null);
-    setQueue((current) =>
-      current.map((problem) =>
-        problem.id === problemId ? withProblemFavorite(problem, next) : problem,
-      ),
-    );
-
-    startRefreshTransition(async () => {
-      try {
-        await setProblemFavorite(problemId, next);
-      } catch (err) {
-        setQueue((current) =>
-          current.map((problem) =>
-            problem.id === problemId ? previous : problem,
-          ),
-        );
-        setErrorMessage(
-          err instanceof Error ? err.message : "Could not update favorite.",
-        );
-      }
-    });
-  };
-
   const resetQueue = () => {
-    startRefreshTransition(async () => {
-      setErrorMessage(null);
-      const checkedIds = new Set(
-        queue
-          .filter((problem) => revisedIds.has(problem.id))
-          .map((problem) => problem.id),
-      );
-      const uncheckedIds = queue
-        .filter((problem) => !checkedIds.has(problem.id))
-        .map((problem) => problem.id);
-      const result = await refreshRevisionQueue(
-        queue.map((problem) => problem.id),
-        uncheckedIds,
-      );
-
-      if (!result.ok) {
-        setErrorMessage(result.error);
-        return;
-      }
-
-      const next = resetRevisionQueue(
-        queue,
-        checkedIds,
-        result.replacements,
-        dailyLimit,
-      );
-      setQueue(next);
-      setRevisedIds(
-        new Set(next.filter(isRevisedToday).map((problem) => problem.id)),
-      );
+    const replacements = selectRevisionQueue(library, {
+      limit: dailyLimit, excludeIds: queueIds, includeRevisedToday: false,
     });
+    setQueueIds(resetRevisionQueue(queue, revisedIds, replacements, dailyLimit).map(p => p.id));
   };
 
   if (queue.length === 0) {
     return (
+      <>
+      <LibraryRefreshStatus />
       <Card>
         <CardContent className="py-12 text-center">
           <p className="text-lg font-medium">Nothing to revise today</p>
@@ -185,6 +74,7 @@ export function ReviseCard({
           </Link>
         </CardContent>
       </Card>
+      </>
     );
   }
 
@@ -195,15 +85,14 @@ export function ReviseCard({
   );
 
   return (
-    <ProblemTimerProvider initialBestSolve={initialBestSolve}>
+    <ProblemTimerProvider initialBestSolve={initialBestSolve} saveTime={store.saveTime}>
       <ReviseCardContent
         problems={queue}
         revisedCount={revisedCount}
         allDone={allDone}
-        errorMessage={errorMessage}
         revisedIds={revisedIds}
         savingIds={savingIds}
-        refreshPending={refreshPending}
+        refreshPending={refreshing}
         resetQueue={resetQueue}
         toggleRevised={toggleRevised}
         toggleFavorite={toggleFavorite}
@@ -216,7 +105,6 @@ function ReviseCardContent({
   problems,
   revisedCount,
   allDone,
-  errorMessage,
   revisedIds,
   savingIds,
   refreshPending,
@@ -227,7 +115,6 @@ function ReviseCardContent({
   problems: ProblemWithProgress[];
   revisedCount: number;
   allDone: boolean;
-  errorMessage: string | null;
   revisedIds: Set<string>;
   savingIds: Set<string>;
   refreshPending: boolean;
@@ -270,11 +157,7 @@ function ReviseCardContent({
           </Tooltip>
         </div>
       </div>
-      {errorMessage && (
-        <p role="alert" className="text-sm text-destructive">
-          {errorMessage}
-        </p>
-      )}
+      <LibraryRefreshStatus />
 
       <div className="surface practice-row-list">
         {problems.map((problem) => {
@@ -306,7 +189,7 @@ function ReviseCardContent({
                 className="cursor-pointer"
               >
                 {savingIds.has(problem.id)
-                  ? "Saving revision…"
+                  ? "Saving changes…"
                   : revised
                     ? "Revised today"
                     : "Mark as revised"}

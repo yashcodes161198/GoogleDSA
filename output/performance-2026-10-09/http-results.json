@@ -1,0 +1,846 @@
+{
+  "measuredAt": "2026-10-08T18:39:39.698Z",
+  "samples": [
+    {
+      "environment": "local-in-memory",
+      "path": "/dashboard",
+      "iteration": 0,
+      "status": 200,
+      "finalPath": "/dashboard",
+      "headersMs": 460.7239,
+      "totalMs": 467.9288000000001,
+      "bytes": 59375,
+      "estimatedGzipBytes": 8459,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/dashboard",
+      "iteration": 1,
+      "status": 200,
+      "finalPath": "/dashboard",
+      "headersMs": 73.76310000000001,
+      "totalMs": 78.40660000000003,
+      "bytes": 59375,
+      "estimatedGzipBytes": 8459,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/dashboard",
+      "iteration": 2,
+      "status": 200,
+      "finalPath": "/dashboard",
+      "headersMs": 52.31920000000002,
+      "totalMs": 56.08720000000005,
+      "bytes": 59375,
+      "estimatedGzipBytes": 8459,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/dashboard",
+      "iteration": 3,
+      "status": 200,
+      "finalPath": "/dashboard",
+      "headersMs": 38.757600000000025,
+      "totalMs": 42.51729999999998,
+      "bytes": 59375,
+      "estimatedGzipBytes": 8459,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/dashboard",
+      "iteration": 4,
+      "status": 200,
+      "finalPath": "/dashboard",
+      "headersMs": 41.544700000000034,
+      "totalMs": 44.7826,
+      "bytes": 59375,
+      "estimatedGzipBytes": 8459,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/dashboard",
+      "iteration": 5,
+      "status": 200,
+      "finalPath": "/dashboard",
+      "headersMs": 43.40260000000001,
+      "totalMs": 49.48149999999998,
+      "bytes": 59375,
+      "estimatedGzipBytes": 8459,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/dashboard",
+      "iteration": 6,
+      "status": 200,
+      "finalPath": "/dashboard",
+      "headersMs": 65.40069999999992,
+      "totalMs": 68.5249,
+      "bytes": 59375,
+      "estimatedGzipBytes": 8459,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/problems",
+      "iteration": 0,
+      "status": 200,
+      "finalPath": "/problems",
+      "headersMs": 159.10750000000007,
+      "totalMs": 173.49250000000006,
+      "bytes": 815172,
+      "estimatedGzipBytes": 72760,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/problems",
+      "iteration": 1,
+      "status": 200,
+      "finalPath": "/problems",
+      "headersMs": 123.14480000000003,
+      "totalMs": 138.9441999999999,
+      "bytes": 815172,
+      "estimatedGzipBytes": 72760,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/problems",
+      "iteration": 2,
+      "status": 200,
+      "finalPath": "/problems",
+      "headersMs": 138.8338000000001,
+      "totalMs": 151.14869999999996,
+      "bytes": 815172,
+      "estimatedGzipBytes": 72760,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/problems",
+      "iteration": 3,
+      "status": 200,
+      "finalPath": "/problems",
+      "headersMs": 104.0130999999999,
+      "totalMs": 115.63409999999999,
+      "bytes": 815172,
+      "estimatedGzipBytes": 72760,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/problems",
+      "iteration": 4,
+      "status": 200,
+      "finalPath": "/problems",
+      "headersMs": 84.12290000000007,
+      "totalMs": 94.24659999999994,
+      "bytes": 815172,
+      "estimatedGzipBytes": 72760,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/problems",
+      "iteration": 5,
+      "status": 200,
+      "finalPath": "/problems",
+      "headersMs": 82.58879999999999,
+      "totalMs": 90.1427000000001,
+      "bytes": 815172,
+      "estimatedGzipBytes": 72760,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/problems",
+      "iteration": 6,
+      "status": 200,
+      "finalPath": "/problems",
+      "headersMs": 60.281999999999925,
+      "totalMs": 66.6534999999999,
+      "bytes": 815172,
+      "estimatedGzipBytes": 72760,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/revise",
+      "iteration": 0,
+      "status": 200,
+      "finalPath": "/revise",
+      "headersMs": 34.32580000000007,
+      "totalMs": 35.318700000000035,
+      "bytes": 24207,
+      "estimatedGzipBytes": 4643,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/revise",
+      "iteration": 1,
+      "status": 200,
+      "finalPath": "/revise",
+      "headersMs": 18.68119999999999,
+      "totalMs": 20.28359999999998,
+      "bytes": 24207,
+      "estimatedGzipBytes": 4643,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/revise",
+      "iteration": 2,
+      "status": 200,
+      "finalPath": "/revise",
+      "headersMs": 20.14949999999999,
+      "totalMs": 21.421699999999873,
+      "bytes": 24207,
+      "estimatedGzipBytes": 4643,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/revise",
+      "iteration": 3,
+      "status": 200,
+      "finalPath": "/revise",
+      "headersMs": 19.700900000000047,
+      "totalMs": 23.170399999999972,
+      "bytes": 24207,
+      "estimatedGzipBytes": 4643,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/revise",
+      "iteration": 4,
+      "status": 200,
+      "finalPath": "/revise",
+      "headersMs": 17.18950000000018,
+      "totalMs": 18.341100000000097,
+      "bytes": 24207,
+      "estimatedGzipBytes": 4643,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/revise",
+      "iteration": 5,
+      "status": 200,
+      "finalPath": "/revise",
+      "headersMs": 15.874199999999973,
+      "totalMs": 17.375400000000127,
+      "bytes": 24207,
+      "estimatedGzipBytes": 4643,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/revise",
+      "iteration": 6,
+      "status": 200,
+      "finalPath": "/revise",
+      "headersMs": 15.013699999999972,
+      "totalMs": 16.107700000000023,
+      "bytes": 24207,
+      "estimatedGzipBytes": 4643,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/interview",
+      "iteration": 0,
+      "status": 200,
+      "finalPath": "/interview",
+      "headersMs": 30.572299999999814,
+      "totalMs": 32.58219999999983,
+      "bytes": 104852,
+      "estimatedGzipBytes": 30876,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/interview",
+      "iteration": 1,
+      "status": 200,
+      "finalPath": "/interview",
+      "headersMs": 22.472899999999754,
+      "totalMs": 24.43249999999989,
+      "bytes": 104852,
+      "estimatedGzipBytes": 30876,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/interview",
+      "iteration": 2,
+      "status": 200,
+      "finalPath": "/interview",
+      "headersMs": 18.83779999999979,
+      "totalMs": 20.859300000000076,
+      "bytes": 104852,
+      "estimatedGzipBytes": 30876,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/interview",
+      "iteration": 3,
+      "status": 200,
+      "finalPath": "/interview",
+      "headersMs": 18.552400000000034,
+      "totalMs": 20.3766999999998,
+      "bytes": 104852,
+      "estimatedGzipBytes": 30876,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/interview",
+      "iteration": 4,
+      "status": 200,
+      "finalPath": "/interview",
+      "headersMs": 18.342200000000048,
+      "totalMs": 20.237099999999828,
+      "bytes": 104852,
+      "estimatedGzipBytes": 30876,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/interview",
+      "iteration": 5,
+      "status": 200,
+      "finalPath": "/interview",
+      "headersMs": 19.55040000000008,
+      "totalMs": 21.403200000000197,
+      "bytes": 104852,
+      "estimatedGzipBytes": 30876,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "local-in-memory",
+      "path": "/interview",
+      "iteration": 6,
+      "status": 200,
+      "finalPath": "/interview",
+      "headersMs": 16.115099999999984,
+      "totalMs": 17.286499999999705,
+      "bytes": 104852,
+      "estimatedGzipBytes": 30876,
+      "cache": null,
+      "contentEncoding": null
+    },
+    {
+      "environment": "production-unauthenticated",
+      "path": "/login",
+      "iteration": 0,
+      "status": 200,
+      "finalPath": "/login",
+      "headersMs": 474.7170000000001,
+      "totalMs": 475.10400000000027,
+      "bytes": 12526,
+      "estimatedGzipBytes": 3210,
+      "cache": "MISS",
+      "contentEncoding": null
+    },
+    {
+      "environment": "production-unauthenticated",
+      "path": "/login",
+      "iteration": 1,
+      "status": 200,
+      "finalPath": "/login",
+      "headersMs": 361.3153000000002,
+      "totalMs": 362.71010000000024,
+      "bytes": 12526,
+      "estimatedGzipBytes": 3210,
+      "cache": "MISS",
+      "contentEncoding": null
+    },
+    {
+      "environment": "production-unauthenticated",
+      "path": "/login",
+      "iteration": 2,
+      "status": 200,
+      "finalPath": "/login",
+      "headersMs": 322.25930000000017,
+      "totalMs": 322.8547000000003,
+      "bytes": 12526,
+      "estimatedGzipBytes": 3210,
+      "cache": "MISS",
+      "contentEncoding": null
+    },
+    {
+      "environment": "production-unauthenticated",
+      "path": "/login",
+      "iteration": 3,
+      "status": 200,
+      "finalPath": "/login",
+      "headersMs": 253.2759000000001,
+      "totalMs": 256.5913999999998,
+      "bytes": 12526,
+      "estimatedGzipBytes": 3210,
+      "cache": "MISS",
+      "contentEncoding": null
+    },
+    {
+      "environment": "production-unauthenticated",
+      "path": "/login",
+      "iteration": 4,
+      "status": 200,
+      "finalPath": "/login",
+      "headersMs": 261.8269,
+      "totalMs": 262.4782,
+      "bytes": 12526,
+      "estimatedGzipBytes": 3210,
+      "cache": "MISS",
+      "contentEncoding": null
+    },
+    {
+      "environment": "production-unauthenticated",
+      "path": "/login",
+      "iteration": 5,
+      "status": 200,
+      "finalPath": "/login",
+      "headersMs": 270.98939999999993,
+      "totalMs": 272.31370000000015,
+      "bytes": 12526,
+      "estimatedGzipBytes": 3210,
+      "cache": "MISS",
+      "contentEncoding": null
+    },
+    {
+      "environment": "production-unauthenticated",
+      "path": "/login",
+      "iteration": 6,
+      "status": 200,
+      "finalPath": "/login",
+      "headersMs": 262.8626999999997,
+      "totalMs": 263.53420000000006,
+      "bytes": 12526,
+      "estimatedGzipBytes": 3210,
+      "cache": "MISS",
+      "contentEncoding": null
+    },
+    {
+      "environment": "production-unauthenticated",
+      "path": "/problems",
+      "iteration": 0,
+      "status": 200,
+      "finalPath": "/login",
+      "headersMs": 586.0227000000004,
+      "totalMs": 586.634,
+      "bytes": 12526,
+      "estimatedGzipBytes": 3210,
+      "cache": "MISS",
+      "contentEncoding": null
+    },
+    {
+      "environment": "production-unauthenticated",
+      "path": "/problems",
+      "iteration": 1,
+      "status": 200,
+      "finalPath": "/login",
+      "headersMs": 574.5099,
+      "totalMs": 575.0947999999999,
+      "bytes": 12526,
+      "estimatedGzipBytes": 3210,
+      "cache": "MISS",
+      "contentEncoding": null
+    },
+    {
+      "environment": "production-unauthenticated",
+      "path": "/problems",
+      "iteration": 2,
+      "status": 200,
+      "finalPath": "/login",
+      "headersMs": 611.4751000000006,
+      "totalMs": 612.0667000000003,
+      "bytes": 12526,
+      "estimatedGzipBytes": 3210,
+      "cache": "MISS",
+      "contentEncoding": null
+    },
+    {
+      "environment": "production-unauthenticated",
+      "path": "/problems",
+      "iteration": 3,
+      "status": 200,
+      "finalPath": "/login",
+      "headersMs": 549.9272000000001,
+      "totalMs": 550.4637999999995,
+      "bytes": 12526,
+      "estimatedGzipBytes": 3210,
+      "cache": "MISS",
+      "contentEncoding": null
+    },
+    {
+      "environment": "production-unauthenticated",
+      "path": "/problems",
+      "iteration": 4,
+      "status": 200,
+      "finalPath": "/login",
+      "headersMs": 546.4914000000008,
+      "totalMs": 564.2343000000001,
+      "bytes": 12526,
+      "estimatedGzipBytes": 3210,
+      "cache": "MISS",
+      "contentEncoding": null
+    },
+    {
+      "environment": "production-unauthenticated",
+      "path": "/problems",
+      "iteration": 5,
+      "status": 200,
+      "finalPath": "/login",
+      "headersMs": 614.5913999999993,
+      "totalMs": 615.2677999999996,
+      "bytes": 12526,
+      "estimatedGzipBytes": 3210,
+      "cache": "MISS",
+      "contentEncoding": null
+    },
+    {
+      "environment": "production-unauthenticated",
+      "path": "/problems",
+      "iteration": 6,
+      "status": 200,
+      "finalPath": "/login",
+      "headersMs": 571.8339999999998,
+      "totalMs": 572.8432000000003,
+      "bytes": 12526,
+      "estimatedGzipBytes": 3210,
+      "cache": "MISS",
+      "contentEncoding": null
+    }
+  ],
+  "assets": {
+    "/dashboard": {
+      "assets": [
+        {
+          "path": "/_next/static/chunks/27jktro2p5rq9.js",
+          "rawBytes": 44414,
+          "estimatedGzipBytes": 9236
+        },
+        {
+          "path": "/_next/static/chunks/2yii6vu9apbyw.js",
+          "rawBytes": 150331,
+          "estimatedGzipBytes": 40439
+        },
+        {
+          "path": "/_next/static/chunks/2nykiepra7i1k.js",
+          "rawBytes": 227537,
+          "estimatedGzipBytes": 71012
+        },
+        {
+          "path": "/_next/static/chunks/turbopack-00scqylrw_ubs.js",
+          "rawBytes": 10580,
+          "estimatedGzipBytes": 4145
+        },
+        {
+          "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+          "rawBytes": 3377,
+          "estimatedGzipBytes": 1452
+        },
+        {
+          "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+          "rawBytes": 54646,
+          "estimatedGzipBytes": 12875
+        },
+        {
+          "path": "/_next/static/chunks/2xzrb42gl6tc7.js",
+          "rawBytes": 8037,
+          "estimatedGzipBytes": 3105
+        },
+        {
+          "path": "/_next/static/chunks/276p017s8k_a3.js",
+          "rawBytes": 244031,
+          "estimatedGzipBytes": 63887
+        },
+        {
+          "path": "/_next/static/chunks/3mgz9q-w5o0ju.js",
+          "rawBytes": 33080,
+          "estimatedGzipBytes": 10928
+        },
+        {
+          "path": "/_next/static/chunks/2e6sujeax6u8v.js",
+          "rawBytes": 1600,
+          "estimatedGzipBytes": 881
+        },
+        {
+          "path": "/_next/static/chunks/0cz1d0mv5g_q7.js",
+          "rawBytes": 112594,
+          "estimatedGzipBytes": 39627
+        },
+        {
+          "path": "/_next/static/chunks/01dkdyukbdpqq.js",
+          "rawBytes": 23762,
+          "estimatedGzipBytes": 7443
+        },
+        {
+          "path": "/_next/static/chunks/24i1xs9wltlzl.css",
+          "rawBytes": 48662,
+          "estimatedGzipBytes": 10757
+        }
+      ],
+      "scriptGzipBytes": 265030,
+      "cssGzipBytes": 10757,
+      "serializedProblemOccurrences": 0
+    },
+    "/problems": {
+      "assets": [
+        {
+          "path": "/_next/static/chunks/27jktro2p5rq9.js",
+          "rawBytes": 44414,
+          "estimatedGzipBytes": 9236
+        },
+        {
+          "path": "/_next/static/chunks/2yii6vu9apbyw.js",
+          "rawBytes": 150331,
+          "estimatedGzipBytes": 40439
+        },
+        {
+          "path": "/_next/static/chunks/2nykiepra7i1k.js",
+          "rawBytes": 227537,
+          "estimatedGzipBytes": 71012
+        },
+        {
+          "path": "/_next/static/chunks/turbopack-00scqylrw_ubs.js",
+          "rawBytes": 10580,
+          "estimatedGzipBytes": 4145
+        },
+        {
+          "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+          "rawBytes": 3377,
+          "estimatedGzipBytes": 1452
+        },
+        {
+          "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+          "rawBytes": 54646,
+          "estimatedGzipBytes": 12875
+        },
+        {
+          "path": "/_next/static/chunks/2xzrb42gl6tc7.js",
+          "rawBytes": 8037,
+          "estimatedGzipBytes": 3105
+        },
+        {
+          "path": "/_next/static/chunks/276p017s8k_a3.js",
+          "rawBytes": 244031,
+          "estimatedGzipBytes": 63887
+        },
+        {
+          "path": "/_next/static/chunks/3mgz9q-w5o0ju.js",
+          "rawBytes": 33080,
+          "estimatedGzipBytes": 10928
+        },
+        {
+          "path": "/_next/static/chunks/3i53ipxe3vie7.js",
+          "rawBytes": 20886,
+          "estimatedGzipBytes": 6740
+        },
+        {
+          "path": "/_next/static/chunks/0cz1d0mv5g_q7.js",
+          "rawBytes": 112594,
+          "estimatedGzipBytes": 39627
+        },
+        {
+          "path": "/_next/static/chunks/01dkdyukbdpqq.js",
+          "rawBytes": 23762,
+          "estimatedGzipBytes": 7443
+        },
+        {
+          "path": "/_next/static/chunks/24i1xs9wltlzl.css",
+          "rawBytes": 48662,
+          "estimatedGzipBytes": 10757
+        }
+      ],
+      "scriptGzipBytes": 270889,
+      "cssGzipBytes": 10757,
+      "serializedProblemOccurrences": 0
+    },
+    "/revise": {
+      "assets": [
+        {
+          "path": "/_next/static/chunks/27jktro2p5rq9.js",
+          "rawBytes": 44414,
+          "estimatedGzipBytes": 9236
+        },
+        {
+          "path": "/_next/static/chunks/2yii6vu9apbyw.js",
+          "rawBytes": 150331,
+          "estimatedGzipBytes": 40439
+        },
+        {
+          "path": "/_next/static/chunks/2nykiepra7i1k.js",
+          "rawBytes": 227537,
+          "estimatedGzipBytes": 71012
+        },
+        {
+          "path": "/_next/static/chunks/turbopack-00scqylrw_ubs.js",
+          "rawBytes": 10580,
+          "estimatedGzipBytes": 4145
+        },
+        {
+          "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+          "rawBytes": 3377,
+          "estimatedGzipBytes": 1452
+        },
+        {
+          "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+          "rawBytes": 54646,
+          "estimatedGzipBytes": 12875
+        },
+        {
+          "path": "/_next/static/chunks/2xzrb42gl6tc7.js",
+          "rawBytes": 8037,
+          "estimatedGzipBytes": 3105
+        },
+        {
+          "path": "/_next/static/chunks/276p017s8k_a3.js",
+          "rawBytes": 244031,
+          "estimatedGzipBytes": 63887
+        },
+        {
+          "path": "/_next/static/chunks/3mgz9q-w5o0ju.js",
+          "rawBytes": 33080,
+          "estimatedGzipBytes": 10928
+        },
+        {
+          "path": "/_next/static/chunks/0xpl5ibcfkwqh.js",
+          "rawBytes": 21060,
+          "estimatedGzipBytes": 7364
+        },
+        {
+          "path": "/_next/static/chunks/0cz1d0mv5g_q7.js",
+          "rawBytes": 112594,
+          "estimatedGzipBytes": 39627
+        },
+        {
+          "path": "/_next/static/chunks/01dkdyukbdpqq.js",
+          "rawBytes": 23762,
+          "estimatedGzipBytes": 7443
+        },
+        {
+          "path": "/_next/static/chunks/24i1xs9wltlzl.css",
+          "rawBytes": 48662,
+          "estimatedGzipBytes": 10757
+        },
+        {
+          "path": "/_next/static/chunks/0d69y2_o-p6ax.css",
+          "rawBytes": 434,
+          "estimatedGzipBytes": 226
+        }
+      ],
+      "scriptGzipBytes": 271513,
+      "cssGzipBytes": 10983,
+      "serializedProblemOccurrences": 0
+    },
+    "/interview": {
+      "assets": [
+        {
+          "path": "/_next/static/chunks/27jktro2p5rq9.js",
+          "rawBytes": 44414,
+          "estimatedGzipBytes": 9236
+        },
+        {
+          "path": "/_next/static/chunks/2yii6vu9apbyw.js",
+          "rawBytes": 150331,
+          "estimatedGzipBytes": 40439
+        },
+        {
+          "path": "/_next/static/chunks/2nykiepra7i1k.js",
+          "rawBytes": 227537,
+          "estimatedGzipBytes": 71012
+        },
+        {
+          "path": "/_next/static/chunks/turbopack-00scqylrw_ubs.js",
+          "rawBytes": 10580,
+          "estimatedGzipBytes": 4145
+        },
+        {
+          "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+          "rawBytes": 3377,
+          "estimatedGzipBytes": 1452
+        },
+        {
+          "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+          "rawBytes": 54646,
+          "estimatedGzipBytes": 12875
+        },
+        {
+          "path": "/_next/static/chunks/2xzrb42gl6tc7.js",
+          "rawBytes": 8037,
+          "estimatedGzipBytes": 3105
+        },
+        {
+          "path": "/_next/static/chunks/276p017s8k_a3.js",
+          "rawBytes": 244031,
+          "estimatedGzipBytes": 63887
+        },
+        {
+          "path": "/_next/static/chunks/3mgz9q-w5o0ju.js",
+          "rawBytes": 33080,
+          "estimatedGzipBytes": 10928
+        },
+        {
+          "path": "/_next/static/chunks/1vl3gvg48l66z.js",
+          "rawBytes": 11447,
+          "estimatedGzipBytes": 4073
+        },
+        {
+          "path": "/_next/static/chunks/0cz1d0mv5g_q7.js",
+          "rawBytes": 112594,
+          "estimatedGzipBytes": 39627
+        },
+        {
+          "path": "/_next/static/chunks/01dkdyukbdpqq.js",
+          "rawBytes": 23762,
+          "estimatedGzipBytes": 7443
+        },
+        {
+          "path": "/_next/static/chunks/24i1xs9wltlzl.css",
+          "rawBytes": 48662,
+          "estimatedGzipBytes": 10757
+        }
+      ],
+      "scriptGzipBytes": 268222,
+      "cssGzipBytes": 10757,
+      "serializedProblemOccurrences": 0
+    }
+  }
+}
