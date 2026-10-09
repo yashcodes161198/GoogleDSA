@@ -23,7 +23,7 @@ export const createClient = cache(async () => {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // Called from a Server Component; auth layout refreshes sessions on navigation.
+            // Server Components cannot write cookies; proxy.ts persists session refreshes.
           }
         },
       },

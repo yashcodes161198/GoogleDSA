@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { signInWithGoogle } from "@/lib/supabase/oauth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,11 +15,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+export function AuthForm({ mode, initialError = null }: { mode: "login" | "signup"; initialError?: string | null }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -52,17 +53,20 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     setLoading(false);
   };
 
-  const signInWithGoogle = async () => {
+  const handleGoogleSignIn = async () => {
     setLoading(true);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (error) setError(error.message);
-    setLoading(false);
+    setError(null);
+    setMessage(null);
+    try {
+      const { error } = await signInWithGoogle(createClient(), `${window.location.origin}/auth/callback`);
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      }
+    } catch {
+      setError("Could not start Google sign-in. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -80,7 +84,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           type="button"
           variant="outline"
           className="w-full"
-          onClick={signInWithGoogle}
+          onClick={handleGoogleSignIn}
           disabled={loading}
         >
           Continue with Google
