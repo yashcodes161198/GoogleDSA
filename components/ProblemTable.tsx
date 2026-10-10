@@ -40,24 +40,24 @@ function ProblemActions({
 
   return (
     <div className="problem-actions">
-      {canRevise ? (
-        <Button
-          size="sm"
-          variant="outline"
-          title="Increase revision count by 1"
-          onClick={() => onRevise(problem.id)}
-        >
-          +1 revision
-        </Button>
-      ) : (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => onStatusChange(problem.id, "solved")}
-        >
-          Solved
-        </Button>
-      )}
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={canRevise}
+        title={canRevise ? "Reset this question before marking it solved again" : "Mark this question as solved"}
+        onClick={() => onStatusChange(problem.id, "solved")}
+      >
+        Solved
+      </Button>
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={!canRevise}
+        title={canRevise ? "Increase revision count by 1" : "Solve this question before revising"}
+        onClick={() => onRevise(problem.id)}
+      >
+        +1 revision
+      </Button>
       <Button
         size="sm"
         variant="ghost"
