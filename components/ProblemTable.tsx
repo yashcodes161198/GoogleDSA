@@ -40,27 +40,24 @@ function ProblemActions({
 
   return (
     <div className="problem-actions">
-      <Button
-        size="sm"
-        variant="outline"
-        aria-pressed={problem.status === "solved"}
-        onClick={() => onStatusChange(problem.id, "solved")}
-      >
-        Solved
-      </Button>
-      <Button
-        size="sm"
-        variant="outline"
-        disabled={!canRevise}
-        title={
-          canRevise
-            ? "Increase revision count by 1"
-            : "Solve this question before revising"
-        }
-        onClick={() => onRevise(problem.id)}
-      >
-        +1 revision
-      </Button>
+      {canRevise ? (
+        <Button
+          size="sm"
+          variant="outline"
+          title="Increase revision count by 1"
+          onClick={() => onRevise(problem.id)}
+        >
+          +1 revision
+        </Button>
+      ) : (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onStatusChange(problem.id, "solved")}
+        >
+          Solved
+        </Button>
+      )}
       <Button
         size="sm"
         variant="ghost"
@@ -140,6 +137,8 @@ export function ProblemTable() {
     if (problem) void store.setFavorite(id, !problem.user_problem?.is_favorite).catch(() => {});
   };
   const setStatusFor = (id: string, status: ProblemStatus) => {
+    const problem = store.getSnapshot().problems.find(p => p.id === id);
+    if (!problem || problem.status === status) return;
     void store.setStatus(id, status).catch(() => {});
   };
   const incrementRevision = (id: string) => {
