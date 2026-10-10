@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useRef, useState } from "react";
+import { compareQuestionDifficulty } from "@/components/question-order";
 import { X, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { DifficultyBadge } from "@/components/ui/badge";
@@ -35,11 +36,16 @@ export function InterviewQuestionPicker({
             !selectedIds.includes(p.id) &&
             p.title.toLowerCase().includes(query.trim().toLowerCase()),
         )
-        .sort((a, b) => a.title.localeCompare(b.title)),
+        .sort((a, b) =>
+          compareQuestionDifficulty(a, b) || a.title.localeCompare(b.title),
+        ),
     [problems, selectedIds, query],
   );
   const results = options.slice(0, 12);
   const byId = new Map(problems.map((p) => [p.id, p]));
+  const displayedIds = [...selectedIds].sort((a, b) =>
+    compareQuestionDifficulty(byId.get(a) ?? {}, byId.get(b) ?? {}),
+  );
   const add = (id: string) => {
     onChange([...selectedIds, id]);
     setQuery("");
@@ -156,15 +162,18 @@ export function InterviewQuestionPicker({
         )}
       </div>
       <p id={`${listId}-hint`} className="text-xs text-muted">
-        Search and select questions. They will appear in the order you add them.
+        Search and select questions. Questions are displayed from easy to hard.
       </p>
       <p className="text-sm font-medium" role="status">
         {selectedIds.length} question{selectedIds.length === 1 ? "" : "s"}{" "}
         selected
       </p>
+      {selectedIds.map((id) => (
+        <input key={id} type="hidden" name="problemIds" value={id} />
+      ))}
       {selectedIds.length ? (
         <ol className="max-h-72 overflow-y-auto divide-y divide-line rounded-lg border border-line">
-          {selectedIds.map((id, index) => {
+          {displayedIds.map((id, index) => {
             const p = byId.get(id);
             if (!p) return null;
             return (
@@ -172,7 +181,6 @@ export function InterviewQuestionPicker({
                 key={id}
                 className="flex items-center gap-3 px-3 py-2 text-sm"
               >
-                <input type="hidden" name="problemIds" value={id} />
                 <span className="w-5 shrink-0 text-xs tabular-nums text-muted">
                   {index + 1}
                 </span>

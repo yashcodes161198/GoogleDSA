@@ -1,4 +1,5 @@
 import { PageHeading } from "@/components/PageHeading";
+import { compareQuestionDifficulty } from "@/components/question-order";
 import Link from "next/link";
 import { StartInterviewButton } from "@/components/StartInterviewButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,6 +58,9 @@ export default async function InterviewPage() {
 
   const pastSessions = summaries.filter(
     ({ session }) => !active || session.id !== active.id,
+  );
+  const problemsByTitle = new Map(
+    problems.map((problem) => [problem.title, problem]),
   );
 
   return (
@@ -126,7 +130,9 @@ export default async function InterviewPage() {
                         </div>
                         {problemTitles.length > 0 && (
                           <ol className="mt-3 list-inside list-decimal space-y-1 text-sm text-zinc-500">
-                            {problemTitles.map((title) => (
+                            {[...problemTitles].sort((a, b) =>
+                              compareQuestionDifficulty(problemsByTitle.get(a) ?? {}, problemsByTitle.get(b) ?? {}),
+                            ).map((title) => (
                               <li key={title}>{title}</li>
                             ))}
                           </ol>

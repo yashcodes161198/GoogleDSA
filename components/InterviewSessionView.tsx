@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useOptimistic, useTransition, useState } from "react";
+import { compareQuestionDifficulty } from "@/components/question-order";
 import { useRouter } from "next/navigation";
 import {
   endInterviewSession,
@@ -151,6 +152,9 @@ function InterviewSessionContent({
 }) {
   const { onLeetCodeClick, stopAndPersist } = useProblemTimer();
   const [showQuestions, setShowQuestions] = useState(false);
+  const displayedProblems = [...optimisticProblems].sort((a, b) =>
+    compareQuestionDifficulty(a.problem ?? {}, b.problem ?? {}),
+  );
 
   const handleCompleteChange = async (problemId: string, checked: boolean) => {
     if (checked) {
@@ -204,7 +208,7 @@ function InterviewSessionContent({
                 : "col-span-2 mt-3 hidden xl:block"
             }
           >
-            {optimisticProblems.map((sp) => (
+            {displayedProblems.map((sp, index) => (
               <a
                 key={sp.problem_id}
                 href={`#question-${sp.problem_id}`}
@@ -214,7 +218,7 @@ function InterviewSessionContent({
                   {sp.completed ? (
                     <Check size={13} aria-label="Completed" />
                   ) : (
-                    sp.position
+                    index + 1
                   )}
                 </span>
                 <span className="min-w-0 leading-relaxed">
@@ -255,7 +259,7 @@ function InterviewSessionContent({
         </p>
       </aside>
       <div className="surface practice-row-list min-w-0">
-        {optimisticProblems.map((sp) => {
+        {displayedProblems.map((sp, index) => {
           const problem = sp.problem;
           if (!problem) return null;
           return (
@@ -267,7 +271,7 @@ function InterviewSessionContent({
               onFavoriteToggle={() => toggleFavorite(sp.problem_id)}
               onLinkClick={() => onLeetCodeClick(sp.problem_id)}
               complete={sp.completed}
-              metadata={`Question ${sp.position} of ${optimisticProblems.length}${sp.global_status === "solved" ? " (previously solved)" : ""}`}
+              metadata={`Question ${index + 1} of ${optimisticProblems.length}${sp.global_status === "solved" ? " (previously solved)" : ""}`}
             >
               <Checkbox
                 className="h-8 w-8"

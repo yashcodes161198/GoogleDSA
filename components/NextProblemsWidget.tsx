@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { compareQuestionDifficulty } from "@/components/question-order";
 import { DifficultyBadge } from "@/components/ui/badge";
 import { ProblemLinks } from "@/components/ProblemLinks";
 import { resolveProblemLinks } from "@/lib/problem-links";
@@ -25,7 +26,9 @@ export function NextProblemsWidget({
         {recommendations.length === 0 ? (
           <p className="text-sm text-zinc-500">You&apos;re all caught up!</p>
         ) : (
-          recommendations.map(({ problem, reason }) => (
+          [...recommendations]
+            .sort((a, b) => compareQuestionDifficulty(a.problem, b.problem))
+            .map(({ problem, reason }) => (
             <div key={problem.id} className="border-t border-line py-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-medium">{problem.title}</span>

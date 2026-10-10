@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { compareQuestionDifficulty } from "@/components/question-order";
 import Link from "next/link";
 import { RotateCcw } from "lucide-react";
 import { useSessionLibrary, LibraryRefreshStatus } from "@/components/SessionLibraryProvider";
@@ -160,7 +161,7 @@ function ReviseCardContent({
       <LibraryRefreshStatus />
 
       <div className="surface practice-row-list">
-        {problems.map((problem) => {
+        {[...problems].sort(compareQuestionDifficulty).map((problem) => {
           const revised = revisedIds.has(problem.id);
           const revisionCount = problem.user_problem?.revision_count ?? 0;
 

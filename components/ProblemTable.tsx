@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { compareQuestionDifficulty } from "@/components/question-order";
 import { useSessionLibrary, LibraryRefreshStatus } from "@/components/SessionLibraryProvider";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Button } from "@/components/ui/button";
@@ -108,7 +109,7 @@ export function ProblemTable() {
         return false;
       }
       return true;
-    });
+    }).sort(compareQuestionDifficulty);
   }, [
     problems,
     search,
