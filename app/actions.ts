@@ -117,8 +117,8 @@ export async function updateProblemStatus(problemId: string, status: ProblemStat
     }
   }
 
+  revalidatePath("/dashboard");
   if (refreshRoutes) {
-    revalidatePath("/dashboard");
     revalidatePath("/problems");
     revalidatePath("/revise");
     revalidatePath("/leaderboard");
@@ -271,10 +271,10 @@ export async function markProblemRevised(problemId: string, refreshRoutes = true
         getLocalUserId(),
         problemId
       );
+      revalidatePath("/dashboard");
       if (refreshRoutes) {
         revalidatePath("/problems");
         revalidatePath("/revise");
-        revalidatePath("/dashboard");
         revalidatePath("/leaderboard");
       }
       return { ok: true as const, revisionCount };
@@ -303,10 +303,10 @@ export async function markProblemRevised(problemId: string, refreshRoutes = true
 
     await awardLeaderboardRevision(problemId, Number(revisionCount));
 
+    revalidatePath("/dashboard");
     if (refreshRoutes) {
       revalidatePath("/problems");
       revalidatePath("/revise");
-      revalidatePath("/dashboard");
       revalidatePath("/leaderboard");
     }
     return {

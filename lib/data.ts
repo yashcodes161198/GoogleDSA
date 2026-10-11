@@ -7,6 +7,7 @@ import {
 } from "@/lib/memory/store";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
+import { isPracticeToday } from "@/lib/practice-day";
 import { enrichProblemsFromCsv, enrichProblemFromCsv } from "@/lib/problems-enrich";
 import {
   selectRevisionQueue,
@@ -29,37 +30,28 @@ export async function getCurrentUser() {
   return getUser();
 }
 
-function startOfToday(): Date {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function isSameDay(a: string | null | undefined, day: Date): boolean {
-  if (!a) return false;
-  const d = new Date(a);
-  return (
-    d.getFullYear() === day.getFullYear() &&
-    d.getMonth() === day.getMonth() &&
-    d.getDate() === day.getDate()
-  );
-}
-
 function revisionStats(problems: ProblemWithProgress[]) {
-  const today = startOfToday();
-  const solved = problems.filter((p) => p.status === "solved");
+  const today = new Date();
+  let solvedToday = 0;
   let revisionsDoneToday = 0;
+  let revisedProblemsToday = 0;
   let notRevisedToday = 0;
-  for (const p of solved) {
-    if (isSameDay(p.user_problem?.last_revised_at, today)) {
-      revisionsDoneToday += 1;
+  for (const p of problems) {
+    const revisedToday = isPracticeToday(p.user_problem?.last_revised_at, today);
+    if (revisedToday) {
+      revisionsDoneToday += p.user_problem?.daily_revision_count ?? 1;
+    }
+    if (p.status !== "solved") continue;
+    if (isPracticeToday(p.user_problem?.solved_at, today)) solvedToday += 1;
+    if (revisedToday) {
+      revisedProblemsToday += 1;
     } else {
       notRevisedToday += 1;
     }
   }
-  const remainingQuota = Math.max(0, DAILY_REVISION_LIMIT - revisionsDoneToday);
+  const remainingQuota = Math.max(0, DAILY_REVISION_LIMIT - revisedProblemsToday);
   const revisionsDueToday = Math.min(remainingQuota, notRevisedToday);
-  return { revisionsDoneToday, revisionsDueToday };
+  return { solvedToday, revisionsDoneToday, revisionsDueToday };
 }
 
 // This query must stay outside unstable_cache: the server Supabase client
@@ -165,6 +157,7 @@ async function getDashboardStatsRpc(
     total: d.total,
     solved: d.solved,
     unsolved: d.unsolved,
+    solvedToday: 0,
     reviewsDue: d.reviewsDue,
     revisionsDueToday: 0,
     revisionsDoneToday: 0,
@@ -181,7 +174,7 @@ export function computeStatsFromProblems(
   problems: ProblemWithProgress[]
 ): DashboardStats {
   const now = Date.now();
-  const { revisionsDoneToday, revisionsDueToday } = revisionStats(problems);
+  const dailyStats = revisionStats(problems);
 
   const byDifficulty: DashboardStats["byDifficulty"] = {
     EASY: { solved: 0, total: 0 },
@@ -225,8 +218,7 @@ export function computeStatsFromProblems(
     solved,
     unsolved: problems.length - solved,
     reviewsDue,
-    revisionsDueToday,
-    revisionsDoneToday,
+    ...dailyStats,
     byDifficulty,
     topicCoverage,
   };

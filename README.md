@@ -52,6 +52,7 @@ cp .env.local.example .env.local
    - [`supabase/migrations/002_dashboard_stats.sql`](supabase/migrations/002_dashboard_stats.sql) — `get_user_dashboard_stats` RPC that powers the dashboard in one query (optional — the app falls back to computing stats in JS if this isn't installed, just slightly slower).
    - [`supabase/migrations/003_revision_tracking.sql`](supabase/migrations/003_revision_tracking.sql) — revision count columns for the Revise feature.
    - [`supabase/migrations/004_revision_tracking_rpc.sql`](supabase/migrations/004_revision_tracking_rpc.sql) — atomic revision increment RPC (required for the Revise checkbox).
+   - [`supabase/migrations/015_daily_revision_count.sql`](supabase/migrations/015_daily_revision_count.sql) — required to count every revision increment in “Revised today”, including repeated revisions of the same problem. Apply after the earlier migrations. Daily dashboard counters reset at midnight Asia/Kolkata.
 3. Copy your project URL and anon key into `.env.local`.
 4. Copy the **service role key** (Settings → API) into `.env.local` for seeding only.
 

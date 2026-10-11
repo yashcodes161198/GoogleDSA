@@ -29,9 +29,6 @@ export default async function DashboardPage() {
   ]);
   const stats = await getDashboardStats(problems);
   const recommendations = getNextProblems(problems, 5);
-  const progressPct = stats.total
-    ? Math.round((stats.solved / stats.total) * 100)
-    : 0;
   const config = DEFAULT_INTERVIEW_CONFIG;
   return (
     <div>
@@ -45,6 +42,14 @@ export default async function DashboardPage() {
       </PageHeading>
       <dl className="study-summary">
         <div>
+          <dt>Solved today</dt>
+          <dd>{stats.solvedToday}</dd>
+        </div>
+        <div>
+          <dt>Revised today</dt>
+          <dd>{stats.revisionsDoneToday}</dd>
+        </div>
+        <div>
           <dt>Problems solved</dt>
           <dd>
             {stats.solved} <small>/ {stats.total}</small>
@@ -53,17 +58,6 @@ export default async function DashboardPage() {
         <div>
           <dt>Still to solve</dt>
           <dd>{stats.unsolved}</dd>
-        </div>
-        <div>
-          <dt>Revised today</dt>
-          <dd>{stats.revisionsDoneToday}</dd>
-        </div>
-        <div>
-          <dt>Catalog coverage</dt>
-          <dd>
-            {progressPct}
-            <small>%</small>
-          </dd>
         </div>
       </dl>
       <div className="daily-grid mb-8">

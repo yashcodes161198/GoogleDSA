@@ -38,6 +38,8 @@ export interface UserProblem {
   last_reviewed_at: string | null;
   revision_count: number;
   last_revised_at: string | null;
+  /** Optional until migration 015 is installed; legacy timestamps count as one. */
+  daily_revision_count?: number;
   last_solve_seconds: number | null;
   best_solve_seconds: number | null;
   is_favorite: boolean;
@@ -93,6 +95,7 @@ export interface DashboardStats {
   total: number;
   solved: number;
   unsolved: number;
+  solvedToday: number;
   reviewsDue: number;
   revisionsDueToday: number;
   revisionsDoneToday: number;

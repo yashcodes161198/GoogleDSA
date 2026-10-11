@@ -1,4 +1,5 @@
 import type { ProblemWithProgress } from "@/lib/types";
+import { practiceDayStart } from "@/lib/practice-day";
 
 export const REVISION_SOLVE_COOLDOWN_MS = 48 * 60 * 60 * 1000;
 
@@ -8,12 +9,6 @@ export type RevisionQueueOptions = {
   excludeIds?: Iterable<string>;
   includeRevisedToday?: boolean;
 };
-
-function startOfDay(date: Date): number {
-  const day = new Date(date);
-  day.setHours(0, 0, 0, 0);
-  return day.getTime();
-}
 
 function wasRevisedToday(
   problem: ProblemWithProgress,
@@ -56,7 +51,7 @@ export function selectRevisionQueue(
 
   const excluded = new Set(excludeIds);
   const cooldownCutoff = now.getTime() - REVISION_SOLVE_COOLDOWN_MS;
-  const todayStart = startOfDay(now);
+  const todayStart = practiceDayStart(now);
 
   const eligible = problems.filter((problem) => {
     if (problem.status !== "solved" || excluded.has(problem.id)) return false;

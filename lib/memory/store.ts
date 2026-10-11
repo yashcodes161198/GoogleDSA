@@ -8,6 +8,7 @@ import {
 } from "@/lib/leaderboard/points";
 import { loadProblemsFromCsv } from "@/lib/problems-csv";
 import { initialSrsOnSolve } from "@/lib/srs/sm2";
+import { isPracticeToday } from "@/lib/practice-day";
 import {
   selectRevisionQueue,
   type RevisionQueueOptions,
@@ -107,6 +108,8 @@ class MemoryStore {
       last_reviewed_at:
         patch.last_reviewed_at ?? existing?.last_reviewed_at ?? null,
       revision_count: patch.revision_count ?? existing?.revision_count ?? 0,
+      daily_revision_count:
+        patch.daily_revision_count ?? existing?.daily_revision_count ?? 0,
       last_revised_at:
         patch.last_revised_at ?? existing?.last_revised_at ?? null,
       last_solve_seconds:
@@ -327,6 +330,10 @@ class MemoryStore {
     const next = {
       ...existing,
       revision_count: (existing.revision_count ?? 0) + 1,
+      daily_revision_count:
+        (isPracticeToday(existing.last_revised_at)
+          ? existing.daily_revision_count ?? 1
+          : 0) + 1,
       last_revised_at: now,
     };
     this.userProblems.set(key, next);
