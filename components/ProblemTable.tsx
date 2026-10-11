@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { compareQuestionDifficulty } from "@/components/question-order";
+import { useProblemFilters } from "@/components/useProblemFilters";
 import { useSessionLibrary, LibraryRefreshStatus } from "@/components/SessionLibraryProvider";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Button } from "@/components/ui/button";
@@ -16,16 +17,14 @@ import { resolveProblemLinks } from "@/lib/problem-links";
 import {
   getProblemProgressStatus,
   PROBLEM_PROGRESS_FILTERS,
-  type ProblemProgressStatus,
 } from "@/lib/revision/problemProgressStatus";
+import { DEFAULT_PROBLEM_FILTERS, type ProblemFilters } from "@/lib/problems/filters";
 import { ChevronDown } from "lucide-react";
 import type {
   Difficulty,
   ProblemStatus,
   ProblemWithProgress,
 } from "@/lib/types";
-
-type FavoriteFilter = "ALL" | "FAVORITES";
 
 function ProblemActions({
   problem,
@@ -72,20 +71,14 @@ function ProblemActions({
 export function ProblemTable() {
   const { problems, pendingIds, store } = useSessionLibrary();
   const pending = pendingIds.size > 0;
-  const [search, setSearch] = useState("");
-  const [difficulty, setDifficulty] = useState<Difficulty | "ALL">("ALL");
-  const [status, setStatus] = useState<ProblemProgressStatus | "ALL">("ALL");
-  const [topic, setTopic] = useState("ALL");
-  const [frequencyInput, setFrequencyInput] = useState("");
-  const [favoriteFilter, setFavoriteFilter] = useState<FavoriteFilter>("ALL");
   const [showFilters, setShowFilters] = useState(false);
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState<number | "all">(50);
   const topics = useMemo(() => {
     const set = new Set<string>();
     problems.forEach((p) => p.topics.forEach((t) => set.add(t)));
     return [...set].sort();
   }, [problems]);
+  const { filters, updateFilters } = useProblemFilters(topics);
+  const { search, difficulty, status, topic, frequencyInput, favoriteFilter, page, pageSize } = filters;
 
   const filtered = useMemo(() => {
     return problems.filter((p) => {
@@ -117,13 +110,6 @@ export function ProblemTable() {
     favoriteFilter,
   ]);
 
-  const filterKey = `${search}|${difficulty}|${status}|${topic}|${frequencyInput}|${favoriteFilter}|${pageSize}`;
-  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
-  if (filterKey !== prevFilterKey) {
-    setPrevFilterKey(filterKey);
-    setPage(0);
-  }
-
   const pageCount =
     pageSize === "all" ? 1 : Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pageCount - 1);
@@ -148,12 +134,7 @@ export function ProblemTable() {
   };
 
   const clearFilters = () => {
-    setSearch("");
-    setDifficulty("ALL");
-    setStatus("ALL");
-    setTopic("ALL");
-    setFavoriteFilter("ALL");
-    setFrequencyInput("");
+    updateFilters({ ...DEFAULT_PROBLEM_FILTERS, pageSize });
   };
   const activeSecondaryFilterCount = [
     difficulty !== "ALL",
@@ -179,7 +160,7 @@ export function ProblemTable() {
             <Input
               placeholder="Search by title…"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => updateFilters({ search: e.target.value }, true)}
             />
           </label>
           <button
@@ -211,7 +192,7 @@ export function ProblemTable() {
                 className="field-control"
                 value={difficulty}
                 onChange={(e) =>
-                  setDifficulty(e.target.value as Difficulty | "ALL")
+                  updateFilters({ difficulty: e.target.value as Difficulty | "ALL" })
                 }
               >
                 <option value="ALL">All difficulties</option>
@@ -226,7 +207,7 @@ export function ProblemTable() {
                 className="field-control"
                 value={status}
                 onChange={(e) =>
-                  setStatus(e.target.value as ProblemProgressStatus | "ALL")
+                  updateFilters({ status: e.target.value as ProblemFilters["status"] })
                 }
               >
                 <option value="ALL">All statuses</option>
@@ -242,7 +223,7 @@ export function ProblemTable() {
               <select
                 className="field-control"
                 value={topic}
-                onChange={(e) => setTopic(e.target.value)}
+                onChange={(e) => updateFilters({ topic: e.target.value })}
               >
                 <option value="ALL">All topics</option>
                 {topics.map((t) => (
@@ -258,7 +239,7 @@ export function ProblemTable() {
                 className="field-control"
                 value={favoriteFilter}
                 onChange={(e) =>
-                  setFavoriteFilter(e.target.value as FavoriteFilter)
+                  updateFilters({ favoriteFilter: e.target.value as ProblemFilters["favoriteFilter"] })
                 }
               >
                 <option value="ALL">All problems</option>
@@ -275,7 +256,7 @@ export function ProblemTable() {
                 step="0.1"
                 placeholder="Any"
                 value={frequencyInput}
-                onChange={(e) => setFrequencyInput(e.target.value)}
+                onChange={(e) => updateFilters({ frequencyInput: e.target.value }, true)}
               />
             </label>
           </div>
@@ -427,9 +408,7 @@ export function ProblemTable() {
             className="field-control w-auto"
             value={pageSize === "all" ? "all" : String(pageSize)}
             onChange={(e) =>
-              setPageSize(
-                e.target.value === "all" ? "all" : Number(e.target.value),
-              )
+              updateFilters({ pageSize: e.target.value === "all" ? "all" : Number(e.target.value) as ProblemFilters["pageSize"] })
             }
           >
             <option value="25">25</option>
@@ -447,7 +426,7 @@ export function ProblemTable() {
               size="sm"
               variant="outline"
               disabled={safePage === 0}
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              onClick={() => updateFilters({ page: Math.max(0, safePage - 1) })}
             >
               Previous
             </Button>
@@ -455,7 +434,7 @@ export function ProblemTable() {
               size="sm"
               variant="outline"
               disabled={safePage >= pageCount - 1}
-              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+              onClick={() => updateFilters({ page: Math.min(pageCount - 1, safePage + 1) })}
             >
               Next
             </Button>
