@@ -1,23 +1,27 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type CSSProperties } from "react";
+import { useEffect, useId, useRef, useState, useTransition, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, History, RefreshCw, RotateCcw, X } from "lucide-react";
 import {
   ACTION_LABELS, ACTIVITY_ACTIONS, activityAction, buildActivityDays,
   formatActivityDate, formatActivityFullDate, formatActivityTime,
-  type ActivityFilter, type ScoreActivity,
+  type ActivityFilter, type ActivityPeriod, type ScoreActivity,
 } from "@/lib/activity";
 import styles from "./ScoreHistory.module.css";
 
 const icons = { solved: Check, "first-revision": RotateCcw, "later-revision": RefreshCw };
 
-export function ScoreHistory({ events, now, error }: {
+export function ScoreHistory({ events, now, error, period = "month", title = "Score history" }: {
   events: ScoreActivity[];
   now: string;
   error: string | null;
+  period?: ActivityPeriod;
+  title?: string;
 }) {
+  const historyId = useId();
+  const isWeekly = period === "week";
   const [filter, setFilter] = useState<ActivityFilter>("all");
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [visibleDays, setVisibleDays] = useState(7);
@@ -28,7 +32,7 @@ export function ScoreHistory({ events, now, error }: {
     const chart = chartRef.current;
     if (chart) chart.scrollLeft = chart.scrollWidth;
   }, []);
-  const days = buildActivityDays(events, new Date(now), filter);
+  const days = buildActivityDays(events, new Date(now), filter, period);
   const totalPoints = days.reduce((sum, day) => sum + day.points, 0);
   const totalActions = days.reduce((sum, day) => sum + day.events.length, 0);
   const activeDays = days.filter((day) => day.events.length > 0).length;
@@ -46,13 +50,13 @@ export function ScoreHistory({ events, now, error }: {
   }
 
   return (
-    <section className={`surface ${styles.history}`} aria-labelledby="score-history-title">
+    <section className={`surface ${styles.history}`} aria-labelledby={`${historyId}-title`}>
       <div className={styles.heading}>
         <div>
-          <h2 id="score-history-title">Score history</h2>
-          <p>{formatActivityDate(days[0].date)} – {formatActivityDate(now)} · All times in IST</p>
+          <h2 id={`${historyId}-title`}>{title}</h2>
+          <p>{formatActivityDate(days[0].date)} – {formatActivityDate(isWeekly ? days[6].date : now)} · All times in IST</p>
         </div>
-        <span className={styles.period}>Last 30 days</span>
+        <span className={styles.period}>{isWeekly ? "This week" : "Last 30 days"}</span>
       </div>
 
       {error ? (
@@ -70,7 +74,7 @@ export function ScoreHistory({ events, now, error }: {
           <dl className={styles.totals} aria-label={filter === "all" ? "Period totals" : `${ACTION_LABELS[filter]} totals`}>
             <div><dt>Points earned</dt><dd>{totalPoints}<small> pts</small></dd></div>
             <div><dt>Scoring actions</dt><dd>{totalActions}</dd></div>
-            <div><dt>Active days</dt><dd>{activeDays}<small> / 30</small></dd></div>
+            <div><dt>Active days</dt><dd>{activeDays}<small> / {days.length}</small></dd></div>
           </dl>
 
           <div className={styles.chartSection}>
@@ -79,19 +83,21 @@ export function ScoreHistory({ events, now, error }: {
               <span>Select a day to see its activity</span>
             </div>
             <div className={styles.chartScroll} ref={chartRef}>
-              <div className={styles.chart} aria-label="Daily scores for the past 30 days">
+              <div className={`${styles.chart} ${isWeekly ? styles.weekChart : ""}`}
+                aria-label={isWeekly ? "Daily scores for this leaderboard week" : "Daily scores for the past 30 days"}>
                 {days.map((day, index) => (
                   <button key={day.key} type="button" className={styles.dayButton}
                     aria-label={`${formatActivityFullDate(day.date)}: ${day.points} points, ${day.events.length} scoring actions`}
                     aria-pressed={selectedDay === day.key}
                     title={`${formatActivityDate(day.date)}: ${day.points} pts`}
                     onClick={() => { setSelectedDay(selectedDay === day.key ? null : day.key); setVisibleDays(7); }}>
+                    {isWeekly && <span className={styles.dayPoints} aria-hidden="true">{day.points}</span>}
                     <span className={styles.barTrack}>
                       <span className={styles.bar} data-empty={day.points === 0}
                         style={{ "--bar-height": `${Math.max(4, day.points / maxPoints * 100)}%` } as CSSProperties} />
                     </span>
                     <span className={styles.dayLabel} aria-hidden="true">
-                      {index === days.length - 1 || (index % 7 === 0 && index < days.length - 3) ? formatActivityDate(day.date) : ""}
+                      {isWeekly || index === days.length - 1 || (index % 7 === 0 && index < days.length - 3) ? formatActivityDate(day.date) : ""}
                     </span>
                   </button>
                 ))}
@@ -118,16 +124,16 @@ export function ScoreHistory({ events, now, error }: {
             {isEmpty ? (
               <div className={styles.empty}>
                 <History size={26} aria-hidden="true" />
-                <h3>{hasFilters ? "No activity matches these filters" : "Your next score starts here"}</h3>
-                <p>{hasFilters ? "Try another day or action to find your scores." :
+                <h3>{hasFilters ? "No activity matches these filters" : isWeekly ? "No points recorded this week" : "Your next score starts here"}</h3>
+                <p>{hasFilters ? "Try another day or action to find scores." : isWeekly ? "No scoring actions were recorded for this player during this leaderboard week." :
                   "Solve or revise a medium or hard question. Your points and the time you earned them will appear here."}</p>
-                {hasFilters ? <button className="button-link secondary" onClick={clearFilters}>Show all activity</button> :
+                {hasFilters ? <button className="button-link secondary" onClick={clearFilters}>Show all activity</button> : !isWeekly &&
                   <Link className="button-link" href="/problems">Browse problems</Link>}
               </div>
             ) : shownDays.map((day) => (
-              <section key={day.key} className={styles.dayGroup} aria-labelledby={`day-${day.key}`}>
+              <section key={day.key} className={styles.dayGroup} aria-labelledby={`${historyId}-day-${day.key}`}>
                 <div className={styles.dayHeading}>
-                  <h4 id={`day-${day.key}`}>{formatActivityFullDate(day.date)}</h4>
+                  <h4 id={`${historyId}-day-${day.key}`}>{formatActivityFullDate(day.date)}</h4>
                   <span>{day.events.length} {day.events.length === 1 ? "action" : "actions"}<strong>+{day.points} pts</strong></span>
                 </div>
                 <ol className={styles.events}>

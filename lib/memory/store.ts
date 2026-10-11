@@ -9,7 +9,7 @@ import {
 import { loadProblemsFromCsv } from "@/lib/problems-csv";
 import { initialSrsOnSolve } from "@/lib/srs/sm2";
 import { isPracticeToday } from "@/lib/practice-day";
-import { activityBounds, type ScoreActivity } from "@/lib/activity";
+import { activityBounds, type ActivityPeriod, type ScoreActivity } from "@/lib/activity";
 import {
   selectRevisionQueue,
   type RevisionQueueOptions,
@@ -381,9 +381,9 @@ class MemoryStore {
     );
   }
 
-  getScoreActivity(userId: string, now = new Date()): ScoreActivity[] {
+  getScoreActivity(userId: string, now = new Date(), period: ActivityPeriod = "month"): ScoreActivity[] {
     this.ensureSeeded();
-    const { start, end } = activityBounds(now);
+    const { start, end } = activityBounds(now, period);
     const problems = new Map(this.problems.map((problem) => [problem.id, problem]));
     return this.leaderboardEvents
       .filter((event) => event.user_id === userId &&

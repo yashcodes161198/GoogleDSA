@@ -1,9 +1,10 @@
 import { practiceDayStart } from "@/lib/practice-day";
 import type { Difficulty } from "@/lib/types";
-import type { LeaderboardEventType } from "@/lib/leaderboard/points";
+import { leaderboardWeekBounds, type LeaderboardEventType } from "@/lib/leaderboard/points";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 export const ACTIVITY_DAYS = 30;
+export type ActivityPeriod = "month" | "week";
 export const ACTIVITY_ACTIONS = ["solved", "first-revision", "later-revision"] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];
 export type ActivityFilter = "all" | ActivityAction;
@@ -29,7 +30,8 @@ export function activityAction(event: ScoreActivity): ActivityAction {
   return event.revision_number === 1 ? "first-revision" : "later-revision";
 }
 
-export function activityBounds(now = new Date()) {
+export function activityBounds(now = new Date(), period: ActivityPeriod = "month") {
+  if (period === "week") return leaderboardWeekBounds(now);
   return {
     start: new Date(practiceDayStart(now) - (ACTIVITY_DAYS - 1) * DAY_MS),
     end: new Date(now.getTime() + 1),
@@ -67,9 +69,9 @@ export function formatActivityTime(value: string) {
   return `${hours % 12 || 12}:${String(date.getUTCMinutes()).padStart(2, "0")}:${String(date.getUTCSeconds()).padStart(2, "0")} ${hours < 12 ? "am" : "pm"}`;
 }
 
-export function buildActivityDays(events: ScoreActivity[], now: Date, filter: ActivityFilter = "all") {
-  const { start, end } = activityBounds(now);
-  const days = Array.from({ length: ACTIVITY_DAYS }, (_, index) => {
+export function buildActivityDays(events: ScoreActivity[], now: Date, filter: ActivityFilter = "all", period: ActivityPeriod = "month") {
+  const { start, end } = activityBounds(now, period);
+  const days = Array.from({ length: period === "week" ? 7 : ACTIVITY_DAYS }, (_, index) => {
     const date = new Date(start.getTime() + index * DAY_MS);
     return { date: date.toISOString(), key: activityDayKey(date), points: 0, events: [] as ScoreActivity[] };
   });

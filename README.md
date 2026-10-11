@@ -12,6 +12,7 @@ Track ~770 Google interview LeetCode questions, run 2-hour mock interviews with 
 - **Revise** — serves up to 10 solved problems with the lowest per-user revision counts and increments each count atomically when revised
 - **Auth** — Google OAuth + email/password via Supabase
 - **Settings & activity** — account-menu access to the last 30 days of leaderboard awards, grouped by IST date with timestamps, points, question titles, and solve/first revision/second+ revision filters. Uses the existing `013_leaderboard.sql` event records; older unrecorded actions are not reconstructed.
+- **Leaderboard history** — the eye beside every player opens their Monday–Sunday score history, with daily totals (including zero-point days) and the questions, timestamps, solves, and revisions behind each award. Available to all signed-in users using the existing leaderboard event permissions; no new migration required.
 - **Responsive UI** — skeleton loaders on every route, optimistic status/completion toggles (no waiting on the server round trip to see the click register)
 
 ## Tech stack

@@ -1,6 +1,9 @@
+import Link from "next/link";
+import { Eye, X } from "lucide-react";
 import { PageHeading } from "@/components/PageHeading";
+import { ScoreHistory } from "@/components/ScoreHistory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getCurrentUser, getWeeklyLeaderboard } from "@/lib/data";
+import { getCurrentUser, getScoreActivity, getWeeklyLeaderboard } from "@/lib/data";
 import { formatLeaderboardWeek } from "@/lib/leaderboard/points";
 
 const RULES = [
@@ -9,12 +12,20 @@ const RULES = [
   { event: "Later revisions", medium: 1, hard: 2 },
 ];
 
-export default async function LeaderboardPage() {
-  const [user, leaderboard] = await Promise.all([
+export default async function LeaderboardPage({ searchParams }: {
+  searchParams: Promise<{ user?: string | string[] }>;
+}) {
+  const now = new Date();
+  const [user, leaderboard, query] = await Promise.all([
     getCurrentUser(),
     getWeeklyLeaderboard(),
+    searchParams,
   ]);
-  const weekLabel = formatLeaderboardWeek();
+  const weekLabel = formatLeaderboardWeek(now);
+  const selectedEntry = leaderboard.entries.find((entry) => entry.user_id === query.user);
+  const history = selectedEntry
+    ? await getScoreActivity(now, { userId: selectedEntry.user_id, period: "week" })
+    : null;
 
   return (
     <div className="space-y-6">
@@ -58,6 +69,7 @@ export default async function LeaderboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>This week</CardTitle>
+          <p className="text-sm text-zinc-500">Select the eye beside any player to see their daily points and scoring activity.</p>
         </CardHeader>
         <CardContent>
           {leaderboard.unavailable ? (
@@ -74,27 +86,54 @@ export default async function LeaderboardPage() {
             <ol className="space-y-2">
               {leaderboard.entries.map((entry) => {
                 const isCurrentUser = entry.user_id === user?.id;
+                const isSelected = entry.user_id === selectedEntry?.user_id;
                 return (
                   <li
                     key={entry.user_id}
-                    className={
+                    className="min-w-0"
+                  >
+                    <div className={
                       isCurrentUser
                         ? "flex items-center justify-between gap-3 rounded-lg bg-blue-50 px-3 py-2 dark:bg-blue-950"
                         : "flex items-center justify-between gap-3 rounded-lg px-3 py-2"
-                    }
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <span className="w-6 text-sm font-semibold text-zinc-500">
-                        {entry.rank}
-                      </span>
-                      <span className="truncate font-medium">
-                        {entry.display_name}
-                        {isCurrentUser ? " (you)" : ""}
-                      </span>
+                    }>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="w-6 text-sm font-semibold text-zinc-500">
+                          {entry.rank}
+                        </span>
+                        <span className="truncate font-medium">
+                          {entry.display_name}
+                          {isCurrentUser ? " (you)" : ""}
+                        </span>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="text-sm font-semibold">{entry.points} pts</span>
+                        <Link
+                          href={isSelected ? "/leaderboard" : `/leaderboard?user=${encodeURIComponent(entry.user_id)}`}
+                          scroll={false}
+                          prefetch={false}
+                          aria-label={`${isSelected ? "Hide" : "View"} ${entry.display_name}'s score history`}
+                          aria-expanded={isSelected}
+                          aria-controls={isSelected ? "leaderboard-score-history" : undefined}
+                          title={`${isSelected ? "Hide" : "View"} ${entry.display_name}'s score history`}
+                          className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg transition-colors hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:hover:bg-zinc-800 ${isSelected ? "text-blue-600 dark:text-blue-400" : "text-zinc-500"}`}
+                        >
+                          {isSelected ? <X size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+                        </Link>
+                      </div>
                     </div>
-                    <span className="shrink-0 text-sm font-semibold">
-                      {entry.points} pts
-                    </span>
+                    {isSelected && history && (
+                      <div id="leaderboard-score-history" className="my-3">
+                        <ScoreHistory
+                          key={entry.user_id}
+                          events={history.events}
+                          error={history.error}
+                          now={now.toISOString()}
+                          period="week"
+                          title={`${entry.display_name}'s score history`}
+                        />
+                      </div>
+                    )}
                   </li>
                 );
               })}
