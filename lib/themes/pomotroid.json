@@ -1,0 +1,610 @@
+[
+  {
+    "id": "andromeda",
+    "name": "Andromeda",
+    "colors": {
+      "--color-long-round": "#C74DED",
+      "--color-short-round": "#00E8C6",
+      "--color-focus-round": "#EE5D43",
+      "--color-background": "#23262E",
+      "--color-background-light": "#2e323d",
+      "--color-background-lightest": "#746f77",
+      "--color-foreground": "#d5ced9",
+      "--color-foreground-darker": "#746f77",
+      "--color-foreground-darkest": "#CD9731",
+      "--color-accent": "#FFE66D"
+    }
+  },
+  {
+    "id": "ayu",
+    "name": "Ayu",
+    "colors": {
+      "--color-long-round": "#5CCFE6",
+      "--color-short-round": "#BAE67E",
+      "--color-focus-round": "#F28779",
+      "--color-background": "#1F2430",
+      "--color-background-light": "#2a3546",
+      "--color-background-lightest": "#707a8c",
+      "--color-foreground": "#CBCCC6",
+      "--color-foreground-darker": "#CBCCC6",
+      "--color-foreground-darkest": "#5ccfe6",
+      "--color-accent": "#FFCC66"
+    }
+  },
+  {
+    "id": "catppuccin-frappe",
+    "name": "Catppuccin Frappé",
+    "colors": {
+      "--color-long-round": "#8caaee",
+      "--color-short-round": "#a6d189",
+      "--color-focus-round": "#e78284",
+      "--color-background": "#303446",
+      "--color-background-light": "#414559",
+      "--color-background-lightest": "#626880",
+      "--color-foreground": "#c6d0f5",
+      "--color-foreground-darker": "#b5bfe2",
+      "--color-foreground-darkest": "#949cbb",
+      "--color-accent": "#ca9ee6"
+    }
+  },
+  {
+    "id": "catppuccin-latte",
+    "name": "Catppuccin Latte",
+    "colors": {
+      "--color-long-round": "#209fb5",
+      "--color-short-round": "#40a02b",
+      "--color-focus-round": "#d20f39",
+      "--color-background": "#eff1f5",
+      "--color-background-light": "#e6e9ef",
+      "--color-background-lightest": "#bcc0cc",
+      "--color-foreground": "#4c4f69",
+      "--color-foreground-darker": "#6c6f85",
+      "--color-foreground-darkest": "#8c8fa1",
+      "--color-accent": "#8839ef"
+    }
+  },
+  {
+    "id": "catppuccin-macchiato",
+    "name": "Catppuccin Macchiato",
+    "colors": {
+      "--color-long-round": "#8aadf4",
+      "--color-short-round": "#a6da95",
+      "--color-focus-round": "#ed8796",
+      "--color-background": "#24273a",
+      "--color-background-light": "#363a4f",
+      "--color-background-lightest": "#5b6078",
+      "--color-foreground": "#cad3f5",
+      "--color-foreground-darker": "#b8c0e0",
+      "--color-foreground-darkest": "#939ab7",
+      "--color-accent": "#c6a0f6"
+    }
+  },
+  {
+    "id": "catppuccin-mocha",
+    "name": "Catppuccin Mocha",
+    "colors": {
+      "--color-long-round": "#89b4fa",
+      "--color-short-round": "#a6e3a1",
+      "--color-focus-round": "#f38ba8",
+      "--color-background": "#1e1e2e",
+      "--color-background-light": "#313244",
+      "--color-background-lightest": "#585b70",
+      "--color-foreground": "#cdd6f4",
+      "--color-foreground-darker": "#bac2de",
+      "--color-foreground-darkest": "#9399b2",
+      "--color-accent": "#cba6f7"
+    }
+  },
+  {
+    "id": "city-lights",
+    "name": "City Lights",
+    "colors": {
+      "--color-long-round": "#6796E6",
+      "--color-short-round": "#33CED8",
+      "--color-focus-round": "#E27E8D",
+      "--color-background": "#1d252c",
+      "--color-background-light": "#28313a",
+      "--color-background-lightest": "#718CA1",
+      "--color-foreground": "#b7c5d3",
+      "--color-foreground-darker": "#718CA1",
+      "--color-foreground-darkest": "#718CA1",
+      "--color-accent": "#EBBF83"
+    }
+  },
+  {
+    "id": "cobalt2",
+    "name": "Cobalt2",
+    "colors": {
+      "--color-long-round": "#80fcff",
+      "--color-short-round": "#3ad900",
+      "--color-focus-round": "#ff3600",
+      "--color-background": "#193549",
+      "--color-background-light": "#1f4662",
+      "--color-background-lightest": "#2a5f8f",
+      "--color-foreground": "#b0d9fb",
+      "--color-foreground-darker": "#7ab3d9",
+      "--color-foreground-darkest": "#4e8ab5",
+      "--color-accent": "#ff9d00"
+    }
+  },
+  {
+    "id": "crimson-white",
+    "name": "Crimson White",
+    "colors": {
+      "--color-long-round": "#e05252",
+      "--color-short-round": "#f28b82",
+      "--color-focus-round": "#c0392b",
+      "--color-background": "#ffffff",
+      "--color-background-light": "#f5f5f5",
+      "--color-background-lightest": "#e8e8e8",
+      "--color-foreground": "#2c2c2c",
+      "--color-foreground-darker": "#555555",
+      "--color-foreground-darkest": "#888888",
+      "--color-accent": "#a31515"
+    }
+  },
+  {
+    "id": "darcula",
+    "name": "Darcula",
+    "colors": {
+      "--color-long-round": "#6897bb",
+      "--color-short-round": "#6a8759",
+      "--color-focus-round": "#c75450",
+      "--color-background": "#2b2b2b",
+      "--color-background-light": "#313335",
+      "--color-background-lightest": "#4e5254",
+      "--color-foreground": "#a9b7c6",
+      "--color-foreground-darker": "#808080",
+      "--color-foreground-darkest": "#5c5f61",
+      "--color-accent": "#ffc66d"
+    }
+  },
+  {
+    "id": "dracula",
+    "name": "Dracula",
+    "colors": {
+      "--color-long-round": "#8be9fd",
+      "--color-short-round": "#50fa7b",
+      "--color-focus-round": "#ff5555",
+      "--color-background": "#282a36",
+      "--color-background-light": "#44475a",
+      "--color-background-lightest": "#6272a4",
+      "--color-foreground": "#f8f8f2",
+      "--color-foreground-darker": "#ffb86c",
+      "--color-foreground-darkest": "#ff79c6",
+      "--color-accent": "#bd93f9"
+    }
+  },
+  {
+    "id": "dva",
+    "name": "D.Va",
+    "colors": {
+      "--color-long-round": "#26adff",
+      "--color-short-round": "#0de2c9",
+      "--color-focus-round": "#ec57fd",
+      "--color-background": "#2e2733",
+      "--color-background-light": "#35303a",
+      "--color-background-lightest": "#aba3b3",
+      "--color-foreground": "#f2f8f7",
+      "--color-foreground-darker": "#e8d3ea",
+      "--color-foreground-darkest": "#d5bbd8",
+      "--color-accent": "#0de2c9"
+    }
+  },
+  {
+    "id": "everforest",
+    "name": "Everforest",
+    "colors": {
+      "--color-long-round": "#7fbbb3",
+      "--color-short-round": "#a7c080",
+      "--color-focus-round": "#e67e80",
+      "--color-background": "#2d353b",
+      "--color-background-light": "#3d484d",
+      "--color-background-lightest": "#596a6d",
+      "--color-foreground": "#d3c6aa",
+      "--color-foreground-darker": "#9da9a0",
+      "--color-foreground-darkest": "#859289",
+      "--color-accent": "#a7c080"
+    }
+  },
+  {
+    "id": "github-dark",
+    "name": "GitHub Dark",
+    "colors": {
+      "--color-long-round": "#58a6ff",
+      "--color-short-round": "#3fb950",
+      "--color-focus-round": "#f85149",
+      "--color-background": "#0d1117",
+      "--color-background-light": "#161b22",
+      "--color-background-lightest": "#30363d",
+      "--color-foreground": "#e6edf3",
+      "--color-foreground-darker": "#8b949e",
+      "--color-foreground-darkest": "#6e7681",
+      "--color-accent": "#58a6ff"
+    }
+  },
+  {
+    "id": "github",
+    "name": "GitHub",
+    "colors": {
+      "--color-long-round": "#6F42C1",
+      "--color-short-round": "#005CC5",
+      "--color-focus-round": "#CD3131",
+      "--color-background": "#FFFFFF",
+      "--color-background-light": "#f6f8fa",
+      "--color-background-lightest": "#24292e",
+      "--color-foreground": "#24292e",
+      "--color-foreground-darker": "#586069",
+      "--color-foreground-darkest": "#80878e",
+      "--color-accent": "#005CC5"
+    }
+  },
+  {
+    "id": "graphite",
+    "name": "Graphite",
+    "colors": {
+      "--color-long-round": "#505154",
+      "--color-short-round": "#505154",
+      "--color-focus-round": "#505154",
+      "--color-background": "#ebebea",
+      "--color-background-light": "#fcfcfc",
+      "--color-background-lightest": "#adafb1",
+      "--color-foreground": "#27292d",
+      "--color-foreground-darker": "#4a4e56",
+      "--color-foreground-darkest": "#656a75",
+      "--color-accent": "#08568c"
+    }
+  },
+  {
+    "id": "gruvbox-light",
+    "name": "Gruvbox Light",
+    "colors": {
+      "--color-long-round": "#076678",
+      "--color-short-round": "#79740e",
+      "--color-focus-round": "#9d0006",
+      "--color-background": "#fbf1c7",
+      "--color-background-light": "#ebdbb2",
+      "--color-background-lightest": "#bdae93",
+      "--color-foreground": "#3c3836",
+      "--color-foreground-darker": "#665c54",
+      "--color-foreground-darkest": "#928374",
+      "--color-accent": "#b57614"
+    }
+  },
+  {
+    "id": "gruvbox",
+    "name": "Gruvbox",
+    "colors": {
+      "--color-long-round": "#83A598",
+      "--color-short-round": "#B8BB26",
+      "--color-focus-round": "#FB4934",
+      "--color-background": "#282828",
+      "--color-background-light": "#3c3836",
+      "--color-background-lightest": "#bdae93",
+      "--color-foreground": "#ebdbb2",
+      "--color-foreground-darker": "#bdae93",
+      "--color-foreground-darkest": "#928374",
+      "--color-accent": "#FABD2F"
+    }
+  },
+  {
+    "id": "horizon",
+    "name": "Horizon",
+    "colors": {
+      "--color-long-round": "#25b0bc",
+      "--color-short-round": "#09f7a0",
+      "--color-focus-round": "#e95678",
+      "--color-background": "#1c1e26",
+      "--color-background-light": "#232530",
+      "--color-background-lightest": "#2e303e",
+      "--color-foreground": "#cbced3",
+      "--color-foreground-darker": "#6c6f93",
+      "--color-foreground-darkest": "#4f5275",
+      "--color-accent": "#e95678"
+    }
+  },
+  {
+    "id": "kanagawa",
+    "name": "Kanagawa",
+    "colors": {
+      "--color-long-round": "#7e9cd8",
+      "--color-short-round": "#76946a",
+      "--color-focus-round": "#c34043",
+      "--color-background": "#1f1f28",
+      "--color-background-light": "#2a2a37",
+      "--color-background-lightest": "#54546d",
+      "--color-foreground": "#dcd7ba",
+      "--color-foreground-darker": "#c8c093",
+      "--color-foreground-darkest": "#727169",
+      "--color-accent": "#957fb8"
+    }
+  },
+  {
+    "id": "material-palenight",
+    "name": "Material Palenight",
+    "colors": {
+      "--color-long-round": "#82aaff",
+      "--color-short-round": "#c3e88d",
+      "--color-focus-round": "#f07178",
+      "--color-background": "#292d3e",
+      "--color-background-light": "#33374e",
+      "--color-background-lightest": "#4e5579",
+      "--color-foreground": "#a6accd",
+      "--color-foreground-darker": "#676e95",
+      "--color-foreground-darkest": "#4e5579",
+      "--color-accent": "#c792ea"
+    }
+  },
+  {
+    "id": "monokai-pro",
+    "name": "Monokai Pro",
+    "colors": {
+      "--color-long-round": "#78dce8",
+      "--color-short-round": "#a9dc76",
+      "--color-focus-round": "#ff6188",
+      "--color-background": "#2d2a2e",
+      "--color-background-light": "#403e41",
+      "--color-background-lightest": "#5b595c",
+      "--color-foreground": "#fcfcfa",
+      "--color-foreground-darker": "#939293",
+      "--color-foreground-darkest": "#727072",
+      "--color-accent": "#ffd866"
+    }
+  },
+  {
+    "id": "monokai",
+    "name": "Monokai",
+    "colors": {
+      "--color-long-round": "#66d9ef",
+      "--color-short-round": "#a6e22e",
+      "--color-focus-round": "#f92672",
+      "--color-background": "#272822",
+      "--color-background-light": "#393a34",
+      "--color-background-lightest": "#9c9e92",
+      "--color-foreground": "#FDF9F3",
+      "--color-foreground-darker": "#dad2c6",
+      "--color-foreground-darkest": "#d8cbb6",
+      "--color-accent": "#AE81FF"
+    }
+  },
+  {
+    "id": "night-owl",
+    "name": "Night Owl",
+    "colors": {
+      "--color-long-round": "#82aaff",
+      "--color-short-round": "#addb67",
+      "--color-focus-round": "#ef5350",
+      "--color-background": "#011627",
+      "--color-background-light": "#0d2231",
+      "--color-background-lightest": "#1d3b53",
+      "--color-foreground": "#d6deeb",
+      "--color-foreground-darker": "#7fa3b3",
+      "--color-foreground-darkest": "#637777",
+      "--color-accent": "#c792ea"
+    }
+  },
+  {
+    "id": "nord",
+    "name": "Nord",
+    "colors": {
+      "--color-long-round": "#5E81AC",
+      "--color-short-round": "#8FBCBB",
+      "--color-focus-round": "#B48EAD",
+      "--color-background": "#2e3440",
+      "--color-background-light": "#3b4252",
+      "--color-background-lightest": "#616E88",
+      "--color-foreground": "#d8dee9",
+      "--color-foreground-darker": "#8FBCBB",
+      "--color-foreground-darkest": "#88C0D0",
+      "--color-accent": "#A3BE8C"
+    }
+  },
+  {
+    "id": "one-dark",
+    "name": "One Dark Pro",
+    "colors": {
+      "--color-long-round": "#61AFEF",
+      "--color-short-round": "#98C379",
+      "--color-focus-round": "#E06C75",
+      "--color-background": "#282c34",
+      "--color-background-light": "#3b4048",
+      "--color-background-lightest": "#7f848e",
+      "--color-foreground": "#abb2bf",
+      "--color-foreground-darker": "#abb2bf",
+      "--color-foreground-darkest": "#E5C07B",
+      "--color-accent": "#C678DD"
+    }
+  },
+  {
+    "id": "panda",
+    "name": "Panda",
+    "colors": {
+      "--color-long-round": "#6fc1ff",
+      "--color-short-round": "#19f9d8",
+      "--color-focus-round": "#ff2c6d",
+      "--color-background": "#292a2b",
+      "--color-background-light": "#333434",
+      "--color-background-lightest": "#676b79",
+      "--color-foreground": "#e6e6e6",
+      "--color-foreground-darker": "#b3b3b3",
+      "--color-foreground-darkest": "#676b79",
+      "--color-accent": "#19f9d8"
+    }
+  },
+  {
+    "id": "pomotroid-light",
+    "name": "Pomotroid Light",
+    "colors": {
+      "--color-long-round": "#6aaec4",
+      "--color-short-round": "#3a7d58",
+      "--color-focus-round": "#c84840",
+      "--color-background": "#f5f0e8",
+      "--color-background-light": "#ede6db",
+      "--color-background-lightest": "#c4bdb5",
+      "--color-foreground": "#2f384b",
+      "--color-foreground-darker": "#55647a",
+      "--color-foreground-darkest": "#8899b0",
+      "--color-accent": "#3a7d58"
+    }
+  },
+  {
+    "id": "pomotroid",
+    "name": "Pomotroid",
+    "colors": {
+      "--color-long-round": "#0bbddb",
+      "--color-short-round": "#05ec8c",
+      "--color-focus-round": "#ff4e4d",
+      "--color-background": "#2f384b",
+      "--color-background-light": "#3d4457",
+      "--color-background-lightest": "#9ca5b5",
+      "--color-foreground": "#f6f2eb",
+      "--color-foreground-darker": "#c0c9da",
+      "--color-foreground-darkest": "#dbe1ef",
+      "--color-accent": "#05ec8c"
+    }
+  },
+  {
+    "id": "popping-and-locking",
+    "name": "Popping and Locking",
+    "colors": {
+      "--color-long-round": "#458588",
+      "--color-short-round": "#7ec16e",
+      "--color-focus-round": "#f42c3e",
+      "--color-background": "#21222d",
+      "--color-background-light": "#313242",
+      "--color-background-lightest": "#7f7d7a",
+      "--color-foreground": "#f2e5bc",
+      "--color-foreground-darker": "#f9f5d7",
+      "--color-foreground-darkest": "#ebdbb2",
+      "--color-accent": "#d79921"
+    }
+  },
+  {
+    "id": "rose-pine-dawn",
+    "name": "Rosé Pine Dawn",
+    "colors": {
+      "--color-focus-round": "#b4637a",
+      "--color-short-round": "#56949f",
+      "--color-long-round": "#907aa9",
+      "--color-background": "#faf4ed",
+      "--color-background-light": "#fffaf3",
+      "--color-background-lightest": "#f2e9e1",
+      "--color-foreground": "#575279",
+      "--color-foreground-darker": "#797593",
+      "--color-foreground-darkest": "#9893a5",
+      "--color-accent": "#ea9d34"
+    }
+  },
+  {
+    "id": "rose-pine-moon",
+    "name": "Rosé Pine Moon",
+    "colors": {
+      "--color-long-round": "#c4a7e7",
+      "--color-short-round": "#9ccfd8",
+      "--color-focus-round": "#eb6f92",
+      "--color-background": "#232136",
+      "--color-background-light": "#2a273f",
+      "--color-background-lightest": "#56526e",
+      "--color-foreground": "#e0def4",
+      "--color-foreground-darker": "#908caa",
+      "--color-foreground-darkest": "#6e6a86",
+      "--color-accent": "#c4a7e7"
+    }
+  },
+  {
+    "id": "rose-pine",
+    "name": "Rosé Pine",
+    "colors": {
+      "--color-long-round": "#c4a7e7",
+      "--color-short-round": "#9ccfd8",
+      "--color-focus-round": "#eb6f92",
+      "--color-background": "#191724",
+      "--color-background-light": "#1f1d2e",
+      "--color-background-lightest": "#524f67",
+      "--color-foreground": "#e0def4",
+      "--color-foreground-darker": "#908caa",
+      "--color-foreground-darkest": "#6e6a86",
+      "--color-accent": "#c4a7e7"
+    }
+  },
+  {
+    "id": "solarized-dark",
+    "name": "Solarized Dark",
+    "colors": {
+      "--color-long-round": "#2aa198",
+      "--color-short-round": "#859900",
+      "--color-focus-round": "#dc322f",
+      "--color-background": "#002b36",
+      "--color-background-light": "#073642",
+      "--color-background-lightest": "#586e75",
+      "--color-foreground": "#839496",
+      "--color-foreground-darker": "#657b83",
+      "--color-foreground-darkest": "#586e75",
+      "--color-accent": "#268bd2"
+    }
+  },
+  {
+    "id": "solarized-light",
+    "name": "Solarized Light",
+    "colors": {
+      "--color-long-round": "#2AA198",
+      "--color-short-round": "#859900",
+      "--color-focus-round": "#B58900",
+      "--color-background": "#FDF6E3",
+      "--color-background-light": "#EEE8D5",
+      "--color-background-lightest": "#657b83",
+      "--color-foreground": "#586e75",
+      "--color-foreground-darker": "#93A1A1",
+      "--color-foreground-darkest": "#AC9D57",
+      "--color-accent": "#268BD2"
+    }
+  },
+  {
+    "id": "spandex",
+    "name": "Spandex",
+    "colors": {
+      "--color-long-round": "#00dcff",
+      "--color-short-round": "#09ffbb",
+      "--color-focus-round": "#c92fdc",
+      "--color-background": "#181a1b",
+      "--color-background-light": "#212425",
+      "--color-background-lightest": "#5e696d",
+      "--color-foreground": "#e0e3e6",
+      "--color-foreground-darker": "#b9bdc1",
+      "--color-foreground-darkest": "#9da2a7",
+      "--color-accent": "#f0ff09"
+    }
+  },
+  {
+    "id": "synthwave",
+    "name": "Synthwave",
+    "colors": {
+      "--color-long-round": "#36F9F6",
+      "--color-short-round": "#72F1B8",
+      "--color-focus-round": "#FF7EDB",
+      "--color-background": "#262335",
+      "--color-background-light": "#372d4b",
+      "--color-background-lightest": "#495495",
+      "--color-foreground": "#e0e3e6",
+      "--color-foreground-darker": "#b893ce",
+      "--color-foreground-darkest": "#DD5500",
+      "--color-accent": "#CD9731"
+    }
+  },
+  {
+    "id": "tokyo-night",
+    "name": "Tokyo Night Storm",
+    "colors": {
+      "--color-long-round": "#7AA2F7",
+      "--color-short-round": "#73DACA",
+      "--color-focus-round": "#F7768E",
+      "--color-background": "#24283b",
+      "--color-background-light": "#1b1e2e",
+      "--color-background-lightest": "#9AA5CE",
+      "--color-foreground": "#c0caf5",
+      "--color-foreground-darker": "#9AA5CE",
+      "--color-foreground-darkest": "#89DDFF",
+      "--color-accent": "#9D7CD8"
+    }
+  }
+]

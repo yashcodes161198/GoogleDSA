@@ -95,7 +95,7 @@ export function AuthForm({ mode, initialError = null }: { mode: "login" | "signu
             <span className="w-full border-t border-zinc-200 dark:border-zinc-800" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-white px-2 text-zinc-500 dark:bg-zinc-950">
+            <span className="bg-surface px-2 text-zinc-500">
               or
             </span>
           </div>

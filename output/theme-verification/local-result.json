@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "authenticated": false,
+  "palettes": 38,
+  "checks": [
+    "original defaults",
+    "forced modes",
+    "independent light/dark choices",
+    "all palettes",
+    "button contrast",
+    "reload",
+    "system changes",
+    "mobile overflow",
+    "keyboard",
+    "navigation",
+    "failed save rollback",
+    "reset"
+  ]
+}

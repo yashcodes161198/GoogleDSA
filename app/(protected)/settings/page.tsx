@@ -1,6 +1,7 @@
 import { UserRound } from "lucide-react";
 import { PageHeading } from "@/components/PageHeading";
 import { ScoreHistory } from "@/components/ScoreHistory";
+import { ThemeSettings } from "@/components/ThemeSettings";
 import { getCurrentUser, getScoreActivity } from "@/lib/data";
 import { leaderboardPoints } from "@/lib/leaderboard/points";
 import styles from "@/components/ScoreHistory.module.css";
@@ -18,14 +19,14 @@ export default async function SettingsPage() {
   const [user, activity] = await Promise.all([getCurrentUser(), getScoreActivity(now)]);
   return (
     <div>
-      <PageHeading title="Settings & activity" description="Your account and the points you’ve earned over the past month." />
+      <PageHeading title="Settings & activity" description="Make this workspace yours and see the points you’ve earned over the past month." />
+      <ThemeSettings />
       <div className={styles.layout}>
         <aside className={styles.sidebar} aria-label="Account settings and scoring rules">
           <details className={`surface ${styles.account}`} open>
             <summary><UserRound size={17} aria-hidden="true" />Your account</summary>
             <dl>
               <div><dt>Signed in as</dt><dd>{user?.email}</dd></div>
-              <div><dt>Appearance</dt><dd>Follows your device theme</dd></div>
               <div><dt>Activity time zone</dt><dd>India Standard Time (UTC+5:30)</dd></div>
             </dl>
           </details>

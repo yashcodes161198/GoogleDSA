@@ -7,7 +7,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants = {
-  default: "bg-accent text-white hover:bg-[var(--accent-hover)]",
+  default: "bg-accent text-[var(--accent-contrast)] hover:bg-[var(--accent-hover)]",
   secondary:
     "bg-zinc-100 text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700",
   outline:

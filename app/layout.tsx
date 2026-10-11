@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { getThemeSettings } from "@/lib/themes/server";
+import { getUser } from "@/lib/auth";
+import { themeVariables } from "@/lib/themes/catalog";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,17 +27,22 @@ export const viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [settings, user] = await Promise.all([getThemeSettings(), getUser()]);
   return (
     <html
       lang="en"
+      data-theme-mode={settings.mode}
+      style={themeVariables(settings)}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ThemeProvider key={user?.id ?? "guest"} initialSettings={settings}>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

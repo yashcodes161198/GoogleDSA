@@ -60,7 +60,7 @@ export function InterviewTimer({
           "border-yellow-300 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950/30",
         !warn &&
           !expired &&
-          "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950",
+          "border-zinc-200 bg-surface dark:border-zinc-800",
       )}
     >
       <p className="text-sm text-zinc-500">Time remaining</p>

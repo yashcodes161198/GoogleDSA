@@ -9,7 +9,7 @@ if (!runtime) throw new Error("Set CODEX_BROWSER_RUNTIME to the bundled node_mod
 const require = createRequire(path.join(runtime, "package.json"));
 const { chromium } = require("playwright");
 const base = process.env.ACTIVITY_PREVIEW_URL || "http://localhost:3100";
-const output = path.resolve("output/settings-activity-verification");
+const output = path.resolve(process.env.ACTIVITY_VERIFICATION_OUTPUT || "output/settings-activity-verification");
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, colorScheme: "light" });
@@ -54,13 +54,13 @@ try {
   await page.getByRole("heading", { name: "Score history", exact: true }).waitFor();
   await page.getByText(title, { exact: true }).first().waitFor();
   const total = hard ? 14 : 7;
-  const totals = page.getByRole("definition");
-  assert.match(await totals.nth(3).innerText(), new RegExp(`^${total}`));
+  const totals = page.getByRole("region", { name: "Score history" }).getByRole("definition");
+  assert.match(await totals.first().innerText(), new RegExp(`^${total}`));
   assert.equal(await page.locator("ol li").count(), 3);
   const firstRevision = page.getByRole("button", { name: "First revision", exact: true });
   await firstRevision.click();
   assert.equal(await page.locator("ol li").count(), 1);
-  assert.match(await totals.nth(3).innerText(), new RegExp(`^${hard ? 4 : 2}`));
+  assert.match(await totals.first().innerText(), new RegExp(`^${hard ? 4 : 2}`));
   await page.getByRole("button", { name: "Second+ revision", exact: true }).click();
   assert.equal(await page.locator("ol li").count(), 1);
   await page.getByText("Revision 2", { exact: false }).waitFor();
@@ -95,6 +95,11 @@ try {
     checks: ["empty state", "real solve and two revisions", "stored awards", "action filters", "date filter", "clear filters", "reload", "dark theme", "mobile navigation", "no mobile overflow", "no browser errors"] };
   await writeFile(path.join(output, "result.json"), JSON.stringify(result, null, 2));
   console.log(JSON.stringify(result, null, 2));
+} catch (error) {
+  await page.screenshot({ path: path.join(output, "failure.png"), fullPage: true });
+  console.error("Activity verification failed", { url: page.url(), failures,
+    headings: await page.getByRole("heading").allTextContents() });
+  throw error;
 } finally {
   await browser.close();
 }

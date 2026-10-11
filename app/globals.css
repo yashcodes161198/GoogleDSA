@@ -1,17 +1,50 @@
 @import "tailwindcss";
+@custom-variant dark {
+  &:where([data-theme-mode="dark"], [data-theme-mode="dark"] *) { @slot; }
+  @media (prefers-color-scheme: dark) {
+    &:where([data-theme-mode="system"], [data-theme-mode="system"] *) { @slot; }
+  }
+}
 :root {
-  color-scheme: light dark;
-  --background: #f5f7fa;
-  --foreground: #202936;
-  --surface: #fff;
-  --surface-subtle: #edf1f6;
-  --line: #dce2e9;
-  --muted: #586577;
-  --accent: #3659b5;
-  --accent-hover: #294796;
-  --accent-soft: #e9effc;
-  --accent-text: #304fa0;
-  --success: #26704d;
+  --default-blue-950: oklch(28.2% 0.091 267.935);
+  --default-blue-900: oklch(37.9% 0.146 265.522);
+  --default-blue-300: oklch(80.9% 0.105 251.813);
+  --default-blue-200: oklch(88.2% 0.059 254.128);
+  --default-blue-100: oklch(93.2% 0.032 255.585);
+  --default-blue-50: oklch(97% 0.014 254.604);
+  color-scheme: light;
+  --background: var(--light-background, #f5f7fa);
+  --foreground: var(--light-foreground, #202936);
+  --surface: var(--light-surface, #fff);
+  --surface-subtle: var(--light-surface-subtle, #edf1f6);
+  --line: var(--light-line, #dce2e9);
+  --muted: var(--light-muted, #586577);
+  --accent: var(--light-accent, #3659b5);
+  --accent-hover: var(--light-accent-hover, #294796);
+  --accent-soft: var(--light-accent-soft, #e9effc);
+  --accent-text: var(--light-accent-text, #304fa0);
+  --success: var(--light-success, #26704d);
+  --color-blue-50: var(--light-color-blue-50, var(--default-blue-50));
+  --color-blue-100: var(--light-color-blue-100, var(--default-blue-100));
+  --color-blue-200: var(--light-color-blue-200, var(--default-blue-200));
+  --color-blue-300: var(--light-color-blue-300, var(--default-blue-300));
+  --color-blue-900: var(--light-color-blue-900, var(--default-blue-900));
+  --color-blue-950: var(--light-color-blue-950, var(--default-blue-950));
+  --accent-contrast: var(--light-accent-contrast, #fff);
+  --color-destructive: var(--light-color-destructive, #c13737);
+  --color-blue-600: var(--light-color-blue-600, #3659b5);
+  --color-blue-700: var(--light-color-blue-700, #294796);
+  --color-zinc-50: var(--light-color-zinc-50, #f5f7fa);
+  --color-zinc-100: var(--light-color-zinc-100, #edf1f6);
+  --color-zinc-200: var(--light-color-zinc-200, #dce2e9);
+  --color-zinc-300: var(--light-color-zinc-300, #bac4d0);
+  --color-zinc-400: var(--light-color-zinc-400, #7a8899);
+  --color-zinc-500: var(--light-color-zinc-500, #586577);
+  --color-zinc-600: var(--light-color-zinc-600, #475466);
+  --color-zinc-700: var(--light-color-zinc-700, #384453);
+  --color-zinc-800: var(--light-color-zinc-800, #303946);
+  --color-zinc-900: var(--light-color-zinc-900, #242c37);
+  --color-zinc-950: var(--light-color-zinc-950, #1c222b);
 }
 @theme inline {
   --color-background: var(--background);
@@ -40,23 +73,76 @@
   --color-zinc-900: #242c37;
   --color-zinc-950: #1c222b;
 }
+:root[data-theme-mode="dark"] {
+    color-scheme: dark;
+    --background: var(--dark-background, #15191f);
+    --foreground: var(--dark-foreground, #eef2f6);
+    --surface: var(--dark-surface, #1c222b);
+    --surface-subtle: var(--dark-surface-subtle, #252d39);
+    --line: var(--dark-line, #364151);
+    --muted: var(--dark-muted, #a5b1c2);
+    --accent: var(--dark-accent, #466cc9);
+    --accent-hover: var(--dark-accent-hover, #5279d7);
+    --accent-soft: var(--dark-accent-soft, #273650);
+    --accent-text: var(--dark-accent-text, #aac3ff);
+    --success: var(--dark-success, #8bd4ab);
+    --color-zinc-500: var(--dark-color-zinc-500, #a5b1c2);
+    --color-blue-600: var(--dark-color-blue-600, #8fb2ff);
+    --color-blue-700: var(--dark-color-blue-700, #aac3ff);
+    --color-destructive: var(--dark-color-destructive, #ffaaaa);
+    --color-blue-50: var(--dark-color-blue-50, var(--default-blue-50));
+    --color-blue-100: var(--dark-color-blue-100, var(--default-blue-100));
+    --color-blue-200: var(--dark-color-blue-200, var(--default-blue-200));
+    --color-blue-300: var(--dark-color-blue-300, var(--default-blue-300));
+    --color-blue-900: var(--dark-color-blue-900, var(--default-blue-900));
+    --color-blue-950: var(--dark-color-blue-950, var(--default-blue-950));
+    --accent-contrast: var(--dark-accent-contrast, #fff);
+    --color-zinc-50: var(--dark-color-zinc-50, #f5f7fa);
+    --color-zinc-100: var(--dark-color-zinc-100, #edf1f6);
+    --color-zinc-200: var(--dark-color-zinc-200, #dce2e9);
+    --color-zinc-300: var(--dark-color-zinc-300, #bac4d0);
+    --color-zinc-400: var(--dark-color-zinc-400, #7a8899);
+    --color-zinc-600: var(--dark-color-zinc-600, #475466);
+    --color-zinc-700: var(--dark-color-zinc-700, #384453);
+    --color-zinc-800: var(--dark-color-zinc-800, #303946);
+    --color-zinc-900: var(--dark-color-zinc-900, #242c37);
+    --color-zinc-950: var(--dark-color-zinc-950, #1c222b);
+}
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #15191f;
-    --foreground: #eef2f6;
-    --surface: #1c222b;
-    --surface-subtle: #252d39;
-    --line: #364151;
-    --muted: #a5b1c2;
-    --accent: #466cc9;
-    --accent-hover: #5279d7;
-    --accent-soft: #273650;
-    --accent-text: #aac3ff;
-    --success: #8bd4ab;
-    --color-zinc-500: #a5b1c2;
-    --color-blue-600: #8fb2ff;
-    --color-blue-700: #aac3ff;
-    --color-destructive: #ffaaaa;
+  :root[data-theme-mode="system"] {
+    color-scheme: dark;
+    --background: var(--dark-background, #15191f);
+    --foreground: var(--dark-foreground, #eef2f6);
+    --surface: var(--dark-surface, #1c222b);
+    --surface-subtle: var(--dark-surface-subtle, #252d39);
+    --line: var(--dark-line, #364151);
+    --muted: var(--dark-muted, #a5b1c2);
+    --accent: var(--dark-accent, #466cc9);
+    --accent-hover: var(--dark-accent-hover, #5279d7);
+    --accent-soft: var(--dark-accent-soft, #273650);
+    --accent-text: var(--dark-accent-text, #aac3ff);
+    --success: var(--dark-success, #8bd4ab);
+    --color-zinc-500: var(--dark-color-zinc-500, #a5b1c2);
+    --color-blue-600: var(--dark-color-blue-600, #8fb2ff);
+    --color-blue-700: var(--dark-color-blue-700, #aac3ff);
+    --color-destructive: var(--dark-color-destructive, #ffaaaa);
+    --color-blue-50: var(--dark-color-blue-50, var(--default-blue-50));
+    --color-blue-100: var(--dark-color-blue-100, var(--default-blue-100));
+    --color-blue-200: var(--dark-color-blue-200, var(--default-blue-200));
+    --color-blue-300: var(--dark-color-blue-300, var(--default-blue-300));
+    --color-blue-900: var(--dark-color-blue-900, var(--default-blue-900));
+    --color-blue-950: var(--dark-color-blue-950, var(--default-blue-950));
+    --accent-contrast: var(--dark-accent-contrast, #fff);
+    --color-zinc-50: var(--dark-color-zinc-50, #f5f7fa);
+    --color-zinc-100: var(--dark-color-zinc-100, #edf1f6);
+    --color-zinc-200: var(--dark-color-zinc-200, #dce2e9);
+    --color-zinc-300: var(--dark-color-zinc-300, #bac4d0);
+    --color-zinc-400: var(--dark-color-zinc-400, #7a8899);
+    --color-zinc-600: var(--dark-color-zinc-600, #475466);
+    --color-zinc-700: var(--dark-color-zinc-700, #384453);
+    --color-zinc-800: var(--dark-color-zinc-800, #303946);
+    --color-zinc-900: var(--dark-color-zinc-900, #242c37);
+    --color-zinc-950: var(--dark-color-zinc-950, #1c222b);
   }
 }
 @layer base {
@@ -235,7 +321,7 @@
     padding: 9px 16px;
     border-radius: 7px;
     background: var(--accent);
-    color: white;
+    color: var(--accent-contrast);
     font-size: 14px;
     font-weight: 550;
   }

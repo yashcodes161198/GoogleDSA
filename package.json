@@ -20,6 +20,8 @@
     "test:session-library": "tsx scripts/test-session-library.ts",
     "test:leaderboard": "tsx scripts/test-leaderboard-points.ts",
     "test:activity": "tsx scripts/test-score-activity.ts",
+    "test:themes": "tsx scripts/test-themes.ts",
+    "test:themes:http": "node scripts/test-themes-http-runner.mjs",
     "test:new-problem": "tsx scripts/test-new-problem-input.ts",
     "test:admin": "tsx scripts/test-admin-auth.ts",
     "test:auth": "tsx scripts/test-auth.ts",

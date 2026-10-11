@@ -46,7 +46,7 @@ function FieldError({ message }: { message?: string }) {
 }
 
 const selectClassName =
-  "h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950";
+  "h-10 w-full rounded-lg border border-zinc-300 bg-surface px-3 text-sm dark:border-zinc-700";
 
 export function AddQuestionForm() {
   const [state, formAction] = useActionState<AddQuestionActionState, FormData>(

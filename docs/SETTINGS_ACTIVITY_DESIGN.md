@@ -11,7 +11,9 @@ Keep the existing study workspace palette: canvas `#f5f7fa`, white surface,
 ink `#202936`, muted `#586577`, divider `#dce2e9`, blue `#3659b5`.
 Use the existing Geist font, 32px page title, 17px section titles, 14px body,
 12px metadata, and tabular numerals for scores and timestamps. Follow the device
-theme using existing semantic variables.
+theme by default using existing semantic variables. Appearance settings above
+the ledger offer System, Light, and Dark modes, with independent light and dark
+palettes. The original Google DSA palettes remain the defaults.
 
 The distinctive element is a selectable strip of 30 daily score bars, each a
 real daily total. It doubles as a date filter. The rest is a quiet ledger, with
@@ -23,9 +25,12 @@ words distinguish the action. Avoid separate metric cards and decorative charts.
 Settings & activity
 Your account and the points you've earned.
 
+Appearance
+  System | Light | Dark     Light palette | Dark palette
+
 Account                    Score history                     Last 30 days
   email                    points / scoring actions / active days
-  Device theme             [30 daily bars; select a day to inspect]
+                           [30 daily bars; select a day to inspect]
                            All | Solved | First revision | Second+ revision
 How points work            Sunday, 11 October                 +14 pts
   Medium / Hard              9:42 pm   Solved · question         +8

@@ -38,7 +38,7 @@ export function Checkbox({
           "pointer-events-none flex h-6 w-6 items-center justify-center rounded-md border-2 transition-colors",
           checked
             ? "border-emerald-600 bg-emerald-600"
-            : "border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-950",
+            : "border-zinc-300 bg-surface dark:border-zinc-600",
           "peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 peer-focus-visible:ring-offset-2 dark:peer-focus-visible:ring-offset-zinc-950",
         )}
       >

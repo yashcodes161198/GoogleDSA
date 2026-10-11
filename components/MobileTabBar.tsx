@@ -10,7 +10,7 @@ export function MobileTabBar() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-zinc-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden dark:border-zinc-800 dark:bg-zinc-950"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-zinc-200 bg-surface pb-[env(safe-area-inset-bottom)] md:hidden dark:border-zinc-800"
       aria-label="Main navigation"
     >
       <div className="mx-auto grid max-w-6xl grid-cols-5">

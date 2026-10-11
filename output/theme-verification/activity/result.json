@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "question": "Longest Palindromic Substring",
+  "expectedPoints": 7,
+  "actions": 3,
+  "checks": [
+    "empty state",
+    "real solve and two revisions",
+    "stored awards",
+    "action filters",
+    "date filter",
+    "clear filters",
+    "reload",
+    "dark theme",
+    "mobile navigation",
+    "no mobile overflow",
+    "no browser errors"
+  ]
+}
