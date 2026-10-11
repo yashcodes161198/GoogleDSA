@@ -8,6 +8,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
 import { isPracticeToday } from "@/lib/practice-day";
+import { activityBounds, type ScoreActivity } from "@/lib/activity";
 import { enrichProblemsFromCsv, enrichProblemFromCsv } from "@/lib/problems-enrich";
 import {
   selectRevisionQueue,
@@ -102,6 +103,47 @@ export async function getWeeklyLeaderboard(): Promise<{
     rank: Number(entry.rank),
   }));
   return { entries, unavailable: false };
+}
+
+export async function getScoreActivity(now = new Date()): Promise<{
+  events: ScoreActivity[];
+  error: string | null;
+}> {
+  const user = await getCurrentUser();
+  if (!user) return { events: [], error: "Sign in to view your score history." };
+  if (isLocalMode()) {
+    return { events: getMemoryStore().getScoreActivity(user.id, now), error: null };
+  }
+
+  try {
+    const supabase = await createClient();
+    const { start, end } = activityBounds(now);
+    const events: ScoreActivity[] = [];
+    const pageSize = 1000;
+    for (let offset = 0; ; offset += pageSize) {
+      const { data, error } = await supabase
+        .from("leaderboard_events")
+        .select("id, problem_id, difficulty, event_type, revision_number, points, created_at, problem:problems(title)")
+        .eq("user_id", user.id)
+        .gte("created_at", start.toISOString())
+        .lt("created_at", end.toISOString())
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(offset, offset + pageSize - 1);
+      if (error) throw error;
+      const rows = (data ?? []) as unknown as (Omit<ScoreActivity, "problem_title"> & {
+        problem: { title: string } | null;
+      })[];
+      events.push(...rows.map(({ problem, ...event }) => ({
+        ...event, problem_title: problem?.title ?? "Unavailable question",
+      })));
+      if (rows.length < pageSize) break;
+    }
+    return { events, error: null };
+  } catch (error) {
+    console.error("Failed to load score activity", error);
+    return { events: [], error: "Your score history could not be loaded. Try again in a moment." };
+  }
 }
 
 export async function getProblemsWithProgress(): Promise<ProblemWithProgress[]> {

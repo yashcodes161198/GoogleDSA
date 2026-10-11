@@ -9,6 +9,7 @@ import {
 import { loadProblemsFromCsv } from "@/lib/problems-csv";
 import { initialSrsOnSolve } from "@/lib/srs/sm2";
 import { isPracticeToday } from "@/lib/practice-day";
+import { activityBounds, type ScoreActivity } from "@/lib/activity";
 import {
   selectRevisionQueue,
   type RevisionQueueOptions,
@@ -26,8 +27,10 @@ import type {
 } from "@/lib/types";
 
 type LeaderboardEvent = {
+  id: string;
   user_id: string;
   problem_id: string;
+  difficulty: Difficulty;
   event_type: LeaderboardEventType;
   points: number;
   revision_number: number | null;
@@ -378,6 +381,24 @@ class MemoryStore {
     );
   }
 
+  getScoreActivity(userId: string, now = new Date()): ScoreActivity[] {
+    this.ensureSeeded();
+    const { start, end } = activityBounds(now);
+    const problems = new Map(this.problems.map((problem) => [problem.id, problem]));
+    return this.leaderboardEvents
+      .filter((event) => event.user_id === userId &&
+        new Date(event.created_at) >= start && new Date(event.created_at) < end)
+      .map((event) => ({
+        id: event.id ?? `${event.problem_id}:${event.event_type}:${event.revision_number ?? "solve"}`,
+        problem_id: event.problem_id,
+        difficulty: event.difficulty ?? problems.get(event.problem_id)?.difficulty ?? "MEDIUM",
+        event_type: event.event_type, revision_number: event.revision_number,
+        points: event.points, created_at: event.created_at,
+        problem_title: problems.get(event.problem_id)?.title ?? "Unavailable question",
+      }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id));
+  }
+
   private leaderboardName(userId: string): string {
     if (userId === LOCAL_ADMIN.id) {
       return LOCAL_ADMIN.email.split("@")[0] || "Player";
@@ -414,8 +435,10 @@ class MemoryStore {
     if (duplicate) return 0;
 
     this.leaderboardEvents.push({
+      id: randomUUID(),
       user_id: userId,
       problem_id: problemId,
+      difficulty: problem.difficulty,
       event_type: eventType,
       points,
       revision_number: revisionNumber,
@@ -463,6 +486,9 @@ const globalForMemory = globalThis as unknown as {
 export function getMemoryStore(): MemoryStore {
   if (!globalForMemory.__googleDsaMemoryStore) {
     globalForMemory.__googleDsaMemoryStore = new MemoryStore();
+  } else if (process.env.NODE_ENV === "development") {
+    // Fast Refresh retains the data instance; use the current module's methods.
+    Object.setPrototypeOf(globalForMemory.__googleDsaMemoryStore, MemoryStore.prototype);
   }
   return globalForMemory.__googleDsaMemoryStore;
 }

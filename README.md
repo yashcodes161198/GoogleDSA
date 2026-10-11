@@ -11,6 +11,7 @@ Track ~770 Google interview LeetCode questions, run 2-hour mock interviews with 
 - **Mock interview** — 5 problems (1 Easy, 3 Medium, 1 Hard), 2-hour timer, weighted by Google frequency, optimistic "Mark as done"
 - **Revise** — serves up to 10 solved problems with the lowest per-user revision counts and increments each count atomically when revised
 - **Auth** — Google OAuth + email/password via Supabase
+- **Settings & activity** — account-menu access to the last 30 days of leaderboard awards, grouped by IST date with timestamps, points, question titles, and solve/first revision/second+ revision filters. Uses the existing `013_leaderboard.sql` event records; older unrecorded actions are not reconstructed.
 - **Responsive UI** — skeleton loaders on every route, optimistic status/completion toggles (no waiting on the server round trip to see the click register)
 
 ## Tech stack

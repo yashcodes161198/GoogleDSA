@@ -117,6 +117,7 @@ export async function updateProblemStatus(problemId: string, status: ProblemStat
     }
   }
 
+  revalidatePath("/settings");
   revalidatePath("/dashboard");
   if (refreshRoutes) {
     revalidatePath("/problems");
@@ -271,6 +272,7 @@ export async function markProblemRevised(problemId: string, refreshRoutes = true
         getLocalUserId(),
         problemId
       );
+      revalidatePath("/settings");
       revalidatePath("/dashboard");
       if (refreshRoutes) {
         revalidatePath("/problems");
@@ -303,6 +305,7 @@ export async function markProblemRevised(problemId: string, refreshRoutes = true
 
     await awardLeaderboardRevision(problemId, Number(revisionCount));
 
+    revalidatePath("/settings");
     revalidatePath("/dashboard");
     if (refreshRoutes) {
       revalidatePath("/problems");
@@ -577,6 +580,7 @@ export async function updateInterviewProblem(
 
   revalidatePath(`/interview/${sessionId}`);
   if (completed) {
+    revalidatePath("/settings");
     revalidatePath("/dashboard");
     revalidatePath("/problems");
     revalidatePath("/revise");
@@ -624,6 +628,7 @@ export async function endInterviewSession(
 
   revalidatePath("/interview");
   revalidatePath(`/interview/${sessionId}`);
+  revalidatePath("/settings");
   revalidatePath("/dashboard");
   revalidatePath("/problems");
   revalidatePath("/revise");

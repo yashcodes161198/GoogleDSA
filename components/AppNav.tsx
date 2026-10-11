@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { navLinks } from "@/lib/nav-links";
 import { Button } from "@/components/ui/button";
-import { BookOpen, LogOut } from "lucide-react";
+import { BookOpen, LogOut, Settings } from "lucide-react";
 
 export function AppNav({
   email,
@@ -45,6 +45,11 @@ export function AppNav({
               {localMode ? "Local preview" : "Your workspace"}
             </p>
             <p className="mt-1 break-all text-xs text-muted">{email}</p>
+            <Link href="/settings" className="nav-link mt-3"
+              aria-current={pathname.startsWith("/settings") ? "page" : undefined}
+              onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")}>
+              <Settings size={16} aria-hidden="true" />Settings &amp; activity
+            </Link>
             <Button
               variant="ghost"
               size="sm"
@@ -73,6 +78,10 @@ export function AppNav({
         ))}
       </nav>
       <div className="hidden md:mt-auto md:block">
+        <Link href="/settings" className="nav-link mb-4"
+          aria-current={pathname.startsWith("/settings") ? "page" : undefined}>
+          <Settings size={18} strokeWidth={1.7} aria-hidden="true" />Settings &amp; activity
+        </Link>
         <div className="sidebar-account">
           <span className="avatar" aria-hidden="true">
             {email?.[0]?.toUpperCase() ?? "G"}
