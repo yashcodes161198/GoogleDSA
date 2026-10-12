@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { compareQuestionDifficulty } from "@/components/question-order";
+import { nextProblemSort, sortProblems, type ProblemSort, type ProblemSortColumn } from "@/lib/problems/sorting";
 import { useProblemFilters } from "@/components/useProblemFilters";
 import { useSessionLibrary, LibraryRefreshStatus } from "@/components/SessionLibraryProvider";
 import { FavoriteButton } from "@/components/FavoriteButton";
@@ -19,12 +19,37 @@ import {
   PROBLEM_PROGRESS_FILTERS,
 } from "@/lib/revision/problemProgressStatus";
 import { DEFAULT_PROBLEM_FILTERS, type ProblemFilters } from "@/lib/problems/filters";
-import { ChevronDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown } from "lucide-react";
 import type {
   Difficulty,
   ProblemStatus,
   ProblemWithProgress,
 } from "@/lib/types";
+
+function SortableHeader({ column, label, sort, onSort }: {
+  column: ProblemSortColumn;
+  label: string;
+  sort: ProblemSort;
+  onSort: (column: ProblemSortColumn) => void;
+}) {
+  const direction = sort?.column === column ? sort.direction : "none";
+  const nextDirection = direction === "none" ? "ascending" : direction === "ascending" ? "descending" : "original";
+  const Icon = direction === "ascending" ? ArrowUp : direction === "descending" ? ArrowDown : ArrowUpDown;
+  return (
+    <th scope="col" aria-sort={direction}>
+      <button
+        type="button"
+        className="inline-flex cursor-pointer items-center gap-1 rounded-sm text-inherit hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+        onClick={() => onSort(column)}
+        aria-label={`${label}: ${nextDirection === "original" ? "restore original order" : `sort ${nextDirection}`}`}
+        title={nextDirection === "original" ? "Restore original order" : `Sort ${nextDirection}`}
+      >
+        {label}
+        <Icon size={12} className="shrink-0" aria-hidden="true" />
+      </button>
+    </th>
+  );
+}
 
 function ProblemActions({
   problem,
@@ -72,6 +97,7 @@ export function ProblemTable() {
   const { problems, pendingIds, store } = useSessionLibrary();
   const pending = pendingIds.size > 0;
   const [showFilters, setShowFilters] = useState(false);
+  const [sort, setSort] = useState<ProblemSort>(null);
   const topics = useMemo(() => {
     const set = new Set<string>();
     problems.forEach((p) => p.topics.forEach((t) => set.add(t)));
@@ -99,7 +125,7 @@ export function ProblemTable() {
         return false;
       }
       return true;
-    }).sort(compareQuestionDifficulty);
+    });
   }, [
     problems,
     search,
@@ -110,13 +136,19 @@ export function ProblemTable() {
     favoriteFilter,
   ]);
 
+  const sorted = useMemo(() => sortProblems(filtered, sort), [filtered, sort]);
+  const changeSort = (column: ProblemSortColumn) => {
+    setSort((current) => nextProblemSort(current, column));
+    updateFilters({ page: 0 });
+  };
+
   const pageCount =
     pageSize === "all" ? 1 : Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pageCount - 1);
   const pageRows =
     pageSize === "all"
-      ? filtered
-      : filtered.slice(safePage * pageSize, safePage * pageSize + pageSize);
+      ? sorted
+      : sorted.slice(safePage * pageSize, safePage * pageSize + pageSize);
 
   const toggleFavorite = (id: string) => {
     const problem = problems.find(p => p.id === id);
@@ -337,16 +369,18 @@ export function ProblemTable() {
               </colgroup>
               <caption className="sr-only">
                 Problem catalog with difficulty, frequency, solve time and
-                progress actions
+                progress actions. Sortable headers cycle through ascending,
+                descending, and original order. Progress uses the oldest revision
+                first within each revision count.
               </caption>
               <thead>
                 <tr>
-                  <th scope="col">Problem</th>
+                  <SortableHeader column="title" label="Problem" sort={sort} onSort={changeSort} />
                   <th scope="col">Open</th>
-                  <th scope="col">Difficulty</th>
-                  <th scope="col">Frequency</th>
+                  <SortableHeader column="difficulty" label="Difficulty" sort={sort} onSort={changeSort} />
+                  <SortableHeader column="frequency" label="Frequency" sort={sort} onSort={changeSort} />
                   <th scope="col">Best time</th>
-                  <th scope="col">Your progress</th>
+                  <SortableHeader column="progress" label="Your progress" sort={sort} onSort={changeSort} />
                   <th scope="col">Action</th>
                 </tr>
               </thead>

@@ -17,6 +17,7 @@
     "test:revision": "tsx scripts/test-revision-queue.ts",
     "test:dashboard": "tsx scripts/test-dashboard-stats.ts",
     "test:problem-filters": "tsx scripts/test-problem-filters.ts",
+    "test:problem-sorting": "tsx scripts/test-problem-sorting.ts",
     "test:session-library": "tsx scripts/test-session-library.ts",
     "test:leaderboard": "tsx scripts/test-leaderboard-points.ts && tsx scripts/test-leaderboard-history.ts",
     "test:leaderboard:http": "tsx scripts/verify-leaderboard-history.ts",
