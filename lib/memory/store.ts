@@ -387,12 +387,18 @@ class MemoryStore {
     return [...this.leaderboardComments];
   }
 
-  addLeaderboardComment(userId: string, body: string, parentId: string | null): void {
+  addLeaderboardComment(
+    userId: string,
+    body: string,
+    parentId: string | null,
+    media: Pick<LeaderboardComment, "media_kind" | "media_url">,
+  ): void {
     this.leaderboardComments.push({
       id: randomUUID(),
       user_id: userId,
       display_name: this.leaderboardName(userId),
       body,
+      ...media,
       parent_id: parentId,
       created_at: new Date().toISOString(),
     });

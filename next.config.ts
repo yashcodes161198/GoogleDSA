@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: { bodySizeLimit: "6mb" },
+  },
   devIndicators:
     process.env.GOOGLEDSA_UI_PREVIEW === "true" ? false : undefined,
   // Keep the isolated UI preview from sharing the normal dev server's files.

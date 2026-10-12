@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
-import { MessageCircle, Send } from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { ImagePlus, MessageCircle, Send, X } from "lucide-react";
 import { postLeaderboardComment } from "@/app/leaderboard-comment-actions";
 import type { LeaderboardComment } from "@/lib/leaderboard/comments";
 import styles from "./LeaderboardDiscussion.module.css";
@@ -27,23 +27,44 @@ function CommentComposer({
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const previewUrlRef = useRef<string | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    };
+  }, []);
+
+  function chooseFile(file: File | null) {
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    const url = file ? URL.createObjectURL(file) : null;
+    previewUrlRef.current = url;
+    setPreviewUrl(url);
+    setSelectedFile(file);
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
-    const body = new FormData(form).get("body");
-    if (typeof body !== "string") return;
+    if (selectedFile && selectedFile.size > 5 * 1024 * 1024) {
+      setError("GIFs and stickers must be 5 MB or smaller.");
+      return;
+    }
     setPending(true);
     setError(null);
     try {
-      const result = await postLeaderboardComment(body, parentId);
+      const result = await postLeaderboardComment(new FormData(form), parentId);
       if (!result.ok) {
         setError(result.error);
         return;
       }
       formRef.current?.reset();
+      chooseFile(null);
       onPosted?.();
       router.refresh();
     } catch {
@@ -63,14 +84,51 @@ function CommentComposer({
         name="body"
         placeholder={parentId ? "Write a reply…" : "Share a thought, ask a question, or cheer someone on…"}
         maxLength={1000}
-        minLength={1}
+        required={!selectedFile}
         rows={parentId ? 2 : 3}
-        required
         disabled={pending}
         className={styles.textarea}
       />
+      {selectedFile && previewUrl && (
+        <div className={styles.attachmentPreview}>
+          {/* Native img preserves animation and blob previews without an image proxy. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={previewUrl} alt="Selected attachment preview" />
+          <div>
+            <span>{selectedFile.type === "image/gif" || /\.gif$/i.test(selectedFile.name) ? "GIF" : "Sticker"} ready to post</span>
+            <small>{selectedFile.name}</small>
+          </div>
+          <button
+            type="button"
+            onClick={() => { chooseFile(null); if (fileRef.current) fileRef.current.value = ""; }}
+            className={styles.removeAttachment}
+            aria-label="Remove attachment"
+            disabled={pending}
+          >
+            <X size={16} aria-hidden="true" />
+          </button>
+        </div>
+      )}
       <div className={styles.composerFooter}>
-        <span className={styles.hint}>Keep it constructive and kind.</span>
+        <div className={styles.attachmentControls}>
+          <input
+            ref={fileRef}
+            id={parentId ? `media-${parentId}` : "new-comment-media"}
+            name="media"
+            type="file"
+            aria-label="Add GIF or sticker"
+            accept="image/gif,image/png,image/webp,.gif,.png,.webp"
+            onChange={(event) => { chooseFile(event.target.files?.[0] ?? null); setError(null); }}
+            disabled={pending}
+            className="sr-only"
+          />
+          <label htmlFor={parentId ? `media-${parentId}` : "new-comment-media"} className={styles.attachButton}>
+            <ImagePlus size={16} aria-hidden="true" />
+            <span className={styles.attachLong}>Add GIF or sticker</span>
+            <span className={styles.attachShort}>Attach</span>
+          </label>
+          <span className={styles.hint}>GIF, PNG or WebP · max 5 MB</span>
+        </div>
         <button type="submit" disabled={pending} className={styles.postButton}>
           <Send size={15} aria-hidden="true" />
           {pending ? "Posting…" : parentId ? "Post reply" : "Post comment"}
@@ -78,6 +136,24 @@ function CommentComposer({
       </div>
       {error && <p role="alert" className={styles.error}>{error}</p>}
     </form>
+  );
+}
+
+function CommentMessage({ comment }: { comment: LeaderboardComment }) {
+  return (
+    <>
+      {comment.body && <p className={styles.bodyText}>{comment.body}</p>}
+      {comment.media_url && (
+        <div className={comment.media_kind === "sticker" ? styles.sticker : styles.gif}>
+          {/* Keep animated GIFs animated and display local preview data URLs. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={comment.media_url}
+            alt={`${comment.media_kind === "gif" ? "GIF" : "Sticker"} posted by ${comment.display_name}`}
+          />
+        </div>
+      )}
+    </>
   );
 }
 
@@ -104,7 +180,7 @@ function Comment({
             {comment.user_id === currentUserId && <span className={styles.you}>You</span>}
             <time dateTime={comment.created_at} className={styles.time}>{commentDate(comment.created_at)}</time>
           </div>
-          <p className={styles.bodyText}>{comment.body}</p>
+          <CommentMessage comment={comment} />
           <button
             type="button"
             className={styles.replyButton}
@@ -129,7 +205,7 @@ function Comment({
                   {reply.user_id === currentUserId && <span className={styles.you}>You</span>}
                   <time dateTime={reply.created_at} className={styles.time}>{commentDate(reply.created_at)}</time>
                 </div>
-                <p className={styles.bodyText}>{reply.body}</p>
+                <CommentMessage comment={reply} />
               </div>
             </li>
           ))}

@@ -97,6 +97,94 @@
   padding: 0 5px 4px 12px;
 }
 
+.attachmentControls {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.attachButton {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  border-radius: 7px;
+  padding: 0 9px;
+  color: var(--accent-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.attachButton:hover {
+  background: var(--accent-soft);
+}
+
+.attachShort {
+  display: none;
+}
+
+.attachmentControls:focus-within .attachButton {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+}
+
+.attachmentPreview {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 0 10px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-subtle);
+  padding: 8px;
+}
+
+.attachmentPreview img {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 5px;
+  object-fit: contain;
+}
+
+.attachmentPreview div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.attachmentPreview span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.attachmentPreview small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.removeAttachment {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  border-radius: 6px;
+  color: var(--muted);
+}
+
+.removeAttachment:hover {
+  background: var(--surface);
+  color: var(--foreground);
+}
+
 .hint {
   color: var(--muted);
   font-size: 12px;
@@ -239,6 +327,28 @@
   white-space: pre-wrap;
 }
 
+.gif,
+.sticker {
+  margin-top: 12px;
+}
+
+.gif img,
+.sticker img {
+  display: block;
+  max-width: min(100%, 320px);
+  max-height: 320px;
+  object-fit: contain;
+}
+
+.gif img {
+  border-radius: 9px;
+}
+
+.sticker img {
+  max-width: min(100%, 220px);
+  max-height: 220px;
+}
+
 .replyButton {
   margin-top: 9px;
   color: var(--accent-text);
@@ -294,8 +404,16 @@
     display: none;
   }
 
+  .attachLong {
+    display: none;
+  }
+
+  .attachShort {
+    display: inline;
+  }
+
   .composerFooter {
-    justify-content: flex-end;
+    padding-left: 4px;
   }
 
   .replies,

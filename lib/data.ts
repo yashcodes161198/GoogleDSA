@@ -118,7 +118,16 @@ export async function getLeaderboardComments(): Promise<{
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("get_leaderboard_comments");
     if (error) throw error;
-    return { comments: (data ?? []) as LeaderboardComment[], error: null };
+    const rows = (data ?? []) as (Omit<LeaderboardComment, "media_url"> & { media_path: string | null })[];
+    const bucket = supabase.storage.from("leaderboard-comment-media");
+    return {
+      comments: rows.map(({ media_path, ...comment }) => ({
+        ...comment,
+        media_kind: comment.media_kind ?? null,
+        media_url: media_path ? bucket.getPublicUrl(media_path).data.publicUrl : null,
+      })),
+      error: null,
+    };
   } catch (error) {
     console.error("Failed to load leaderboard comments", error);
     return { comments: [], error: "Discussion could not be loaded. Try refreshing the page." };
