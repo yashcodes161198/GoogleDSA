@@ -1,4 +1,5 @@
 import { cache } from "react";
+import type { LeaderboardComment } from "@/lib/leaderboard/comments";
 import { DAILY_REVISION_LIMIT, isLocalMode } from "@/lib/config";
 import {
   computeInterviewSummaries,
@@ -103,6 +104,25 @@ export async function getWeeklyLeaderboard(): Promise<{
     rank: Number(entry.rank),
   }));
   return { entries, unavailable: false };
+}
+
+export async function getLeaderboardComments(): Promise<{
+  comments: LeaderboardComment[];
+  error: string | null;
+}> {
+  if (isLocalMode()) {
+    return { comments: getMemoryStore().getLeaderboardComments(), error: null };
+  }
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("get_leaderboard_comments");
+    if (error) throw error;
+    return { comments: (data ?? []) as LeaderboardComment[], error: null };
+  } catch (error) {
+    console.error("Failed to load leaderboard comments", error);
+    return { comments: [], error: "Discussion could not be loaded. Try refreshing the page." };
+  }
 }
 
 export async function getScoreActivity(now = new Date(), options: {

@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import type { LeaderboardComment } from "@/lib/leaderboard/comments";
 import { LOCAL_ADMIN } from "@/lib/config";
 import {
   leaderboardPoints,
@@ -49,6 +50,7 @@ class MemoryStore {
   interviewSessions: InterviewSession[] = [];
   interviewSessionProblems: InterviewSessionProblem[] = [];
   leaderboardEvents: LeaderboardEvent[] = [];
+  leaderboardComments: LeaderboardComment[] = [];
   private seeded = false;
 
   ensureSeeded() {
@@ -379,6 +381,21 @@ class MemoryStore {
         points,
       }))
     );
+  }
+
+  getLeaderboardComments(): LeaderboardComment[] {
+    return [...this.leaderboardComments];
+  }
+
+  addLeaderboardComment(userId: string, body: string, parentId: string | null): void {
+    this.leaderboardComments.push({
+      id: randomUUID(),
+      user_id: userId,
+      display_name: this.leaderboardName(userId),
+      body,
+      parent_id: parentId,
+      created_at: new Date().toISOString(),
+    });
   }
 
   getScoreActivity(userId: string, now = new Date(), period: ActivityPeriod = "month"): ScoreActivity[] {

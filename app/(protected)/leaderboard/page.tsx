@@ -2,8 +2,9 @@ import Link from "next/link";
 import { Eye, X } from "lucide-react";
 import { PageHeading } from "@/components/PageHeading";
 import { ScoreHistory } from "@/components/ScoreHistory";
+import { LeaderboardDiscussion } from "@/components/LeaderboardDiscussion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getCurrentUser, getScoreActivity, getWeeklyLeaderboard } from "@/lib/data";
+import { getCurrentUser, getLeaderboardComments, getScoreActivity, getWeeklyLeaderboard } from "@/lib/data";
 import { formatLeaderboardWeek } from "@/lib/leaderboard/points";
 
 const RULES = [
@@ -16,9 +17,10 @@ export default async function LeaderboardPage({ searchParams }: {
   searchParams: Promise<{ user?: string | string[] }>;
 }) {
   const now = new Date();
-  const [user, leaderboard, query] = await Promise.all([
+  const [user, leaderboard, discussion, query] = await Promise.all([
     getCurrentUser(),
     getWeeklyLeaderboard(),
+    getLeaderboardComments(),
     searchParams,
   ]);
   const weekLabel = formatLeaderboardWeek(now);
@@ -141,6 +143,7 @@ export default async function LeaderboardPage({ searchParams }: {
           )}
         </CardContent>
       </Card>
+      {user && <LeaderboardDiscussion comments={discussion.comments} error={discussion.error} currentUserId={user.id} />}
     </div>
   );
 }

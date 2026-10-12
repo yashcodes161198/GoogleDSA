@@ -1,0 +1,306 @@
+.section {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--line);
+}
+
+.headingIcon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.heading h2 {
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.heading p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.count {
+  flex: none;
+  margin-left: auto;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.newComment {
+  padding: 24px 28px;
+  background: var(--surface-subtle);
+  border-bottom: 1px solid var(--line);
+}
+
+.composer {
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  transition: border-color 150ms ease;
+}
+
+.composer:focus-within {
+  border-color: var(--accent);
+}
+
+.textarea {
+  display: block;
+  width: 100%;
+  min-height: 70px;
+  resize: vertical;
+  border: 0;
+  background: transparent;
+  padding: 10px 12px;
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.55;
+  outline: none;
+}
+
+.textarea::placeholder {
+  color: var(--muted);
+  opacity: .85;
+}
+
+.textarea:focus-visible {
+  outline: none;
+}
+
+.composerFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 5px 4px 12px;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.postButton {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  border-radius: 7px;
+  background: var(--accent);
+  padding: 0 13px;
+  color: var(--accent-contrast);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 150ms ease;
+}
+
+.postButton:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.postButton:disabled {
+  opacity: .6;
+}
+
+.error,
+.loadError {
+  color: var(--color-destructive);
+  font-size: 13px;
+}
+
+.error {
+  padding: 5px 12px 8px;
+}
+
+.loadError {
+  padding: 24px 28px;
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 42px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty svg {
+  margin-bottom: 6px;
+  color: var(--accent-text);
+}
+
+.empty p {
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.empty span {
+  font-size: 13px;
+}
+
+.threads {
+  padding: 0 28px;
+}
+
+.thread {
+  padding: 24px 0;
+}
+
+.thread + .thread {
+  border-top: 1px solid var(--line);
+}
+
+.comment,
+.reply {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.commentBody {
+  min-width: 0;
+  flex: 1;
+  padding-top: 1px;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 5px 9px;
+}
+
+.name {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.you {
+  border-radius: 4px;
+  background: var(--accent-soft);
+  padding: 1px 5px;
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.time {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.bodyText {
+  margin-top: 7px;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.replyButton {
+  margin-top: 9px;
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.replyButton:hover {
+  text-decoration: underline;
+}
+
+.replies,
+.replyForm {
+  margin: 16px 0 0 18px;
+  border-left: 1px solid var(--line);
+  padding-left: 29px;
+}
+
+.replies {
+  display: grid;
+  gap: 20px;
+}
+
+.replyAvatar {
+  width: 30px;
+  height: 30px;
+  font-size: 12px;
+}
+
+.replyForm .textarea {
+  min-height: 48px;
+}
+
+@media (max-width: 640px) {
+  .heading,
+  .newComment {
+    padding: 20px;
+  }
+
+  .heading {
+    align-items: flex-start;
+  }
+
+  .count {
+    display: none;
+  }
+
+  .threads {
+    padding: 0 20px;
+  }
+
+  .hint {
+    display: none;
+  }
+
+  .composerFooter {
+    justify-content: flex-end;
+  }
+
+  .replies,
+  .replyForm {
+    margin-left: 14px;
+    padding-left: 17px;
+  }
+}
