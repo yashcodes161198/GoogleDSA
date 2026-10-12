@@ -3,7 +3,8 @@
 import { useEffect, useId, useRef, useState, useTransition, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, History, RefreshCw, RotateCcw, X } from "lucide-react";
+import { Check, History, RefreshCw, RotateCcw, Trash2, X } from "lucide-react";
+import { deleteScoreActivity } from "@/app/score-actions";
 import {
   ACTION_LABELS, ACTIVITY_ACTIONS, activityAction, buildActivityDays,
   formatActivityDate, formatActivityFullDate, formatActivityTime,
@@ -13,12 +14,13 @@ import styles from "./ScoreHistory.module.css";
 
 const icons = { solved: Check, "first-revision": RotateCcw, "later-revision": RefreshCw };
 
-export function ScoreHistory({ events, now, error, period = "month", title = "Score history" }: {
+export function ScoreHistory({ events, now, error, period = "month", title = "Score history", canDelete = false }: {
   events: ScoreActivity[];
   now: string;
   error: string | null;
   period?: ActivityPeriod;
   title?: string;
+  canDelete?: boolean;
 }) {
   const historyId = useId();
   const isWeekly = period === "week";
@@ -26,13 +28,19 @@ export function ScoreHistory({ events, now, error, period = "month", title = "Sc
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [visibleDays, setVisibleDays] = useState(7);
   const [refreshing, startRefresh] = useTransition();
+  const [deleting, startDelete] = useTransition();
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [removedIds, setRemovedIds] = useState<string[]>([]);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteNotice, setDeleteNotice] = useState("");
+  const ledgerHeadingRef = useRef<HTMLHeadingElement>(null);
   const router = useRouter();
   const chartRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const chart = chartRef.current;
     if (chart) chart.scrollLeft = chart.scrollWidth;
   }, []);
-  const days = buildActivityDays(events, new Date(now), filter, period);
+  const days = buildActivityDays(events.filter((event) => !removedIds.includes(event.id)), new Date(now), filter, period);
   const totalPoints = days.reduce((sum, day) => sum + day.points, 0);
   const totalActions = days.reduce((sum, day) => sum + day.events.length, 0);
   const activeDays = days.filter((day) => day.events.length > 0).length;
@@ -47,6 +55,27 @@ export function ScoreHistory({ events, now, error, period = "month", title = "Sc
     setFilter("all");
     setSelectedDay(null);
     setVisibleDays(7);
+  }
+
+  function removeAward(event: ScoreActivity) {
+    setDeleteError(null);
+    setDeleteNotice("");
+    startDelete(async () => {
+      try {
+        const result = await deleteScoreActivity(event.id);
+        if (!result.ok) {
+          setDeleteError(result.error);
+          return;
+        }
+        setRemovedIds((ids) => [...ids, event.id]);
+        setConfirmDelete(null);
+        setDeleteNotice(`Deleted ${event.points} points for ${event.problem_title}. Problem progress is unchanged.`);
+        ledgerHeadingRef.current?.focus();
+        router.refresh();
+      } catch {
+        setDeleteError("Could not delete this point award. Please try again.");
+      }
+    });
   }
 
   return (
@@ -116,11 +145,14 @@ export function ScoreHistory({ events, now, error, period = "month", title = "Sc
 
           <div className={styles.ledger} aria-live="polite" aria-atomic="false">
             <div className={styles.ledgerHeading}>
-              <h3>{selectedDay ? `Activity on ${formatActivityDate(`${selectedDay}T12:00:00Z`)}` : "Daily activity"}</h3>
+              <h3 ref={ledgerHeadingRef} tabIndex={-1}>{selectedDay ? `Activity on ${formatActivityDate(`${selectedDay}T12:00:00Z`)}` : "Daily activity"}</h3>
               {hasFilters && <button type="button" className={styles.clear} onClick={clearFilters}>
                 <X size={14} aria-hidden="true" />Clear filters
               </button>}
             </div>
+            {canDelete && <p className={styles.deleteHelp}>Misclick? Delete an award to remove its points from history and the leaderboard. Your solved status and revision count stay the same.</p>}
+            {deleteError && <p className={styles.deleteFeedback} role="alert">{deleteError}</p>}
+            <p className={styles.deleteFeedback} role="status">{deleteNotice}</p>
             {isEmpty ? (
               <div className={styles.empty}>
                 <History size={26} aria-hidden="true" />
@@ -149,7 +181,25 @@ export function ScoreHistory({ events, now, error, period = "month", title = "Sc
                           <p className={styles.metadata}>{event.difficulty === "HARD" ? "Hard" : "Medium"}
                             {event.revision_number !== null && ` · Revision ${event.revision_number}`}</p>
                         </div>
-                        <span className={styles.points}>+{event.points}<small> pts</small></span>
+                        <div className={styles.eventControls}>
+                          <span className={styles.points}>+{event.points}<small> pts</small></span>
+                          {canDelete && <button type="button" className={styles.deleteButton}
+                            disabled={deleting} aria-expanded={confirmDelete === event.id}
+                            aria-controls={confirmDelete === event.id ? `${historyId}-delete-${event.id}` : undefined}
+                            aria-label={`Delete ${event.points} points for ${event.problem_title}, ${event.revision_number === null ? "solve" : `revision ${event.revision_number}`}`}
+                            onClick={() => { setConfirmDelete(confirmDelete === event.id ? null : event.id); setDeleteError(null); setDeleteNotice(""); }}>
+                            <Trash2 size={14} aria-hidden="true" />Delete
+                          </button>}
+                        </div>
+                        {canDelete && confirmDelete === event.id && <div className={styles.deleteConfirmation} id={`${historyId}-delete-${event.id}`}>
+                          <p>Delete this {event.points}-point award? This cannot be undone. Problem progress will stay the same.</p>
+                          <div>
+                            <button type="button" className="button-link secondary" disabled={deleting}
+                              onClick={() => { setConfirmDelete(null); setDeleteError(null); }}>Cancel</button>
+                            <button type="button" className="button-link" disabled={deleting}
+                              onClick={() => removeAward(event)}>{deleting ? "Deleting…" : "Delete award"}</button>
+                          </div>
+                        </div>}
                       </li>
                     );
                   })}

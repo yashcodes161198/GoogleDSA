@@ -399,6 +399,12 @@ class MemoryStore {
       .sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id));
   }
 
+  deleteScoreActivity(userId: string, eventId: string): void {
+    this.leaderboardEvents = this.leaderboardEvents.filter(
+      (event) => event.id !== eventId || event.user_id !== userId
+    );
+  }
+
   private leaderboardName(userId: string): string {
     if (userId === LOCAL_ADMIN.id) {
       return LOCAL_ADMIN.email.split("@")[0] || "Player";

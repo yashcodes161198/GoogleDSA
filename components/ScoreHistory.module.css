@@ -61,6 +61,17 @@
 .metadata { font-size: 12px; color: var(--muted); margin-top: 4px; }
 .points { font-size: 16px; color: var(--success); font-weight: 600; font-variant-numeric: tabular-nums; padding-top: 2px; white-space: nowrap; }
 .points small { font-size: 12px; font-weight: 400; }
+.eventControls { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.deleteButton { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; padding-inline: 8px; border-radius: 6px; color: var(--muted); font-size: 12px; }
+.deleteButton:hover:not(:disabled) { background: var(--surface-subtle); color: var(--foreground); }
+.deleteButton:disabled { opacity: .6; cursor: wait; }
+.deleteHelp, .deleteFeedback { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+.deleteFeedback:empty { display: none; }
+.deleteFeedback[role="alert"] { color: var(--foreground); }
+.deleteConfirmation { grid-column: 1 / -1; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-subtle); }
+.deleteConfirmation p { font-size: 13px; line-height: 1.6; }
+.deleteConfirmation > div { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: 12px; }
+.deleteConfirmation button { min-height: 44px; }
 .empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 36px 12px; }
 .empty > svg { color: var(--muted); margin-bottom: 16px; }
 .empty h3 { font-size: 15px; font-weight: 600; }

@@ -67,4 +67,32 @@ store.upsertUserProblem(user, hard.id, { status: "unsolved" });
 assert.deepEqual(store.getScoreActivity(user, now), history, "changing progress does not rewrite awarded history");
 assert.equal(store.getWeeklyLeaderboard(now).find((row) => row.user_id === user)?.points, 16,
   "history awards agree with the leaderboard");
-console.log("score activity ok: IST bounds, action filters, stored points, user isolation, deduplication");
+const progressBeforeDelete = structuredClone(store.getProblemsWithProgress(user));
+const mistakenRevision = history.find((entry) => entry.revision_number === 2)!;
+store.deleteScoreActivity("another-user", mistakenRevision.id);
+assert.deepEqual(store.getScoreActivity(user, now), history, "another user cannot delete the owner's award");
+store.deleteScoreActivity(user, mistakenRevision.id);
+assert.equal(store.getScoreActivity(user, now).length, 3);
+assert.equal(store.getScoreActivity(user, now).some((entry) => entry.id === mistakenRevision.id), false);
+assert.equal(store.getWeeklyLeaderboard(now).find((row) => row.user_id === user)?.points, 14,
+  "deleting a revision removes exactly its points from the leaderboard");
+store.deleteScoreActivity(user, mistakenRevision.id);
+assert.equal(store.getWeeklyLeaderboard(now).find((row) => row.user_id === user)?.points, 14,
+  "retrying deletion cannot deduct twice");
+const oldAward = store.leaderboardEvents.find((entry) => entry.user_id === user && entry.problem_id === medium.id)!;
+const oldWeek = new Date(oldAward.created_at);
+assert.equal(store.getWeeklyLeaderboard(oldWeek).find((row) => row.user_id === user)?.points, 4);
+store.deleteScoreActivity(user, oldAward.id);
+assert.equal(store.getWeeklyLeaderboard(oldWeek).find((row) => row.user_id === user)?.points ?? 0, 0,
+  "old awards are removed from their original week");
+assert.equal(store.getWeeklyLeaderboard(now).find((row) => row.user_id === user)?.points, 14,
+  "deleting an older award does not deduct current-week points");
+store.deleteScoreActivity(user, history.find((entry) => entry.event_type === "solve")!.id);
+assert.deepEqual(store.getScoreActivity(user, now).map((entry) => entry.revision_number).sort(), [1, 3],
+  "deleting a solve leaves other revision awards alone");
+assert.deepEqual(store.getProblemsWithProgress(user), progressBeforeDelete,
+  "deleting points does not change problem progress or revision counts");
+assert.equal(store.awardSolve(user, hard.id, now), 8, "a future solve can earn a deleted award again");
+assert.equal(store.awardSolve(user, hard.id, now), 0, "new awards still prevent duplicates");
+assert.equal(store.getScoreActivity("another-user", now).length, 1);
+console.log("score activity ok: IST bounds, filters, deduplication, deletion, ownership, retries, original weeks, unchanged progress");

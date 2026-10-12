@@ -16,7 +16,7 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, co
 const failures = [];
 page.on("pageerror", (error) => failures.push(error.message.split("\n")[0]));
 page.on("console", (message) => {
-  if (message.type() === "error" && /hydrat/i.test(message.text())) failures.push(message.text().split("\n")[0]);
+  if (message.type() === "error" && /hydrat/i.test(message.text())) failures.push(message.text());
 });
 
 try {
@@ -24,7 +24,7 @@ try {
   await page.getByRole("heading", { name: "Score history", exact: true }).waitFor();
   await page.getByRole("heading", { name: "Your next score starts here" }).waitFor();
   assert.equal(await page.getByRole("button", { name: /points, .*scoring actions/ }).count(), 30);
-  await page.screenshot({ path: path.join(output, "desktop-empty.png"), fullPage: true });
+  await page.screenshot({ caret: "initial", path: path.join(output, "desktop-empty.png"), fullPage: true });
 
   await page.getByRole("link", { name: "Browse problems", exact: true }).click();
   await page.getByRole("heading", { name: "Problems", exact: true }).waitFor();
@@ -71,13 +71,13 @@ try {
   await zeroDay.click();
   await page.getByRole("heading", { name: "No activity matches these filters" }).waitFor();
   await page.getByRole("button", { name: "Show all activity", exact: true }).click();
-  await page.screenshot({ path: path.join(output, "desktop-history.png"), fullPage: true });
+  await page.screenshot({ caret: "initial", path: path.join(output, "desktop-history.png"), fullPage: true });
   await page.reload();
   await page.getByText(title, { exact: true }).first().waitFor();
   assert.equal(await page.locator("ol li").count(), 3, "history persists across reload");
 
   await page.emulateMedia({ colorScheme: "dark" });
-  await page.screenshot({ path: path.join(output, "desktop-dark.png"), fullPage: true });
+  await page.screenshot({ caret: "initial", path: path.join(output, "desktop-dark.png"), fullPage: true });
   await page.emulateMedia({ colorScheme: "light" });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
@@ -89,14 +89,52 @@ try {
   await page.getByRole("button", { name: "First revision", exact: true }).click();
   assert.equal(await page.locator("ol li").count(), 1);
   await page.getByRole("button", { name: "Clear filters", exact: true }).click();
-  await page.screenshot({ path: path.join(output, "mobile-history.png"), fullPage: true });
+  await page.screenshot({ caret: "initial", path: path.join(output, "mobile-history.png"), fullPage: true });
+
+  const mistakenAward = page.locator("ol li").filter({ hasText: "Revision 2" });
+  await mistakenAward.getByRole("button", { name: /^Delete \d+ points/ }).click();
+  await mistakenAward.getByRole("button", { name: "Cancel", exact: true }).click();
+  assert.equal(await page.locator("ol li").count(), 3, "cancelling keeps the award");
+  await mistakenAward.getByRole("button", { name: /^Delete \d+ points/ }).click();
+  await page.screenshot({ caret: "initial", path: path.join(output, "mobile-delete-confirmation.png"), fullPage: true });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  await page.route("**/settings", async (route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({ status: 503, body: "Test unavailable" });
+    } else await route.continue();
+  });
+  await mistakenAward.getByRole("button", { name: "Delete award", exact: true }).click();
+  await page.getByRole("alert").filter({ hasText: "Could not delete" }).waitFor();
+  assert.equal(await page.locator("ol li").count(), 3, "failed deletion preserves history");
+  await page.unroute("**/settings");
+  await mistakenAward.getByRole("button", { name: "Delete award", exact: true }).click();
+  await mistakenAward.waitFor({ state: "hidden" });
+  assert.equal(await page.locator("ol li").count(), 2);
+  assert.match(await totals.first().innerText(), new RegExp(`^${hard ? 12 : 6}`));
+  await page.reload();
+  await page.getByText(title, { exact: true }).first().waitFor();
+  assert.equal(await page.locator("ol li").count(), 2, "deletion persists across reload");
+  await page.goto(`${base}/leaderboard?user=00000000-0000-0000-0000-000000000001`);
+  await page.getByRole("heading", { name: "admin's score history", exact: true }).waitFor();
+  assert.equal(await page.getByRole("button", { name: /^Delete/ }).count(), 0, "leaderboard histories remain read-only");
+  assert.match(await page.getByRole("region", { name: "admin's score history" }).getByRole("definition").first().innerText(), new RegExp(`^${hard ? 12 : 6}`));
+  await page.goto(`${base}/settings`);
+  await page.getByText(title, { exact: true }).first().waitFor();
+  for (let remaining = 2; remaining > 0; remaining--) {
+    const award = page.locator("ol li").first();
+    await award.getByRole("button", { name: /^Delete \d+ points/ }).click();
+    await award.getByRole("button", { name: "Delete award", exact: true }).click();
+    await page.waitForFunction((count) => document.querySelectorAll("ol li").length === count, remaining - 1);
+  }
+  await page.getByRole("heading", { name: "Your next score starts here" }).waitFor();
+  assert.match(await totals.first().innerText(), /^0/);
   assert.deepEqual(failures, [], "no browser errors");
   const result = { passed: true, question: title, expectedPoints: total, actions: 3,
-    checks: ["empty state", "real solve and two revisions", "stored awards", "action filters", "date filter", "clear filters", "reload", "dark theme", "mobile navigation", "no mobile overflow", "no browser errors"] };
+    checks: ["empty state", "real solve and two revisions", "stored awards", "action filters", "date filter", "clear filters", "reload", "dark theme", "mobile navigation", "no mobile overflow", "cancel deletion", "failed deletion and retry", "delete points and reload", "leaderboard totals and read-only history", "delete all awards", "no browser errors"] };
   await writeFile(path.join(output, "result.json"), JSON.stringify(result, null, 2));
   console.log(JSON.stringify(result, null, 2));
 } catch (error) {
-  await page.screenshot({ path: path.join(output, "failure.png"), fullPage: true });
+  await page.screenshot({ caret: "initial", path: path.join(output, "failure.png"), fullPage: true });
   console.error("Activity verification failed", { url: page.url(), failures,
     headings: await page.getByRole("heading").allTextContents() });
   throw error;

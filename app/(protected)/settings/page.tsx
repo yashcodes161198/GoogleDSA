@@ -44,7 +44,7 @@ export default async function SettingsPage() {
             <p>History covers the last 30 days. The leaderboard counts only the current week, starting Monday at 00:00 IST.</p>
           </section>
         </aside>
-        <ScoreHistory events={activity.events} error={activity.error} now={now.toISOString()} />
+        <ScoreHistory events={activity.events} error={activity.error} now={now.toISOString()} canDelete />
       </div>
     </div>
   );
