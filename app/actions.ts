@@ -344,7 +344,6 @@ export async function refreshRevisionQueue(
 
     const replacements = await getDailyRevisions(replacementCount, {
       excludeIds: current,
-      includeRevisedToday: false,
     });
 
     return { ok: true as const, replacements };

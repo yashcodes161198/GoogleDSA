@@ -21,5 +21,5 @@ The spaced-repetition due date stored for a solved question. It is not the daily
 _Avoid_: Revision
 
 **Revision queue**:
-Solved questions at least 48 hours old, capped by the daily limit and ordered by when they were solved, oldest first.
+Solved questions last solved or revised at least 48 hours ago, capped by the daily limit. Unrevised questions come first by oldest solve date; then revised questions by oldest last revision date.
 _Avoid_: Review list, due list

@@ -13,7 +13,7 @@ import {
   ProblemTimerProvider,
   useProblemTimer,
 } from "@/components/ProblemTimerContext";
-import { resetRevisionQueue, selectRevisionQueue } from "@/lib/revision/selectRevisionQueue";
+import { compareRevisionPriority, resetRevisionQueue, selectRevisionQueue } from "@/lib/revision/selectRevisionQueue";
 import type { ProblemWithProgress } from "@/lib/types";
 
 function isRevisedToday(problem: ProblemWithProgress): boolean {
@@ -42,10 +42,9 @@ export function ReviseCard({ dailyLimit }: { dailyLimit: number }) {
     setQueueIds([...kept, ...eligible.filter(p => !keptIds.has(p.id)).map(p => p.id)].slice(0, dailyLimit));
   }
   const byId = new Map(library.map(p => [p.id, p]));
-  const queue = selectRevisionQueue(
-    queueIds.flatMap(id => byId.has(id) ? [byId.get(id)!] : []),
-    { limit: dailyLimit },
-  );
+  const queue = queueIds
+    .flatMap(id => byId.has(id) ? [byId.get(id)!] : [])
+    .sort(compareRevisionPriority);
   const revisedIds = new Set(queue.filter(isRevisedToday).map(p => p.id));
   const savingIds = new Set(queueIds.filter(id => pendingIds.has(id)));
   const revisedCount = revisedIds.size;
@@ -56,7 +55,7 @@ export function ReviseCard({ dailyLimit }: { dailyLimit: number }) {
   };
   const resetQueue = () => {
     const replacements = selectRevisionQueue(library, {
-      limit: dailyLimit, excludeIds: queueIds, includeRevisedToday: false,
+      limit: dailyLimit, excludeIds: queueIds,
     });
     setQueueIds(resetRevisionQueue(queue, revisedIds, replacements, dailyLimit).map(p => p.id));
   };

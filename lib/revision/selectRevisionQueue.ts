@@ -1,5 +1,4 @@
 import type { ProblemWithProgress } from "@/lib/types";
-import { practiceDayStart } from "@/lib/practice-day";
 
 export const REVISION_SOLVE_COOLDOWN_MS = 48 * 60 * 60 * 1000;
 
@@ -7,30 +6,31 @@ export type RevisionQueueOptions = {
   limit: number;
   now?: Date;
   excludeIds?: Iterable<string>;
-  includeRevisedToday?: boolean;
 };
 
-function wasRevisedToday(
-  problem: ProblemWithProgress,
-  todayStart: number
-): boolean {
-  const value = problem.user_problem?.last_revised_at;
-  if (!value) return false;
+function timestamp(value: string | null | undefined): number {
+  if (!value) return Infinity;
   const time = new Date(value).getTime();
-  return time >= todayStart && time < todayStart + 24 * 60 * 60 * 1000;
+  return Number.isNaN(time) ? Infinity : time;
 }
 
-function bySolvedTime(
+export function compareRevisionPriority(
   a: ProblemWithProgress,
   b: ProblemWithProgress
 ): number {
-  const aTime = a.user_problem?.solved_at
-    ? new Date(a.user_problem.solved_at).getTime()
-    : Infinity;
-  const bTime = b.user_problem?.solved_at
-    ? new Date(b.user_problem.solved_at).getTime()
-    : Infinity;
-  return aTime - bTime || a.id.localeCompare(b.id);
+  const aUnrevised = (a.user_problem?.revision_count ?? 0) === 0;
+  const bUnrevised = (b.user_problem?.revision_count ?? 0) === 0;
+  if (aUnrevised !== bUnrevised) return aUnrevised ? -1 : 1;
+
+  const aTime = timestamp(aUnrevised
+    ? a.user_problem?.solved_at
+    : a.user_problem?.last_revised_at);
+  const bTime = timestamp(bUnrevised
+    ? b.user_problem?.solved_at
+    : b.user_problem?.last_revised_at);
+  return aTime - bTime ||
+    timestamp(a.user_problem?.solved_at) - timestamp(b.user_problem?.solved_at) ||
+    a.id.localeCompare(b.id);
 }
 
 export function selectRevisionQueue(
@@ -39,21 +39,19 @@ export function selectRevisionQueue(
     limit,
     now = new Date(),
     excludeIds = [],
-    includeRevisedToday = true,
   }: RevisionQueueOptions
 ): ProblemWithProgress[] {
   if (limit <= 0) return [];
 
   const excluded = new Set(excludeIds);
   const cooldownCutoff = now.getTime() - REVISION_SOLVE_COOLDOWN_MS;
-  const todayStart = practiceDayStart(now);
 
   return problems.filter((problem) => {
     if (problem.status !== "solved" || excluded.has(problem.id)) return false;
-    const solvedAt = problem.user_problem?.solved_at;
-    if (solvedAt && new Date(solvedAt).getTime() > cooldownCutoff) return false;
-    return includeRevisedToday || !wasRevisedToday(problem, todayStart);
-  }).sort(bySolvedTime).slice(0, limit);
+    const progress = problem.user_problem;
+    return (!progress?.solved_at || timestamp(progress.solved_at) <= cooldownCutoff) &&
+      (!progress?.last_revised_at || timestamp(progress.last_revised_at) <= cooldownCutoff);
+  }).sort(compareRevisionPriority).slice(0, limit);
 }
 
 export function resetRevisionQueue(
@@ -91,5 +89,5 @@ export function resetRevisionQueue(
     next.push(replacement);
   }
 
-  return next.sort(bySolvedTime).slice(0, limit);
+  return next.sort(compareRevisionPriority).slice(0, limit);
 }

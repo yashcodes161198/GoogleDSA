@@ -87,13 +87,33 @@ assert(queue.some((p) => p.id === "boundary"), "include the 48-hour boundary");
 assert(!queue.some((p) => p.id === "unsolved"), "exclude unsolved problems");
 assert(queue.some((p) => p.id === "legacy"), "include legacy rows with no solved_at");
 assert(
-  queue.at(-1)?.id === "legacy",
-  "put missing solve timestamps after dated solves"
+  queue.findIndex((p) => p.id === "legacy") <
+    queue.findIndex((p) => p.id === "once-old"),
+  "keep zero-revision questions ahead of revised questions even without a solve timestamp"
 );
 assert(
-  queue.findIndex((p) => p.id === "twice") <
-    queue.findIndex((p) => p.id === "boundary"),
-  "order by ascending solve timestamp"
+  queue.findIndex((p) => p.id === "boundary") <
+    queue.findIndex((p) => p.id === "legacy"),
+  "put missing solve timestamps after dated zero-revision questions"
+);
+assert(
+  queue.findIndex((p) => p.id === "once-old") <
+    queue.findIndex((p) => p.id === "once-new"),
+  "order revised questions by oldest last revision"
+);
+assert(
+  selectRevisionQueue([
+    problem("old-solve-revised", {
+      solvedAt: "2026-08-01T00:00:00.000Z",
+      revisedAt: "2026-09-01T00:00:00.000Z",
+      revisionCount: 4,
+    }),
+    problem("new-solve-unrevised", {
+      solvedAt: "2026-09-15T00:00:00.000Z",
+    }),
+  ], { limit: 10, now }).map((p) => p.id).join() ===
+    "new-solve-unrevised,old-solve-revised",
+  "use zero revisions before last revision age"
 );
 
 const dated = Array.from({ length: 12 }, (_, index) =>
@@ -106,20 +126,30 @@ const dated = Array.from({ length: 12 }, (_, index) =>
 );
 assert(
   selectRevisionQueue([...dated].reverse(), { limit: 10, now })
-    .map((p) => p.id).join() === dated.slice(0, 10).map((p) => p.id).join(),
-  "take the ten oldest eligible solves regardless of frequency, revision count, or revision date"
+    .map((p) => p.id).join() === dated.slice(1, 11).map((p) => p.id).join(),
+  "take the ten oldest eligible zero-revision solves regardless of frequency"
 );
 
-const revisedToday = problem("today", {
-  revisedAt: "2026-09-18T00:00:00.000Z",
-});
+const revised = Array.from({ length: 12 }, (_, index) =>
+  problem(`revised-${String(index + 1).padStart(2, "0")}`, {
+    solvedAt: `2026-08-${String(12 - index).padStart(2, "0")}T00:00:00.000Z`,
+    revisedAt: `2026-09-${String(index + 1).padStart(2, "0")}T00:00:00.000Z`,
+    revisionCount: index % 2 ? 1 : 9,
+    frequency: index === 0 ? 1 : 100,
+  })
+);
 assert(
-  selectRevisionQueue([revisedToday], {
-    limit: 10,
-    now,
-    includeRevisedToday: false,
-  }).length === 0,
-  "exclude already-revised-today replacements"
+  selectRevisionQueue([...revised].reverse(), { limit: 10, now })
+    .map((p) => p.id).join() === revised.slice(0, 10).map((p) => p.id).join(),
+  "when no zero-revision questions remain, take the ten oldest last revisions"
+);
+assert(
+  selectRevisionQueue([
+    problem("revised-recent", { revisionCount: 1, revisedAt: "2026-09-16T00:00:01.000Z" }),
+    problem("revised-boundary", { revisionCount: 1, revisedAt: "2026-09-16T00:00:00.000Z" }),
+    problem("revised-today", { revisionCount: 1, revisedAt: now.toISOString() }),
+  ], { limit: 10, now }).map((p) => p.id).join() === "revised-boundary",
+  "exclude revisions inside 48 hours and include the boundary"
 );
 assert(
   selectRevisionQueue([problem("excluded"), problem("allowed")], {

@@ -66,8 +66,8 @@ async function main() {
   assert.equal(stats().revisionsDoneToday, 12, "daily total includes increments beyond the queue limit");
 
   const revised = store.getProblemsWithProgress(userId).find(p => p.id === second.id)!;
-  assert.equal(selectRevisionQueue([revised], { limit: 10, includeRevisedToday: false }).length, 0,
-    "queue and dashboard agree on today's boundary");
+  assert.equal(selectRevisionQueue([revised], { limit: 10 }).length, 0,
+    "a question revised today is outside the queue cooldown");
   const legacy = { ...revised, user_problem: { ...revised.user_problem!, daily_revision_count: undefined } };
   assert.equal(computeStatsFromProblems([legacy]).revisionsDoneToday, 1,
     "legacy timestamp preserves the known revision before migration");

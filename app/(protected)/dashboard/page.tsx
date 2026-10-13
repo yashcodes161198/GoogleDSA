@@ -90,8 +90,8 @@ export default async function DashboardPage() {
               <Check size={24} className="mb-3 text-muted" aria-hidden="true" />
               <p className="font-medium">No questions queued right now</p>
               <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">
-                Solved questions become eligible after 48 hours. Keep
-                practicing, then return for your next revision.
+                Questions become eligible 48 hours after you solve or revise
+                them. Keep practicing, then return for your next revision.
               </p>
             </div>
           )}
