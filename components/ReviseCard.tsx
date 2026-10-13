@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { compareQuestionDifficulty } from "@/components/question-order";
 import Link from "next/link";
 import { RotateCcw } from "lucide-react";
 import { useSessionLibrary } from "@/components/SessionLibraryProvider";
@@ -43,7 +42,10 @@ export function ReviseCard({ dailyLimit }: { dailyLimit: number }) {
     setQueueIds([...kept, ...eligible.filter(p => !keptIds.has(p.id)).map(p => p.id)].slice(0, dailyLimit));
   }
   const byId = new Map(library.map(p => [p.id, p]));
-  const queue = queueIds.flatMap(id => byId.has(id) ? [byId.get(id)!] : []);
+  const queue = selectRevisionQueue(
+    queueIds.flatMap(id => byId.has(id) ? [byId.get(id)!] : []),
+    { limit: dailyLimit },
+  );
   const revisedIds = new Set(queue.filter(isRevisedToday).map(p => p.id));
   const savingIds = new Set(queueIds.filter(id => pendingIds.has(id)));
   const revisedCount = revisedIds.size;
@@ -156,7 +158,7 @@ function ReviseCardContent({
         </div>
       </div>
       <div className="surface practice-row-list">
-        {[...problems].sort(compareQuestionDifficulty).map((problem) => {
+        {problems.map((problem) => {
           const revised = revisedIds.has(problem.id);
           const revisionCount = problem.user_problem?.revision_count ?? 0;
 

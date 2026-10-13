@@ -8,7 +8,7 @@ export default function RevisePage() {
     <div className="space-y-8">
       <PageHeading
         title="Daily revision"
-        description={`Revisit solved questions from easy to hard, prioritizing the least revised within each difficulty. Up to ${DAILY_REVISION_LIMIT} per day, eligible 48 hours after solving.`}
+        description={`Revisit your oldest solved questions first. Up to ${DAILY_REVISION_LIMIT} at a time, eligible 48 hours after solving.`}
       />
       <ReviseCard dailyLimit={DAILY_REVISION_LIMIT} />
     </div>

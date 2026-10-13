@@ -26,6 +26,7 @@ function problem(
     solvedAt?: string | null;
     revisedAt?: string | null;
     revisionCount?: number;
+    frequency?: number;
   } = {}
 ): ProblemWithProgress {
   const solvedAt = Object.prototype.hasOwnProperty.call(options, "solvedAt")
@@ -36,7 +37,7 @@ function problem(
     slug: id,
     title: id,
     difficulty: "MEDIUM",
-    frequency: 50,
+    frequency: options.frequency ?? 50,
     acceptance_rate: 0,
     link: `https://example.com/${id}`,
     links: [],
@@ -86,14 +87,27 @@ assert(queue.some((p) => p.id === "boundary"), "include the 48-hour boundary");
 assert(!queue.some((p) => p.id === "unsolved"), "exclude unsolved problems");
 assert(queue.some((p) => p.id === "legacy"), "include legacy rows with no solved_at");
 assert(
-  queue.findIndex((p) => p.id === "once-old") <
-    queue.findIndex((p) => p.id === "once-new"),
-  "break equal revision counts by oldest revision"
+  queue.at(-1)?.id === "legacy",
+  "put missing solve timestamps after dated solves"
 );
 assert(
-  queue.findIndex((p) => p.id === "once-new") <
-    queue.findIndex((p) => p.id === "twice"),
-  "prefer lower revision counts"
+  queue.findIndex((p) => p.id === "twice") <
+    queue.findIndex((p) => p.id === "boundary"),
+  "order by ascending solve timestamp"
+);
+
+const dated = Array.from({ length: 12 }, (_, index) =>
+  problem(`dated-${String(index + 1).padStart(2, "0")}`, {
+    solvedAt: `2026-09-${String(index + 1).padStart(2, "0")}T00:00:00.000Z`,
+    revisedAt: index === 0 ? now.toISOString() : null,
+    revisionCount: index === 0 ? 20 : 0,
+    frequency: index === 0 ? 1 : 100,
+  })
+);
+assert(
+  selectRevisionQueue([...dated].reverse(), { limit: 10, now })
+    .map((p) => p.id).join() === dated.slice(0, 10).map((p) => p.id).join(),
+  "take the ten oldest eligible solves regardless of frequency, revision count, or revision date"
 );
 
 const revisedToday = problem("today", {
@@ -134,8 +148,8 @@ const reset = resetRevisionQueue(
   4
 );
 assert(
-  reset.map((p) => p.id).join() === "keep-1,new-1,keep-2,new-2",
-  "preserve unchecked slots and replace checked slots"
+  reset.map((p) => p.id).join() === "keep-1,keep-2,new-1,new-2",
+  "preserve unchecked questions and show the oldest solves first"
 );
 assert(
   new Set(reset.map((p) => p.id)).size === reset.length,

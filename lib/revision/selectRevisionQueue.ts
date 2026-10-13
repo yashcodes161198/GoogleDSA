@@ -20,22 +20,17 @@ function wasRevisedToday(
   return time >= todayStart && time < todayStart + 24 * 60 * 60 * 1000;
 }
 
-function byRevisionPriority(
+function bySolvedTime(
   a: ProblemWithProgress,
   b: ProblemWithProgress
 ): number {
-  const countDifference =
-    (a.user_problem?.revision_count ?? 0) -
-    (b.user_problem?.revision_count ?? 0);
-  if (countDifference !== 0) return countDifference;
-
-  const aTime = a.user_problem?.last_revised_at
-    ? new Date(a.user_problem.last_revised_at).getTime()
-    : 0;
-  const bTime = b.user_problem?.last_revised_at
-    ? new Date(b.user_problem.last_revised_at).getTime()
-    : 0;
-  return aTime - bTime;
+  const aTime = a.user_problem?.solved_at
+    ? new Date(a.user_problem.solved_at).getTime()
+    : Infinity;
+  const bTime = b.user_problem?.solved_at
+    ? new Date(b.user_problem.solved_at).getTime()
+    : Infinity;
+  return aTime - bTime || a.id.localeCompare(b.id);
 }
 
 export function selectRevisionQueue(
@@ -53,31 +48,12 @@ export function selectRevisionQueue(
   const cooldownCutoff = now.getTime() - REVISION_SOLVE_COOLDOWN_MS;
   const todayStart = practiceDayStart(now);
 
-  const eligible = problems.filter((problem) => {
+  return problems.filter((problem) => {
     if (problem.status !== "solved" || excluded.has(problem.id)) return false;
     const solvedAt = problem.user_problem?.solved_at;
-    return !solvedAt || new Date(solvedAt).getTime() <= cooldownCutoff;
-  });
-
-  const revisedToday = includeRevisedToday
-    ? eligible
-        .filter((problem) => wasRevisedToday(problem, todayStart))
-        .sort((a, b) => {
-          const aTime = new Date(
-            a.user_problem?.last_revised_at ?? 0
-          ).getTime();
-          const bTime = new Date(
-            b.user_problem?.last_revised_at ?? 0
-          ).getTime();
-          return aTime - bTime;
-        })
-    : [];
-
-  const pending = eligible
-    .filter((problem) => !wasRevisedToday(problem, todayStart))
-    .sort(byRevisionPriority);
-
-  return [...revisedToday, ...pending].slice(0, limit);
+    if (solvedAt && new Date(solvedAt).getTime() > cooldownCutoff) return false;
+    return includeRevisedToday || !wasRevisedToday(problem, todayStart);
+  }).sort(bySolvedTime).slice(0, limit);
 }
 
 export function resetRevisionQueue(
@@ -115,5 +91,5 @@ export function resetRevisionQueue(
     next.push(replacement);
   }
 
-  return next.slice(0, limit);
+  return next.sort(bySolvedTime).slice(0, limit);
 }

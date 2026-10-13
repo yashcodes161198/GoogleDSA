@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { compareQuestionDifficulty } from "@/components/question-order";
 import { ArrowUpRight, Check, Timer } from "lucide-react";
 import { PageHeading } from "@/components/PageHeading";
 import { NextProblemsWidget } from "@/components/NextProblemsWidget";
@@ -73,7 +72,7 @@ export default async function DashboardPage() {
           </div>
           {queue.length ? (
             <ol className="queue-preview">
-              {queue.slice(0, 3).sort(compareQuestionDifficulty).map((problem, index) => (
+              {queue.slice(0, 3).map((problem, index) => (
                 <li key={problem.id}>
                   <span className="queue-marker">{index + 1}</span>
                   <div className="min-w-0 flex-1">
