@@ -4,7 +4,7 @@ import { useState } from "react";
 import { compareQuestionDifficulty } from "@/components/question-order";
 import Link from "next/link";
 import { RotateCcw } from "lucide-react";
-import { useSessionLibrary, LibraryRefreshStatus } from "@/components/SessionLibraryProvider";
+import { useSessionLibrary } from "@/components/SessionLibraryProvider";
 import { PracticeProblemRow } from "@/components/PracticeProblemRow";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -61,8 +61,6 @@ export function ReviseCard({ dailyLimit }: { dailyLimit: number }) {
 
   if (queue.length === 0) {
     return (
-      <>
-      <LibraryRefreshStatus />
       <Card>
         <CardContent className="py-12 text-center">
           <p className="text-lg font-medium">Nothing to revise today</p>
@@ -75,7 +73,6 @@ export function ReviseCard({ dailyLimit }: { dailyLimit: number }) {
           </Link>
         </CardContent>
       </Card>
-      </>
     );
   }
 
@@ -158,8 +155,6 @@ function ReviseCardContent({
           </Tooltip>
         </div>
       </div>
-      <LibraryRefreshStatus />
-
       <div className="surface practice-row-list">
         {[...problems].sort(compareQuestionDifficulty).map((problem) => {
           const revised = revisedIds.has(problem.id);

@@ -45,7 +45,10 @@ export function SessionLibraryProvider({ userId, initialProblems, canAddQuestion
     };
   }, [store, userId, localMode, router]);
 
-  return <LibraryContext.Provider value={{ store, canAddQuestion }}>{children}</LibraryContext.Provider>;
+  return <LibraryContext.Provider value={{ store, canAddQuestion }}>
+    {children}
+    <LibraryRefreshStatus />
+  </LibraryContext.Provider>;
 }
 
 export function useSessionLibrary() {
@@ -57,8 +60,11 @@ export function useSessionLibrary() {
 
 export function LibraryRefreshStatus() {
   const { refreshing, error, store } = useSessionLibrary();
-  return <>
-    {refreshing && <p className="text-sm text-muted" role="status">Refreshing progress…</p>}
-    {error && <p className="text-sm text-destructive" role="alert">{error}{" "}<button type="button" className="underline" onClick={() => void store.refresh()}>Refresh progress</button></p>}
-  </>;
+  if (!refreshing && !error) return null;
+
+  return <div className="surface fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 max-w-[calc(100vw-2rem)] px-4 py-3 shadow-lg md:right-6 md:bottom-6">
+    {error
+      ? <p className="text-sm text-destructive" role="alert">{error}{" "}<button type="button" className="underline" onClick={() => void store.refresh()}>Refresh progress</button></p>
+      : <p className="text-sm text-muted" role="status">Refreshing progress…</p>}
+  </div>;
 }

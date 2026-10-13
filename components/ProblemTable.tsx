@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { nextProblemSort, sortProblems, type ProblemSort, type ProblemSortColumn } from "@/lib/problems/sorting";
 import { useProblemFilters } from "@/components/useProblemFilters";
-import { useSessionLibrary, LibraryRefreshStatus } from "@/components/SessionLibraryProvider";
+import { useSessionLibrary } from "@/components/SessionLibraryProvider";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -305,8 +305,6 @@ export function ProblemTable() {
           </Button>
         )}
       </div>
-      <LibraryRefreshStatus />
-
       {pageRows.length === 0 ? (
         <div className="surface empty-state">
           <h2 className="font-semibold">No matching problems</h2>
