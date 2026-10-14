@@ -4,6 +4,7 @@ import {
   leaderboardWeekBounds,
   rankLeaderboardTotals,
 } from "../lib/leaderboard/points";
+import { getDisplayName, parseDisplayName } from "../lib/display-name";
 
 function assert(condition: boolean, message: string) {
   if (!condition) {
@@ -55,5 +56,14 @@ const ranked = rankLeaderboardTotals([
 assert(ranked[0]?.display_name === "Ada" && ranked[0].rank === 1, "tie sorts by name");
 assert(ranked[1]?.display_name === "Bea" && ranked[1].rank === 1, "tied points share a rank");
 assert(ranked[2]?.rank === 3, "the next rank skips after a tie");
+
+assert(parseDisplayName("  Ada   Lovelace  ") === "Ada Lovelace", "display name trims whitespace");
+assert(parseDisplayName("   ") === null, "display name cannot be blank");
+assert(parseDisplayName("a".repeat(41)) === null, "display name cannot exceed 40 characters");
+assert(getDisplayName({ email: "ada@example.com", user_metadata: { full_name: "Ada" } }) === "Ada",
+  "saved display name takes precedence on dashboard and settings");
+assert(getDisplayName({ email: "ada@example.com", user_metadata: { name: "OAuth Name" } }) === "OAuth Name",
+  "existing OAuth names still display");
+assert(getDisplayName({ email: "ada@example.com" }) === "ada", "email prefix remains the fallback");
 
 console.log("leaderboard points ok");

@@ -1,8 +1,9 @@
 import { UserRound } from "lucide-react";
 import { PageHeading } from "@/components/PageHeading";
 import { ScoreHistory } from "@/components/ScoreHistory";
+import { DisplayNameForm } from "@/components/DisplayNameForm";
 import { ThemeSettings } from "@/components/ThemeSettings";
-import { getCurrentUser, getScoreActivity } from "@/lib/data";
+import { getCurrentDisplayName, getCurrentUser, getScoreActivity } from "@/lib/data";
 import { leaderboardPoints } from "@/lib/leaderboard/points";
 import styles from "@/components/ScoreHistory.module.css";
 
@@ -16,7 +17,9 @@ const rules = [
 
 export default async function SettingsPage() {
   const now = new Date();
-  const [user, activity] = await Promise.all([getCurrentUser(), getScoreActivity(now)]);
+  const [user, activity, displayName] = await Promise.all([
+    getCurrentUser(), getScoreActivity(now), getCurrentDisplayName(),
+  ]);
   return (
     <div>
       <PageHeading title="Settings & activity" description="Make this workspace yours and see the points you’ve earned over the past month." />
@@ -29,6 +32,7 @@ export default async function SettingsPage() {
               <div><dt>Signed in as</dt><dd>{user?.email}</dd></div>
               <div><dt>Activity time zone</dt><dd>India Standard Time (UTC+5:30)</dd></div>
             </dl>
+            <DisplayNameForm name={displayName} />
           </details>
           <section className={`surface ${styles.rules}`} aria-labelledby="scoring-rules-title">
             <h2 id="scoring-rules-title">How points work</h2>

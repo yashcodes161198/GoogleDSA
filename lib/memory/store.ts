@@ -51,6 +51,7 @@ class MemoryStore {
   interviewSessionProblems: InterviewSessionProblem[] = [];
   leaderboardEvents: LeaderboardEvent[] = [];
   leaderboardComments: LeaderboardComment[] = [];
+  displayName = LOCAL_ADMIN.email.split("@")[0];
   private seeded = false;
 
   ensureSeeded() {
@@ -384,7 +385,10 @@ class MemoryStore {
   }
 
   getLeaderboardComments(): LeaderboardComment[] {
-    return [...this.leaderboardComments];
+    return this.leaderboardComments.map((comment) => ({
+      ...comment,
+      display_name: this.leaderboardName(comment.user_id),
+    }));
   }
 
   addLeaderboardComment(
@@ -430,7 +434,7 @@ class MemoryStore {
 
   private leaderboardName(userId: string): string {
     if (userId === LOCAL_ADMIN.id) {
-      return LOCAL_ADMIN.email.split("@")[0] || "Player";
+      return this.displayName;
     }
     return "Player";
   }

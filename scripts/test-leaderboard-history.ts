@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { activityBounds, buildActivityDays } from "../lib/activity";
-import { getScoreActivity } from "../lib/data";
+import { getCurrentDisplayName, getScoreActivity } from "../lib/data";
 import { LOCAL_ADMIN } from "../lib/config";
 import { getMemoryStore } from "../lib/memory/store";
 
@@ -20,6 +20,12 @@ async function main() {
   store.awardRevision(otherUser, hard.id, 4, end);
   store.awardRevision(otherUser, hard.id, 5, new Date(start.getTime() - 1));
   store.awardSolve(LOCAL_ADMIN.id, hard.id, now);
+  store.addLeaderboardComment(LOCAL_ADMIN.id, "Hello", null, { media_kind: null, media_url: null });
+  store.displayName = "Ada";
+  assert.equal(await getCurrentDisplayName(), "Ada", "settings and dashboard read the edited local name");
+  assert.equal(store.getWeeklyLeaderboard(now).find((entry) => entry.user_id === LOCAL_ADMIN.id)?.display_name,
+    "Ada", "leaderboard reads the edited local name");
+  assert.equal(store.getLeaderboardComments()[0]?.display_name, "Ada", "older comments show the edited name");
 
   const history = await getScoreActivity(now, { userId: otherUser, period: "week" });
   assert.equal(history.error, null, "a signed-in player can view another player's history");

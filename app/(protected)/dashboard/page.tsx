@@ -6,6 +6,7 @@ import { TopicCoverage } from "@/components/TopicCoverage";
 import { DifficultyBadge } from "@/components/ui/badge";
 import {
   getActiveInterviewSession,
+  getCurrentDisplayName,
   getDailyRevisions,
   getDashboardStats,
   getProblemsWithProgress,
@@ -21,10 +22,11 @@ import {
 } from "@/lib/recommendations/nextProblems";
 
 export default async function DashboardPage() {
-  const [problems, queue, active] = await Promise.all([
+  const [problems, queue, active, displayName] = await Promise.all([
     getProblemsWithProgress(),
     getDailyRevisions(DAILY_REVISION_LIMIT),
     getActiveInterviewSession(),
+    getCurrentDisplayName(),
   ]);
   const stats = await getDashboardStats(problems);
   const recommendations = getNextProblems(problems, 5);
@@ -33,7 +35,7 @@ export default async function DashboardPage() {
     <div>
       <PageHeading
         title="Daily practice"
-        description="Keep learning new problems. Make time to revisit the ones you know."
+        description={`Welcome back, ${displayName}. Keep learning new problems and revisiting the ones you know.`}
       >
         <Link href="/problems" className="button-link secondary">
           Browse problems <ArrowUpRight size={15} aria-hidden="true" />

@@ -9,9 +9,11 @@ import { BookOpen, LogOut, Settings } from "lucide-react";
 
 export function AppNav({
   email,
+  displayName,
   localMode = false,
 }: {
   email?: string | null;
+  displayName: string;
   localMode?: boolean;
 }) {
   const pathname = usePathname();
@@ -42,7 +44,7 @@ export function AppNav({
           </summary>
           <div className="surface absolute right-0 top-full z-50 mt-2 w-56 p-4">
             <p className="text-xs font-medium">
-              {localMode ? "Local preview" : "Your workspace"}
+              {displayName}
             </p>
             <p className="mt-1 break-all text-xs text-muted">{email}</p>
             <Link href="/settings" className="nav-link mt-3"
@@ -84,11 +86,11 @@ export function AppNav({
         </Link>
         <div className="sidebar-account">
           <span className="avatar" aria-hidden="true">
-            {email?.[0]?.toUpperCase() ?? "G"}
+            {displayName[0]?.toUpperCase() ?? "G"}
           </span>
           <div className="min-w-0">
             <p className="text-xs font-medium">
-              {localMode ? "Local preview" : "Your workspace"}
+              {displayName}
             </p>
             <p
               className="mt-1 truncate text-xs text-muted"

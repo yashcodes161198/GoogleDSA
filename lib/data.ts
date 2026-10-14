@@ -8,6 +8,7 @@ import {
 } from "@/lib/memory/store";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
+import { getDisplayName } from "@/lib/display-name";
 import { isPracticeToday } from "@/lib/practice-day";
 import { activityBounds, type ActivityPeriod, type ScoreActivity } from "@/lib/activity";
 import { enrichProblemsFromCsv, enrichProblemFromCsv } from "@/lib/problems-enrich";
@@ -30,6 +31,11 @@ import type {
 
 export async function getCurrentUser() {
   return getUser();
+}
+
+export async function getCurrentDisplayName(): Promise<string> {
+  if (isLocalMode()) return getMemoryStore().displayName;
+  return getDisplayName(await getUser());
 }
 
 function revisionStats(problems: ProblemWithProgress[]) {
