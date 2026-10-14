@@ -22,4 +22,5 @@ _Avoid_: Revision
 
 **Revision queue**:
 Solved questions last solved or revised at least 48 hours ago, capped by the daily limit. Unrevised questions come first by oldest solve date; then revised questions by oldest last revision date.
+The selected questions keep their positions while you mark revisions. Replace revised removes the checked questions, selects eligible replacements, and sorts the new queue.
 _Avoid_: Review list, due list

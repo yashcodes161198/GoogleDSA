@@ -54,6 +54,14 @@ export function selectRevisionQueue(
   }).sort(compareRevisionPriority).slice(0, limit);
 }
 
+export function materializeRevisionQueue(
+  queueIds: readonly string[],
+  library: ProblemWithProgress[]
+): ProblemWithProgress[] {
+  const byId = new Map(library.map(problem => [problem.id, problem]));
+  return queueIds.flatMap(id => byId.has(id) ? [byId.get(id)!] : []);
+}
+
 export function resetRevisionQueue(
   current: ProblemWithProgress[],
   checkedIds: ReadonlySet<string>,

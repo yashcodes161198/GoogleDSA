@@ -13,7 +13,7 @@ import {
   ProblemTimerProvider,
   useProblemTimer,
 } from "@/components/ProblemTimerContext";
-import { compareRevisionPriority, resetRevisionQueue, selectRevisionQueue } from "@/lib/revision/selectRevisionQueue";
+import { materializeRevisionQueue, resetRevisionQueue, selectRevisionQueue } from "@/lib/revision/selectRevisionQueue";
 import type { ProblemWithProgress } from "@/lib/types";
 
 function isRevisedToday(problem: ProblemWithProgress): boolean {
@@ -29,28 +29,16 @@ function isRevisedToday(problem: ProblemWithProgress): boolean {
 }
 
 export function ReviseCard({ dailyLimit }: { dailyLimit: number }) {
-  const { problems: library, pendingIds, refreshVersion, refreshing, store } = useSessionLibrary();
+  const { problems: library, pendingIds, refreshing, store } = useSessionLibrary();
   const [queueIds, setQueueIds] = useState(() =>
     selectRevisionQueue(library, { limit: dailyLimit }).map(p => p.id));
-  const [previousVersion, setPreviousVersion] = useState(refreshVersion);
-  if (previousVersion !== refreshVersion) {
-    setPreviousVersion(refreshVersion);
-    const eligible = selectRevisionQueue(library, { limit: library.length });
-    const eligibleIds = new Set(eligible.map(p => p.id));
-    const kept = queueIds.filter(id => eligibleIds.has(id));
-    const keptIds = new Set(kept);
-    setQueueIds([...kept, ...eligible.filter(p => !keptIds.has(p.id)).map(p => p.id)].slice(0, dailyLimit));
-  }
-  const byId = new Map(library.map(p => [p.id, p]));
-  const queue = queueIds
-    .flatMap(id => byId.has(id) ? [byId.get(id)!] : [])
-    .sort(compareRevisionPriority);
+  const queue = materializeRevisionQueue(queueIds, library);
   const revisedIds = new Set(queue.filter(isRevisedToday).map(p => p.id));
   const savingIds = new Set(queueIds.filter(id => pendingIds.has(id)));
   const revisedCount = revisedIds.size;
   const toggleRevised = (id: string) => store.revise(id).catch(() => {});
   const toggleFavorite = (id: string) => {
-    const problem = byId.get(id);
+    const problem = queue.find(p => p.id === id);
     if (problem) void store.setFavorite(id, !problem.user_problem?.is_favorite).catch(() => {});
   };
   const resetQueue = () => {

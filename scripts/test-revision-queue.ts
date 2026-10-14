@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import {
+  materializeRevisionQueue,
   resetRevisionQueue,
   selectRevisionQueue,
 } from "../lib/revision/selectRevisionQueue";
@@ -158,6 +159,38 @@ assert(
     excludeIds: ["excluded"],
   }).map((p) => p.id).join() === "allowed",
   "honor excluded IDs"
+);
+
+const selected = selectRevisionQueue(
+  Array.from({ length: 11 }, (_, index) => problem(`slot-${String(index + 1).padStart(2, "0")}`, {
+    solvedAt: `2026-09-${String(index + 1).padStart(2, "0")}T00:00:00.000Z`,
+  })),
+  { limit: 10, now }
+);
+const selectedIds = selected.map(p => p.id);
+const afterMark = selected.map((p, index) => index === 4
+  ? problem(p.id, { solvedAt: p.user_problem?.solved_at, revisionCount: 1, revisedAt: now.toISOString() })
+  : p).concat(problem("slot-11", { solvedAt: "2026-09-11T00:00:00.000Z" }));
+const visibleAfterMark = materializeRevisionQueue(selectedIds, afterMark);
+assert(
+  visibleAfterMark.map(p => p.id).join() === selectedIds.join() &&
+    visibleAfterMark.length === 10 &&
+    visibleAfterMark.filter(p => p.user_problem?.last_revised_at === now.toISOString()).length === 1,
+  "marking revised and refreshing progress keep ten questions in place and show one revised"
+);
+assert(
+  selectRevisionQueue(afterMark, { limit: 10, now }).map(p => p.id).join() ===
+    selectedIds.filter(id => id !== "slot-05").concat("slot-11").join(),
+  "the marked question is ineligible when the next queue is selected"
+);
+assert(
+  resetRevisionQueue(
+    visibleAfterMark,
+    new Set(["slot-05"]),
+    selectRevisionQueue(afterMark, { limit: 10, now, excludeIds: selectedIds }),
+    10
+  ).map(p => p.id).join() === selectedIds.filter(id => id !== "slot-05").concat("slot-11").join(),
+  "Replace revised removes checked questions and selects an eligible replacement"
 );
 
 const current = [
