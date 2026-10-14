@@ -29,10 +29,10 @@ export default async function SettingsPage() {
           <details className={`surface ${styles.account}`} open>
             <summary><UserRound size={17} aria-hidden="true" />Your account</summary>
             <dl>
+              <div><dt>Display name</dt><dd><DisplayNameForm name={displayName} /></dd></div>
               <div><dt>Signed in as</dt><dd>{user?.email}</dd></div>
               <div><dt>Activity time zone</dt><dd>India Standard Time (UTC+5:30)</dd></div>
             </dl>
-            <DisplayNameForm name={displayName} />
           </details>
           <section className={`surface ${styles.rules}`} aria-labelledby="scoring-rules-title">
             <h2 id="scoring-rules-title">How points work</h2>

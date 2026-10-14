@@ -8,12 +8,11 @@ import { getMemoryStore } from "@/lib/memory/store";
 import { createClient } from "@/lib/supabase/server";
 
 export async function saveDisplayName(
-  _previous: { error: string | null; saved: boolean },
   formData: FormData,
-): Promise<{ error: string | null; saved: boolean }> {
+): Promise<{ error: string | null; name: string | null }> {
   await requireUser();
   const name = parseDisplayName(formData.get("displayName"));
-  if (!name) return { error: "Enter a name of 1 to 40 characters.", saved: false };
+  if (!name) return { error: "Enter a name of 1 to 40 characters.", name: null };
 
   if (isLocalMode()) {
     getMemoryStore().displayName = name;
@@ -22,10 +21,10 @@ export async function saveDisplayName(
     const { error } = await supabase.auth.updateUser({ data: { full_name: name } });
     if (error) {
       console.error("Failed to save display name", error);
-      return { error: "Your name could not be saved. Try again.", saved: false };
+      return { error: "Your name could not be saved. Try again.", name: null };
     }
   }
 
   revalidatePath("/", "layout");
-  return { error: null, saved: true };
+  return { error: null, name };
 }
