@@ -8,6 +8,7 @@ import { getMemoryStore } from "@/lib/memory/store";
 import { createClient } from "@/lib/supabase/server";
 
 const MAX_MEDIA_BYTES = 5 * 1024 * 1024;
+const UUID_PATTERN = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
 
 function identifyMedia(bytes: Buffer): {
   kind: "gif" | "sticker";
@@ -44,7 +45,7 @@ export async function postLeaderboardComment(formData: FormData, parentId: strin
   if (file && file.size > MAX_MEDIA_BYTES) {
     return { ok: false, error: "GIFs and stickers must be 5 MB or smaller." };
   }
-  if (parentId !== null && (typeof parentId !== "string" || !/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(parentId))) {
+  if (parentId !== null && (typeof parentId !== "string" || !UUID_PATTERN.test(parentId))) {
     return { ok: false, error: "That reply target is invalid. Refresh and try again." };
   }
 
@@ -91,5 +92,53 @@ export async function postLeaderboardComment(formData: FormData, parentId: strin
     }
     console.error("Failed to post leaderboard comment", error);
     return { ok: false, error: "Could not post your comment. Please try again." };
+  }
+}
+
+export async function editLeaderboardComment(commentId: string, rawBody: string): Promise<
+  { ok: true } | { ok: false; error: string }
+> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, error: "Sign in to edit your comment." };
+  if (!UUID_PATTERN.test(commentId)) {
+    return { ok: false, error: "That comment is no longer available." };
+  }
+  if (typeof rawBody !== "string" || rawBody.trim().length > 1000) {
+    return { ok: false, error: "Keep your comment under 1,000 characters." };
+  }
+  const body = rawBody.trim();
+
+  try {
+    if (isLocalMode()) {
+      const updated = getMemoryStore().updateLeaderboardComment(user.id, commentId, body);
+      if (!updated) return { ok: false, error: "That comment cannot be edited." };
+    } else {
+      const supabase = await createClient();
+      const { data: comment, error: lookupError } = await supabase
+        .from("leaderboard_comments")
+        .select("media_path")
+        .eq("id", commentId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (lookupError) throw lookupError;
+      if (!comment) return { ok: false, error: "That comment is no longer available." };
+      if (!body && !comment.media_path) {
+        return { ok: false, error: "Write a comment or keep its GIF or sticker." };
+      }
+      const { data: updated, error } = await supabase
+        .from("leaderboard_comments")
+        .update({ body })
+        .eq("id", commentId)
+        .eq("user_id", user.id)
+        .select("id")
+        .maybeSingle();
+      if (error) throw error;
+      if (!updated) return { ok: false, error: "That comment is no longer available." };
+    }
+    revalidatePath("/leaderboard");
+    return { ok: true };
+  } catch (error) {
+    console.error("Failed to edit leaderboard comment", error);
+    return { ok: false, error: "Could not save your comment. Please try again." };
   }
 }

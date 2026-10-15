@@ -408,6 +408,13 @@ class MemoryStore {
     });
   }
 
+  updateLeaderboardComment(userId: string, commentId: string, body: string): boolean {
+    const comment = this.leaderboardComments.find((entry) => entry.id === commentId && entry.user_id === userId);
+    if (!comment || (!body && !comment.media_url)) return false;
+    comment.body = body;
+    return true;
+  }
+
   getScoreActivity(userId: string, now = new Date(), period: ActivityPeriod = "month"): ScoreActivity[] {
     this.ensureSeeded();
     const { start, end } = activityBounds(now, period);

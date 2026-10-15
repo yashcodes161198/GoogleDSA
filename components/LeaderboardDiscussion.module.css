@@ -360,6 +360,33 @@
   text-decoration: underline;
 }
 
+.replyButton + .replyButton {
+  margin-left: 16px;
+}
+
+.editForm {
+  margin-top: 9px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 6px;
+}
+
+.editForm:focus-within {
+  border-color: var(--accent);
+}
+
+.editActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 6px 4px;
+}
+
+.editActions .replyButton {
+  margin-top: 0;
+}
+
 .replies,
 .replyForm {
   margin: 16px 0 0 18px;

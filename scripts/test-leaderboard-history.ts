@@ -26,6 +26,24 @@ async function main() {
   assert.equal(store.getWeeklyLeaderboard(now).find((entry) => entry.user_id === LOCAL_ADMIN.id)?.display_name,
     "Ada", "leaderboard reads the edited local name");
   assert.equal(store.getLeaderboardComments()[0]?.display_name, "Ada", "older comments show the edited name");
+  const ownComment = store.getLeaderboardComments()[0];
+  assert.equal(store.updateLeaderboardComment(otherUser, ownComment.id, "Taken over"), false,
+    "another player cannot edit the comment");
+  assert.equal(store.updateLeaderboardComment(LOCAL_ADMIN.id, ownComment.id, ""), false,
+    "a text-only comment cannot be emptied");
+  assert.equal(store.updateLeaderboardComment(LOCAL_ADMIN.id, ownComment.id, "Edited"), true);
+  assert.equal(store.getLeaderboardComments()[0]?.body, "Edited");
+  store.addLeaderboardComment(LOCAL_ADMIN.id, "Reply", ownComment.id, { media_kind: null, media_url: null });
+  const reply = store.getLeaderboardComments().at(-1)!;
+  assert.equal(store.updateLeaderboardComment(LOCAL_ADMIN.id, reply.id, "Updated reply"), true,
+    "authors can edit their replies");
+  store.addLeaderboardComment(LOCAL_ADMIN.id, "Caption", null,
+    { media_kind: "gif", media_url: "data:image/gif;base64,R0lGODlh" });
+  const mediaComment = store.getLeaderboardComments().at(-1)!;
+  assert.equal(store.updateLeaderboardComment(LOCAL_ADMIN.id, mediaComment.id, ""), true,
+    "media comments may have an empty caption");
+  assert.equal(store.getLeaderboardComments().at(-1)?.media_url, mediaComment.media_url,
+    "editing text keeps the attachment");
 
   const history = await getScoreActivity(now, { userId: otherUser, period: "week" });
   assert.equal(history.error, null, "a signed-in player can view another player's history");
@@ -53,7 +71,7 @@ async function main() {
   const monday = buildActivityDays(history.events, end, "all", "week");
   assert.equal(monday[0].key, "2026-10-12", "Monday 00:00 IST starts a new history week");
   assert.equal(monday.every((day) => day.points === 0), true, "previous week's awards do not leak into the new week");
-  console.log("leaderboard history ok: cross-user access, IST days, week boundaries, daily totals, action filters, settings defaults");
+  console.log("leaderboard history ok: comment ownership and edits, cross-user access, IST days, week boundaries, daily totals, action filters, settings defaults");
 }
 
 main().catch((error) => { console.error(error); process.exitCode = 1; });

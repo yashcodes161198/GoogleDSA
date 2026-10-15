@@ -14,6 +14,7 @@ Track ~770 Google interview LeetCode questions, run 2-hour mock interviews with 
 - **Settings & activity** — account-menu access to the last 30 days of leaderboard awards, grouped by IST date with timestamps, points, question titles, and solve/first revision/second+ revision filters. Uses the existing `013_leaderboard.sql` event records; older unrecorded actions are not reconstructed.
 - **Point corrections** — delete your own mistaken awards from Settings → Score history, with confirmation. This removes points from the week they were earned without changing solved status or revision counts. Requires migration `016_delete_own_score_events.sql` in Supabase. Leaderboard histories remain read-only.
 - **Leaderboard history** — the eye beside every player opens their Monday–Sunday score history, with daily totals (including zero-point days) and the questions, timestamps, solves, and revisions behind each award. Available to all signed-in users using the existing leaderboard event permissions; no new migration required.
+- **Leaderboard discussion** — post comments and replies with optional GIFs or stickers, and edit the text of your own posts. Editing requires migration `019_edit_own_leaderboard_comments.sql` in Supabase.
 - **Responsive UI** — skeleton loaders on every route, optimistic status/completion toggles (no waiting on the server round trip to see the click register)
 
 ## Tech stack
@@ -57,6 +58,7 @@ cp .env.local.example .env.local
    - [`supabase/migrations/004_revision_tracking_rpc.sql`](supabase/migrations/004_revision_tracking_rpc.sql) — atomic revision increment RPC (required for the Revise checkbox).
    - [`supabase/migrations/015_daily_revision_count.sql`](supabase/migrations/015_daily_revision_count.sql) — required to count every revision increment in “Revised today”, including repeated revisions of the same problem. Apply after the earlier migrations. Daily dashboard counters reset at midnight Asia/Kolkata.
    - [`supabase/migrations/016_delete_own_score_events.sql`](supabase/migrations/016_delete_own_score_events.sql) — allows players to delete only their own point awards; requires `013_leaderboard.sql` first.
+   - [`supabase/migrations/017_leaderboard_comments.sql`](supabase/migrations/017_leaderboard_comments.sql), [`018_leaderboard_comment_media.sql`](supabase/migrations/018_leaderboard_comment_media.sql), and [`019_edit_own_leaderboard_comments.sql`](supabase/migrations/019_edit_own_leaderboard_comments.sql) — discussion, media, and author-only comment editing; run in that order.
 3. Copy your project URL and anon key into `.env.local`.
 4. Copy the **service role key** (Settings → API) into `.env.local` for seeding only.
 

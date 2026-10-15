@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ImagePlus, MessageCircle, Send, X } from "lucide-react";
-import { postLeaderboardComment } from "@/app/leaderboard-comment-actions";
+import { editLeaderboardComment, postLeaderboardComment } from "@/app/leaderboard-comment-actions";
 import type { LeaderboardComment } from "@/lib/leaderboard/comments";
 import styles from "./LeaderboardDiscussion.module.css";
 
@@ -139,10 +139,67 @@ function CommentComposer({
   );
 }
 
-function CommentMessage({ comment }: { comment: LeaderboardComment }) {
+function CommentMessage({ comment, currentUserId }: { comment: LeaderboardComment; currentUserId: string }) {
+  const router = useRouter();
+  const [body, setBody] = useState(comment.body);
+  const [draft, setDraft] = useState(comment.body);
+  const [editing, setEditing] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setError(null);
+    try {
+      const result = await editLeaderboardComment(comment.id, draft);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      const saved = draft.trim();
+      setBody(saved);
+      setDraft(saved);
+      setEditing(false);
+      router.refresh();
+    } catch {
+      setError("Could not save your comment. Please try again.");
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <>
-      {comment.body && <p className={styles.bodyText}>{comment.body}</p>}
+      {editing ? (
+        <form id={`edit-form-${comment.id}`} onSubmit={save} className={styles.editForm}>
+          <label className="sr-only" htmlFor={`edit-${comment.id}`}>Edit your comment</label>
+          <textarea
+            id={`edit-${comment.id}`}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            maxLength={1000}
+            required={!comment.media_url}
+            rows={3}
+            disabled={pending}
+            className={styles.textarea}
+          />
+          <div className={styles.editActions}>
+            <button type="submit" disabled={pending} className={styles.postButton}>
+              {pending ? "Saving…" : "Save"}
+            </button>
+            <button
+              type="button"
+              disabled={pending}
+              className={styles.replyButton}
+              onClick={() => { setDraft(body); setError(null); setEditing(false); }}
+            >
+              Cancel
+            </button>
+          </div>
+          {error && <p role="alert" className={styles.error}>{error}</p>}
+        </form>
+      ) : body ? <p className={styles.bodyText}>{body}</p> : null}
       {comment.media_url && (
         <div className={comment.media_kind === "sticker" ? styles.sticker : styles.gif}>
           {/* Keep animated GIFs animated and display local preview data URLs. */}
@@ -152,6 +209,15 @@ function CommentMessage({ comment }: { comment: LeaderboardComment }) {
             alt={`${comment.media_kind === "gif" ? "GIF" : "Sticker"} posted by ${comment.display_name}`}
           />
         </div>
+      )}
+      {comment.user_id === currentUserId && !editing && (
+        <button
+          type="button"
+          className={styles.replyButton}
+          onClick={() => setEditing(true)}
+        >
+          Edit
+        </button>
       )}
     </>
   );
@@ -180,7 +246,7 @@ function Comment({
             {comment.user_id === currentUserId && <span className={styles.you}>You</span>}
             <time dateTime={comment.created_at} className={styles.time}>{commentDate(comment.created_at)}</time>
           </div>
-          <CommentMessage comment={comment} />
+          <CommentMessage comment={comment} currentUserId={currentUserId} />
           <button
             type="button"
             className={styles.replyButton}
@@ -205,7 +271,7 @@ function Comment({
                   {reply.user_id === currentUserId && <span className={styles.you}>You</span>}
                   <time dateTime={reply.created_at} className={styles.time}>{commentDate(reply.created_at)}</time>
                 </div>
-                <CommentMessage comment={reply} />
+                <CommentMessage comment={reply} currentUserId={currentUserId} />
               </div>
             </li>
           ))}
