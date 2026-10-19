@@ -5,7 +5,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import next from "next";
 import { LOCAL_ADMIN } from "../lib/config";
-import { leaderboardWeekBounds } from "../lib/leaderboard/points";
+import { leaderboardWeekBounds, previousLeaderboardWeeks } from "../lib/leaderboard/points";
 import { getMemoryStore } from "../lib/memory/store";
 
 async function main() {
@@ -27,6 +27,12 @@ async function main() {
   store.awardRevision(otherUser, hard.id, 1, new Date(start.getTime() + 60_000));
   store.awardRevision(otherUser, hard.id, 2, new Date(start.getTime() + 120_000));
   store.awardSolve(LOCAL_ADMIN.id, hard.id, start);
+  const pastWeeks = previousLeaderboardWeeks();
+  const [, pastHard, oldestHard] = store.getProblemsCatalog().filter(problem => problem.difficulty === "HARD");
+  store.awardSolve(otherUser, pastHard.id, pastWeeks[0]);
+  store.awardRevision(otherUser, pastHard.id, 1, new Date(pastWeeks[0].getTime() + 60_000));
+  store.awardSolve(LOCAL_ADMIN.id, oldestHard.id, pastWeeks[2]);
+  store.awardSolve(otherUser, oldestHard.id, pastWeeks[2]);
 
   let handle: RequestListener;
   const server = createServer((request, response) => handle(request, response));
@@ -99,13 +105,38 @@ async function main() {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({ path: path.join(output, "mobile-history.png"), fullPage: true });
 
+    await page.goto(`${base}/leaderboard`);
+    const archive = page.getByRole("region", { name: "Past weekly winners" });
+    assert.equal(await archive.getByText("No scoring activity this week.").count(), 1);
+    assert.equal(await archive.getByText("Joint winner", { exact: true }).count(), 2);
+    const winningEye = archive.getByRole("link", { name: /^View Player's winning week/ }).first();
+    await winningEye.click();
+    const winningHistory = page.getByRole("region", { name: "Player's winning week", exact: true });
+    await winningHistory.waitFor();
+    assert.match(await winningHistory.getByRole("definition").first().innerText(), /^12/);
+    assert.equal(await winningHistory.locator("ol li").count(), 2);
+    await winningHistory.getByText("Completed week", { exact: true }).waitFor();
+    await winningHistory.getByRole("button", { name: "First revision", exact: true }).click();
+    await winningHistory.locator("ol li").nth(1).waitFor({ state: "hidden" });
+    assert.match(await winningHistory.getByRole("definition").first().innerText(), /^4/);
+    await page.reload();
+    await winningHistory.waitFor();
+    assert.equal(await winningHistory.locator("ol li").count(), 2);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    await page.screenshot({ path: path.join(output, "mobile-winning-week.png"), fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.screenshot({ path: path.join(output, "desktop-winning-week.png"), fullPage: true });
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.screenshot({ path: path.join(output, "dark-winning-week.png"), fullPage: true });
+    await archive.getByRole("link", { name: /^Hide Player's winning week/ }).click();
+    await winningHistory.waitFor({ state: "hidden" });
     await page.goto(`${base}/leaderboard?user=not-a-player`);
     assert.equal(await page.locator("#leaderboard-score-history").count(), 0, "unknown player does not load history");
     await page.goto(`${base}/settings`);
     const settingsHistory = page.getByRole("region", { name: "Score history", exact: true });
     await settingsHistory.waitFor();
     assert.equal(await settingsHistory.getByRole("button", { name: /points, .*scoring actions/ }).count(), 30);
-    assert.equal(await settingsHistory.locator("ol li").count(), 1, "settings remains scoped to the current player");
+    assert.equal(await settingsHistory.locator("ol li").count(), 2, "settings includes this player's current and past awards");
     assert.deepEqual(errors, [], "no browser or hydration errors");
     console.log("leaderboard browser checks passed: every player, keyboard, daily chart, action/date filters, reload, switching, closing, mobile, dark theme, settings");
   } catch (error) {

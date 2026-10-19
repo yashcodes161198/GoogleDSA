@@ -15,7 +15,7 @@ import styles from "./ScoreHistory.module.css";
 
 const icons = { solved: Check, "first-revision": RotateCcw, "later-revision": RefreshCw };
 
-export function ScoreHistory({ events, summary, nextCursor, userId, now, error, period = "month", title = "Score history", canDelete = false }: {
+export function ScoreHistory({ events, summary, nextCursor, userId, now, error, period = "month", title = "Score history", canDelete = false, completedWeek = false }: {
   events: ScoreActivity[];
   summary: ActivitySummary[];
   nextCursor: Cursor | null;
@@ -25,6 +25,7 @@ export function ScoreHistory({ events, summary, nextCursor, userId, now, error, 
   period?: ActivityPeriod;
   title?: string;
   canDelete?: boolean;
+  completedWeek?: boolean;
 }) {
   const historyId = useId();
   const isWeekly = period === "week";
@@ -119,7 +120,7 @@ export function ScoreHistory({ events, summary, nextCursor, userId, now, error, 
           <h2 id={`${historyId}-title`}>{title}</h2>
           <p>{formatActivityDate(days[0].date)} – {formatActivityDate(isWeekly ? days[6].date : now)} · All times in IST</p>
         </div>
-        <span className={styles.period}>{isWeekly ? "This week" : "Last 30 days"}</span>
+        <span className={styles.period}>{isWeekly ? completedWeek ? "Completed week" : "This week" : "Last 30 days"}</span>
       </div>
 
       {error ? (

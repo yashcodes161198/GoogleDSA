@@ -1,0 +1,31 @@
+.archive { overflow: hidden; }
+.heading { display: flex; align-items: center; gap: 12px; padding: 24px; }
+.heading h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+.heading p { margin-top: 4px; color: var(--muted); font-size: 13px; }
+.trophy { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; border-radius: 12px; color: var(--accent-text); background: var(--accent-soft); }
+.weeks, .winners { list-style: none; margin: 0; padding: 0; }
+.week { padding: 20px 24px; border-top: 1px solid var(--line); }
+.weekHeading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; margin-bottom: 12px; }
+.weekHeading h3 { font-size: 14px; font-weight: 600; }
+.weekHeading > span { color: var(--muted); font-size: 12px; }
+.winners { display: grid; gap: 12px; }
+.winner { display: flex; align-items: center; gap: 12px; }
+.person { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+.avatar { display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: var(--surface-subtle); color: var(--accent-text); font-size: 14px; font-weight: 600; }
+.name { display: flex; flex-direction: column; min-width: 0; }
+.name > span { overflow-wrap: anywhere; font-size: 14px; font-weight: 550; }
+.name small, .score small { color: var(--muted); font-size: 12px; }
+.score { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+.score strong { font-size: 20px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.score strong span { font-size: 12px; font-weight: 500; color: var(--muted); }
+.view { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--line); border-radius: 7px; color: var(--accent-text); }
+.view:hover, .view[aria-expanded="true"] { background: var(--accent-soft); }
+.view:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 3px; }
+.history { margin-top: 16px; }
+.empty, .error { font-size: 13px; color: var(--muted); }
+.error { padding: 0 24px 24px; }
+@media (max-width: 639px) {
+  .heading { padding: 20px 16px; align-items: flex-start; }
+  .week { padding: 16px; }
+  .winner, .person { gap: 8px; }
+}

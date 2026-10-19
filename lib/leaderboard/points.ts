@@ -5,6 +5,11 @@ export type LeaderboardEventType = "solve" | "revision";
 const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000;
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
+export function previousLeaderboardWeeks(now = new Date()): Date[] {
+  const { start } = leaderboardWeekBounds(now);
+  return [1, 2, 3].map(weeks => new Date(start.getTime() - weeks * WEEK_MS));
+}
+
 export function leaderboardPoints(
   difficulty: Difficulty,
   eventType: LeaderboardEventType,

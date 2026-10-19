@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { previousLeaderboardWeeks } from "@/lib/leaderboard/points";
 import { readAllPages, READ_PAGE_SIZE } from "@/lib/read-all-pages";
 import type { LeaderboardComment } from "@/lib/leaderboard/comments";
 import { DAILY_REVISION_LIMIT, isLocalMode } from "@/lib/config";
@@ -111,6 +112,31 @@ export async function getWeeklyLeaderboard(): Promise<{
     rank: Number(entry.rank),
   }));
   return { entries, unavailable: false };
+}
+
+export async function getPreviousWeeklyWinners(now = new Date()): Promise<{
+  weeks: { start: string; winners: LeaderboardEntry[] }[];
+  error: string | null;
+}> {
+  const weeks = previousLeaderboardWeeks(now).map(start => ({ start: start.toISOString(), winners: [] as LeaderboardEntry[] }));
+  if (isLocalMode()) {
+    return { weeks: weeks.map(week => ({ ...week,
+      winners: getMemoryStore().getWeeklyLeaderboard(new Date(week.start)).filter(entry => entry.rank === 1),
+    })), error: null };
+  }
+  const supabase = await createClient();
+  try {
+    const { data, error } = await supabase.rpc("get_previous_weekly_winners");
+    if (error) throw error;
+    const rows = (data ?? []) as (LeaderboardEntry & { week_start: string })[];
+    return { weeks: weeks.map(week => ({ ...week, winners: rows
+      .filter(row => new Date(row.week_start).toISOString() === week.start)
+      .map(row => ({ user_id: row.user_id, display_name: row.display_name, points: Number(row.points), rank: 1 })),
+    })), error: null };
+  } catch (error) {
+    console.error("Failed to load previous weekly winners", error);
+    return { weeks, error: "Past winners could not be loaded. Refresh to try again." };
+  }
 }
 
 export async function getLeaderboardComments(parentId: string | null = null, cursor: Cursor | null = null): Promise<{

@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Eye, X } from "lucide-react";
+import { Eye, Trophy, X } from "lucide-react";
 import { PageHeading } from "@/components/PageHeading";
 import { ScoreHistory } from "@/components/ScoreHistory";
 import { LeaderboardDiscussion } from "@/components/LeaderboardDiscussion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getCurrentUser, getLeaderboardComments, getScoreActivity, getWeeklyLeaderboard } from "@/lib/data";
+import { getCurrentUser, getLeaderboardComments, getScoreActivity, getWeeklyLeaderboard, getPreviousWeeklyWinners } from "@/lib/data";
 import { formatLeaderboardWeek } from "@/lib/leaderboard/points";
+import styles from "./winners.module.css";
 
 const RULES = [
   { event: "Solve a new question", medium: 4, hard: 8 },
@@ -14,19 +15,24 @@ const RULES = [
 ];
 
 export default async function LeaderboardPage({ searchParams }: {
-  searchParams: Promise<{ user?: string | string[] }>;
+  searchParams: Promise<{ user?: string | string[]; week?: string | string[] }>;
 }) {
   const now = new Date();
-  const [user, leaderboard, discussion, query] = await Promise.all([
+  const [user, leaderboard, discussion, query, past] = await Promise.all([
     getCurrentUser(),
     getWeeklyLeaderboard(),
     getLeaderboardComments(),
     searchParams,
+    getPreviousWeeklyWinners(now),
   ]);
   const weekLabel = formatLeaderboardWeek(now);
-  const selectedEntry = leaderboard.entries.find((entry) => entry.user_id === query.user);
-  const history = selectedEntry
-    ? await getScoreActivity(now, { userId: selectedEntry.user_id, period: "week" })
+  const selectedWeek = past.weeks.find(week => week.start === query.week);
+  const selectedWinner = selectedWeek?.winners.find(entry => entry.user_id === query.user);
+  const selectedEntry = !query.week ? leaderboard.entries.find((entry) => entry.user_id === query.user) : undefined;
+  const historyEntry = selectedWinner ?? selectedEntry;
+  const historyDate = selectedWinner && selectedWeek ? new Date(selectedWeek.start) : now;
+  const history = historyEntry
+    ? await getScoreActivity(historyDate, { userId: historyEntry.user_id, period: "week" })
     : null;
 
   return (
@@ -146,6 +152,63 @@ export default async function LeaderboardPage({ searchParams }: {
           )}
         </CardContent>
       </Card>
+      <section className={`surface ${styles.archive}`} aria-labelledby="past-winners-title">
+        <div className={styles.heading}>
+          <span className={styles.trophy}><Trophy size={21} aria-hidden="true" /></span>
+          <div>
+            <h2 id="past-winners-title">Past weekly winners</h2>
+            <p>The last three completed weeks. A place for every winning run.</p>
+          </div>
+        </div>
+        {past.error ? <p className={styles.error} role="status">{past.error}</p> : (
+          <ol className={styles.weeks}>
+            {past.weeks.map((week, index) => (
+              <li key={week.start} className={styles.week}>
+                <div className={styles.weekHeading}>
+                  <h3>{formatLeaderboardWeek(new Date(week.start))}</h3>
+                  <span>{index === 0 ? "Last week" : `${index + 1} weeks ago`}</span>
+                </div>
+                {week.winners.length === 0 ? (
+                  <p className={styles.empty}>No scoring activity this week.</p>
+                ) : (
+                  <ul className={styles.winners}>
+                    {week.winners.map(winner => {
+                      const selected = selectedWeek?.start === week.start && selectedWinner?.user_id === winner.user_id;
+                      const label = `${selected ? "Hide" : "View"} ${winner.display_name}'s winning week of ${formatLeaderboardWeek(new Date(week.start))}`;
+                      return (
+                        <li key={winner.user_id}>
+                          <div className={styles.winner}>
+                            <div className={styles.person}>
+                              <span className={styles.avatar} aria-hidden="true">{winner.display_name.slice(0, 1).toUpperCase()}</span>
+                              <div className={styles.name}>
+                                <span>{winner.display_name}{winner.user_id === user?.id ? " (you)" : ""}</span>
+                                <small>{week.winners.length > 1 ? "Joint winner" : "Weekly winner"}</small>
+                              </div>
+                            </div>
+                            <div className={styles.score}><strong>{winner.points} <span>pts</span></strong><small>Final score</small></div>
+                            <Link href={selected ? "/leaderboard" : `/leaderboard?user=${encodeURIComponent(winner.user_id)}&week=${encodeURIComponent(week.start)}`}
+                              scroll={false} prefetch={false} aria-label={label} title={label} aria-expanded={selected}
+                              aria-controls={selected ? "winning-week-history" : undefined} className={styles.view}>
+                              {selected ? <X size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+                            </Link>
+                          </div>
+                          {selected && history && (
+                            <div id="winning-week-history" className={styles.history}>
+                              <ScoreHistory key={`${week.start}:${winner.user_id}`} events={history.events} error={history.error}
+                                now={week.start} summary={history.summary} nextCursor={history.nextCursor} userId={winner.user_id}
+                                period="week" completedWeek title={`${winner.display_name}'s winning week`} />
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
       {user && <LeaderboardDiscussion key={now.toISOString()} comments={discussion.comments} nextCursor={discussion.nextCursor} error={discussion.error} currentUserId={user.id} />}
     </div>
   );
