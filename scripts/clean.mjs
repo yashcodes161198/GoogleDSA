@@ -1,10 +1,11 @@
 import { rmSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-// Runs via the `prebuild` npm script before `next build`.
-// Vercel restores the previous deployment's build cache into `.next` before
-// `npm run build` runs. That cache can come from a radically different build
-// (here: the old `proxy.ts` version) and break the new build in ways that don't
-// reproduce locally. Wiping `.next` here forces a clean build every time.
-for (const dir of [".next", "out"]) {
-  rmSync(dir, { recursive: true, force: true });
+// Explicit recovery command; ordinary builds retain their cache.
+const root = path.resolve(fileURLToPath(new URL("../", import.meta.url)));
+for (const dir of [".next", ".next-verification", ".next-ui-preview", "out"]) {
+  const target = path.resolve(root, dir);
+  if (path.dirname(target) !== root) throw new Error("Clean target must stay inside the project");
+  rmSync(target, { recursive: true, force: true });
 }

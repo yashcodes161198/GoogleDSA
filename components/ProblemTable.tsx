@@ -1,15 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import styles from "./ProblemTable.module.css";
 import { nextProblemSort, sortProblems, type ProblemSort, type ProblemSortColumn } from "@/lib/problems/sorting";
 import { useProblemFilters } from "@/components/useProblemFilters";
 import { useSessionLibrary } from "@/components/SessionLibraryProvider";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { DifficultyBadge, StatusBadge } from "@/components/ui/badge";
-import { BestSolveTimeLabel } from "@/components/BestSolveTimeLabel";
 import { ProblemLinks } from "@/components/ProblemLinks";
 import { ProblemConcepts } from "@/components/ProblemConcepts";
 import { formatDurationSeconds } from "@/lib/format-duration";
@@ -317,45 +316,8 @@ export function ProblemTable() {
         </div>
       ) : (
         <>
-          <div className="space-y-3 xl:hidden">
-            {pageRows.map((p) => (
-              <Card key={p.id}>
-                <CardContent className="space-y-3 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 items-start gap-1">
-                      <FavoriteButton
-                        favorite={p.user_problem?.is_favorite === true}
-                        onToggle={() => toggleFavorite(p.id)}
-                      />
-                      <span className="pt-1 text-base font-medium leading-snug">
-                        {p.title}
-                      </span>
-                      <ProblemConcepts title={p.title} topics={p.topics} />
-                    </div>
-                    <DifficultyBadge difficulty={p.difficulty} />
-                  </div>
-                  <p className="text-xs leading-relaxed text-muted">
-                    {p.frequency.toFixed(1)}% frequency
-                  </p>
-                  <ProblemLinks links={resolveProblemLinks(p)} />
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <StatusBadge status={getProblemProgressStatus(p)} />
-                    <BestSolveTimeLabel
-                      seconds={p.user_problem?.best_solve_seconds}
-                      className="text-xs text-muted"
-                    />
-                  </div>
-                  <ProblemActions
-                    problem={p}
-                    onStatusChange={setStatusFor}
-                    onRevise={incrementRevision}
-                  />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <div className="surface hidden overflow-x-auto xl:block">
-            <table className="problem-table">
+          <div className="surface overflow-x-auto">
+            <table className={`problem-table ${styles.responsive}`} role="table">
               <colgroup>
                 <col />
                 <col style={{ width: 180 }} />
@@ -371,8 +333,8 @@ export function ProblemTable() {
                 descending, and original order. Progress uses the oldest revision
                 first within each revision count.
               </caption>
-              <thead>
-                <tr>
+              <thead role="rowgroup">
+                <tr role="row">
                   <SortableHeader column="title" label="Problem" sort={sort} onSort={changeSort} />
                   <th scope="col">Open</th>
                   <SortableHeader column="difficulty" label="Difficulty" sort={sort} onSort={changeSort} />
@@ -382,10 +344,10 @@ export function ProblemTable() {
                   <th scope="col">Action</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody role="rowgroup">
                 {pageRows.map((p) => (
-                  <tr key={p.id}>
-                    <td className="problem-cell">
+                  <tr key={p.id} role="row" data-problem-id={p.id}>
+                    <td role="cell" className="problem-cell">
                       <div className="flex min-w-0 items-center gap-1">
                         <FavoriteButton
                           favorite={p.user_problem?.is_favorite === true}
@@ -400,26 +362,26 @@ export function ProblemTable() {
                         <ProblemConcepts title={p.title} topics={p.topics} />
                       </div>
                     </td>
-                    <td>
+                    <td role="cell">
                       <ProblemLinks compact links={resolveProblemLinks(p)} />
                     </td>
-                    <td>
+                    <td role="cell">
                       <DifficultyBadge difficulty={p.difficulty} />
                     </td>
-                    <td className="tabular-nums text-muted">
+                    <td role="cell" className="tabular-nums text-muted">
                       {p.frequency.toFixed(1)}%
                     </td>
-                    <td className="whitespace-nowrap font-mono text-xs text-muted">
+                    <td role="cell" className="whitespace-nowrap font-mono text-xs text-muted">
                       {p.user_problem?.best_solve_seconds != null
                         ? formatDurationSeconds(
                             p.user_problem.best_solve_seconds,
                           )
                         : "—"}
                     </td>
-                    <td>
+                    <td role="cell">
                       <StatusBadge status={getProblemProgressStatus(p)} />
                     </td>
-                    <td>
+                    <td role="cell">
                       <ProblemActions
                         problem={p}
                         onStatusChange={setStatusFor}

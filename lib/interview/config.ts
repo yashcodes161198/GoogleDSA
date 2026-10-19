@@ -1,4 +1,5 @@
 import type { Difficulty } from "@/lib/types";
+import { isUuid } from "@/lib/validation";
 
 export type InterviewDifficultyMix = Record<Difficulty, number>;
 
@@ -33,15 +34,21 @@ export function getInterviewProblemCount(config: InterviewConfig): number {
 export function validateInterviewConfig(
   config: InterviewConfig,
 ): string | null {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return "Choose a valid interview configuration.";
   if (config.selectedProblemIds !== undefined) {
     const ids = config.selectedProblemIds;
     if (!Array.isArray(ids) || ids.length === 0)
       return "Select at least one question.";
-    if (ids.some((id) => typeof id !== "string" || !id.trim()))
+    if (ids.some((id) => !isUuid(id)))
       return "Choose valid questions from the list.";
     if (new Set(ids).size !== ids.length)
       return "Each question can only be selected once.";
   } else {
+    if (!config.difficultyMix || typeof config.difficultyMix !== "object" || Array.isArray(config.difficultyMix) ||
+      Object.keys(config.difficultyMix).length !== 3 ||
+      !["EASY", "MEDIUM", "HARD"].every(key => Object.hasOwn(config.difficultyMix, key)))
+      return "Question counts must include easy, medium and hard.";
     const counts = Object.values(config.difficultyMix);
     if (counts.some((count) => !Number.isInteger(count) || count < 0)) {
       return "Question counts must be whole numbers of zero or more.";

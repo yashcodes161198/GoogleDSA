@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { readAllPages, READ_PAGE_SIZE } from "@/lib/read-all-pages";
 import type { LeaderboardComment } from "@/lib/leaderboard/comments";
 import { DAILY_REVISION_LIMIT, isLocalMode } from "@/lib/config";
 import {
@@ -68,20 +69,18 @@ function revisionStats(problems: ProblemWithProgress[]) {
 // such as cookies() inside an unstable_cache scope. React cache() still
 // deduplicates the catalog lookup for the current request without breaking
 // authentication in production.
-const getProblemsCatalog = cache(async () => {
+const getProblemsCatalog = cache(async (supabase: Awaited<ReturnType<typeof createClient>>) => {
   if (isLocalMode()) {
     return getMemoryStore().getProblemsCatalog();
   }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("problems")
-    .select("id,slug,title,difficulty,frequency,acceptance_rate,link,links,topics")
-    .order("frequency", { ascending: false })
-    .order("id", { ascending: true });
-
-  if (error) throw error;
-  return enrichProblemsFromCsv((data as Problem[]) ?? []);
+  const problems = await readAllPages<Problem, string>(after => {
+    const query = supabase.from("problems")
+      .select("id,slug,title,difficulty,frequency,acceptance_rate,link,links,topics")
+      .order("id", { ascending: true }).limit(READ_PAGE_SIZE);
+    return after === null ? query : query.gt("id", after);
+  }, row => row.id);
+  return enrichProblemsFromCsv(problems).sort((a, b) => b.frequency - a.frequency || a.id.localeCompare(b.id));
 });
 
 export async function getWeeklyLeaderboard(): Promise<{
@@ -198,22 +197,25 @@ export async function getScoreActivity(now = new Date(), options: {
 export async function getProblemsWithProgress(): Promise<ProblemWithProgress[]> {
   const user = await getCurrentUser();
   if (!user) return [];
+  return getProblemsForUser(user.id, isLocalMode() ? null : await createClient());
+}
 
+// Callers must authenticate before supplying this request's user and client.
+export async function getProblemsForUser(userId: string, supabase: Awaited<ReturnType<typeof createClient>> | null): Promise<ProblemWithProgress[]> {
   if (isLocalMode()) {
-    return getMemoryStore().getProblemsWithProgress(getLocalUserId()).map(problem => ({
+    return getMemoryStore().getProblemsWithProgress(userId).map(problem => ({
       ...problem, user_problem: problem.user_problem ? practiceProgress(problem.user_problem) : null,
     }));
   }
 
-  const supabase = await createClient();
-  const [problems, { data: userProblems, error }] = await Promise.all([
-    getProblemsCatalog(),
-    supabase.from("user_problems").select("user_id,problem_id,status,solved_at,ease_factor,interval_days,repetitions,next_review_at,last_reviewed_at,revision_count,last_revised_at,daily_revision_count,last_solve_seconds,best_solve_seconds,is_favorite").eq("user_id", user.id),
+  if (!supabase) throw new Error("Authenticated client required");
+  const [problems, userProblems] = await Promise.all([
+    getProblemsCatalog(supabase),
+    getUserProgress(supabase, userId),
   ]);
-  if (error) throw error;
 
   const progressMap = new Map(
-    (userProblems as UserProblem[] | null)?.map((up) => [up.problem_id, up]) ?? []
+    userProblems.map((up) => [up.problem_id, up])
   );
 
   return (problems as Problem[]).map((problem) => {
@@ -226,6 +228,15 @@ export async function getProblemsWithProgress(): Promise<ProblemWithProgress[]> 
   });
 }
 
+function getUserProgress(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
+  return readAllPages<UserProblem, string>(after => {
+    const query = supabase.from("user_problems")
+      .select("user_id,problem_id,status,solved_at,ease_factor,interval_days,repetitions,next_review_at,last_reviewed_at,revision_count,last_revised_at,daily_revision_count,last_solve_seconds,best_solve_seconds,is_favorite")
+      .eq("user_id", userId).order("problem_id", { ascending: true }).limit(READ_PAGE_SIZE);
+    return after === null ? query : query.gt("problem_id", after);
+  }, row => row.problem_id);
+}
+
 function practiceProgress(progress: UserProblem): Omit<UserProblem, "notes"> {
   // Keep local fixtures and hosted payloads on the same projection.
   const { user_id, problem_id, status, solved_at, ease_factor, interval_days, repetitions,
@@ -234,43 +245,6 @@ function practiceProgress(progress: UserProblem): Omit<UserProblem, "notes"> {
   return { user_id, problem_id, status, solved_at, ease_factor, interval_days, repetitions,
     next_review_at, last_reviewed_at, revision_count, last_revised_at, daily_revision_count,
     last_solve_seconds, best_solve_seconds, is_favorite };
-}
-
-type DashboardStatsRpcRow = {
-  total: number;
-  solved: number;
-  unsolved: number;
-  reviewsDue: number;
-  byDifficulty: Record<Difficulty, { solved: number; total: number }>;
-  topicCoverage: { topic: string; solved: number; total: number }[];
-};
-
-async function getDashboardStatsRpc(
-  userId: string
-): Promise<DashboardStats | null> {
-  if (isLocalMode()) return null;
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("get_user_dashboard_stats", {
-    p_user_id: userId,
-  });
-  if (error || !data) return null;
-  const d = data as DashboardStatsRpcRow;
-  const zero = { solved: 0, total: 0 };
-  return {
-    total: d.total,
-    solved: d.solved,
-    unsolved: d.unsolved,
-    solvedToday: 0,
-    reviewsDue: d.reviewsDue,
-    revisionsDueToday: 0,
-    revisionsDoneToday: 0,
-    byDifficulty: {
-      EASY: d.byDifficulty?.EASY ?? zero,
-      MEDIUM: d.byDifficulty?.MEDIUM ?? zero,
-      HARD: d.byDifficulty?.HARD ?? zero,
-    },
-    topicCoverage: (d.topicCoverage ?? []).slice(0, 12),
-  };
 }
 
 export function computeStatsFromProblems(
@@ -330,21 +304,7 @@ export function computeStatsFromProblems(
 export async function getDashboardStats(
   problems?: ProblemWithProgress[]
 ): Promise<DashboardStats> {
-  const user = await getCurrentUser();
-  if (user && !isLocalMode()) {
-    try {
-      const rpc = await getDashboardStatsRpc(user.id);
-      if (rpc) {
-        const list = problems ?? (await getProblemsWithProgress());
-        const rev = revisionStats(list);
-        return { ...rpc, ...rev };
-      }
-    } catch {
-      // RPC not installed yet — fall back to JS.
-    }
-  }
-  const list = problems ?? (await getProblemsWithProgress());
-  return computeStatsFromProblems(list);
+  return computeStatsFromProblems(problems ?? (await getProblemsWithProgress()));
 }
 
 export async function getDailyRevisions(
@@ -408,18 +368,19 @@ export async function getInterviewSessionsWithSummary(): Promise<
   const sessions = await getInterviewSessions();
   if (sessions.length === 0) return [];
 
-  const sessionIds = sessions.map((s) => s.id);
-  const { data: sessionProblems } = await supabase
-    .from("interview_session_problems")
-    .select("session_id, completed, problem_id, problem:problems(difficulty, title)")
-    .in("session_id", sessionIds);
-
   type Row = {
     session_id: string;
+    position: number;
     completed: boolean;
     problem_id: string;
     problem: { difficulty: Difficulty; title: string } | null;
   };
+  const sessionProblems = (await Promise.all(sessions.map(session => readAllPages<Row, number>(after => {
+    const query = supabase.from("interview_session_problems")
+      .select("session_id,position,completed,problem_id,problem:problems(difficulty,title)")
+      .eq("session_id", session.id).order("position").limit(READ_PAGE_SIZE);
+    return (after === null ? query : query.gt("position", after)).returns<Row[]>();
+  }, row => row.position)))).flat();
   const bySession = new Map<string, Row[]>();
   for (const row of (sessionProblems as unknown as Row[] | null) ?? []) {
     const list = bySession.get(row.session_id) ?? [];
@@ -486,13 +447,12 @@ export async function getInterviewSession(
     session.status = "completed";
   }
 
-  const { data: sessionProblems } = await supabase
-    .from("interview_session_problems")
-    .select("*, problem:problems(*)")
-    .eq("session_id", sessionId)
-    .order("position");
-
-  const rows = (sessionProblems as InterviewSessionProblem[]) ?? [];
+  const rows = await readAllPages<InterviewSessionProblem, number>(after => {
+    const query = supabase.from("interview_session_problems")
+      .select("*, problem:problems(*)").eq("session_id", sessionId)
+      .order("position").limit(READ_PAGE_SIZE);
+    return after === null ? query : query.gt("position", after);
+  }, row => row.position);
   const problemIds = rows.map((r) => r.problem_id);
 
   const globalStatusByProblem = new Map<string, ProblemStatus>();
@@ -500,13 +460,7 @@ export async function getInterviewSession(
   const bestSolveByProblem = new Map<string, number | null>();
   const favoriteByProblem = new Map<string, boolean>();
   if (problemIds.length > 0) {
-    const { data: userProblems } = await supabase
-      .from("user_problems")
-      .select(
-        "problem_id, status, last_solve_seconds, best_solve_seconds, is_favorite"
-      )
-      .eq("user_id", user.id)
-      .in("problem_id", problemIds);
+    const userProblems = await getUserProgress(supabase, user.id);
 
     for (const up of userProblems ?? []) {
       globalStatusByProblem.set(up.problem_id, up.status as ProblemStatus);

@@ -14,6 +14,7 @@ const UUID_PATTERN = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/
 export async function postLeaderboardComment(formData: FormData, parentId: string | null): Promise<
   { ok: true } | { ok: false; error: string }
 > {
+  if (!(formData instanceof FormData)) return { ok: false, error: "Invalid comment form." };
   const user = await getCurrentUser();
   if (!user) return { ok: false, error: "Sign in to join the discussion." };
   const rawBody = formData.get("body");
@@ -87,7 +88,7 @@ export async function editLeaderboardComment(commentId: string, rawBody: string)
 > {
   const user = await getCurrentUser();
   if (!user) return { ok: false, error: "Sign in to edit your comment." };
-  if (!UUID_PATTERN.test(commentId)) {
+  if (typeof commentId !== "string" || !UUID_PATTERN.test(commentId)) {
     return { ok: false, error: "That comment is no longer available." };
   }
   if (typeof rawBody !== "string" || rawBody.trim().length > 1000) {

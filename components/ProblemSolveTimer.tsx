@@ -19,6 +19,7 @@ export function ProblemSolveTimer({
     isRunning,
     start,
     stop,
+    stopAndPersist,
     reset,
   } = useProblemTimer();
 
@@ -58,6 +59,7 @@ export function ProblemSolveTimer({
           {saveError && (
             <p className="mt-1 text-xs text-destructive" role="alert">
               {saveError}
+              {" "}<button type="button" className="underline" onClick={() => void stopAndPersist(problemId)}>Retry time save</button>
             </p>
           )}
         </div>

@@ -7,11 +7,11 @@ import { DifficultyBadge } from "@/components/ui/badge";
 import {
   getActiveInterviewSession,
   getCurrentDisplayName,
-  getDailyRevisions,
-  getDashboardStats,
+  computeStatsFromProblems,
   getProblemsWithProgress,
 } from "@/lib/data";
 import { DAILY_REVISION_LIMIT } from "@/lib/config";
+import { selectRevisionQueue } from "@/lib/revision/selectRevisionQueue";
 import {
   DEFAULT_INTERVIEW_CONFIG,
   getInterviewProblemCount,
@@ -22,13 +22,13 @@ import {
 } from "@/lib/recommendations/nextProblems";
 
 export default async function DashboardPage() {
-  const [problems, queue, active, displayName] = await Promise.all([
+  const [problems, active, displayName] = await Promise.all([
     getProblemsWithProgress(),
-    getDailyRevisions(DAILY_REVISION_LIMIT),
     getActiveInterviewSession(),
     getCurrentDisplayName(),
   ]);
-  const stats = await getDashboardStats(problems);
+  const stats = computeStatsFromProblems(problems);
+  const queue = selectRevisionQueue(problems, { limit: DAILY_REVISION_LIMIT });
   const recommendations = getNextProblems(problems, 5);
   const config = DEFAULT_INTERVIEW_CONFIG;
   return (

@@ -56,11 +56,12 @@ export function InterviewSessionView({
     ]),
   );
 
-  const toggleComplete = (problemId: string, completed: boolean) => {
+  const toggleComplete = (problemId: string, completed: boolean, saveTime?: () => Promise<void>) => {
     startTransition(async () => {
       setSaveError(null);
       applySessionUpdate({ kind: "complete", problemId, completed });
       try {
+        await saveTime?.();
         await updateInterviewProblem(session.id, problemId, completed);
       } catch (err) {
         console.error(err);
@@ -147,7 +148,7 @@ function InterviewSessionContent({
   completedCount: number;
   pending: boolean;
   finish: (status: "completed" | "abandoned") => void;
-  toggleComplete: (problemId: string, completed: boolean) => void;
+  toggleComplete: (problemId: string, completed: boolean, saveTime?: () => Promise<void>) => void;
   toggleFavorite: (problemId: string) => void;
 }) {
   const { onLeetCodeClick, stopAndPersist } = useProblemTimer();
@@ -156,11 +157,8 @@ function InterviewSessionContent({
     compareQuestionDifficulty(a.problem ?? {}, b.problem ?? {}),
   );
 
-  const handleCompleteChange = async (problemId: string, checked: boolean) => {
-    if (checked) {
-      await stopAndPersist(problemId);
-    }
-    toggleComplete(problemId, checked);
+  const handleCompleteChange = (problemId: string, checked: boolean) => {
+    toggleComplete(problemId, checked, checked ? () => stopAndPersist(problemId) : undefined);
   };
 
   return (

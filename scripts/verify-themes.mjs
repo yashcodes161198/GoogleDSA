@@ -8,7 +8,7 @@ export async function verifyThemes(base, authenticated = false) {
   if (!runtime) throw new Error("Set CODEX_BROWSER_RUNTIME to the bundled node_modules directory.");
   const require = createRequire(path.join(runtime, "package.json"));
   const { chromium } = require("playwright");
-  const output = path.resolve("output/theme-verification");
+  const output = path.resolve(process.env.GOOGLEDSA_VERIFY_BUILD === "true" ? "output/verification/themes" : "output/theme-verification");
   await mkdir(output, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   const failures = [];
@@ -20,6 +20,7 @@ export async function verifyThemes(base, authenticated = false) {
     await target.addCookies([{ name: "sb-auth-test-auth-token", url: base,
       value: `base64-${Buffer.from(JSON.stringify(session)).toString("base64url")}` }]);
   }
+  await context.route("**/*", route => ["localhost", "127.0.0.1"].includes(new URL(route.request().url()).hostname) ? route.continue() : route.abort());
   if (authenticated) await authenticate(context);
   const page = await context.newPage();
   page.on("pageerror", (error) => failures.push(error.message));

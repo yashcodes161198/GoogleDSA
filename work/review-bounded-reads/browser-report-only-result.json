@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "mode": "report-only",
+  "documents": {
+    "settings": {
+      "bytes": 153526
+    },
+    "leaderboard": {
+      "bytes": 61144
+    }
+  },
+  "backendCounts": {
+    "refresh": 21,
+    "dashboard": 22
+  },
+  "checks": [
+    "one refresh authentication",
+    "one dashboard snapshot; no stats RPC",
+    "single mobile/desktop/All control tree and keyboard focus",
+    "optimistic completion before delayed time save",
+    "time failure retry and completion failure rollback",
+    "non-practice documents omit catalog/progress; no focus bootstrap",
+    "20-thread/reply pages",
+    "lazy media and blob preview",
+    "50-event pages with full totals",
+    "action filters",
+    "deletion totals",
+    "one first-practice load",
+    "warm navigation with a pending save",
+    "durable refresh",
+    "failed-save rollback",
+    "account isolation",
+    "1205 complete projected problems/progress under a 137-row service cap",
+    "frequency tie ordering",
+    "search/favorites/revision/interview choices beyond row 1000",
+    "1205-question session details/history",
+    "failed later page rejects partial results",
+    "security headers and matching script nonces",
+    "CSP navigation/actions and theme persistence without violations",
+    "cross-origin frame blocked",
+    "anonymous/bad-input rejection"
+  ]
+}

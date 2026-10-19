@@ -204,17 +204,25 @@ async function testSessionRefresh() {
   } finally {
     globalThis.fetch = originalFetch;
   }
-  for (const url of ["/auth/callback?code=one-use-code", "/_next/static/chunk.js", "/_next/image", "/favicon.ico", "/logo.png"]) {
+  for (const url of ["/_next/static/chunk.js", "/_next/image", "/favicon.ico", "/logo.png"]) {
     assert.equal(unstable_doesMiddlewareMatch({ config, nextConfig: {}, url }), false, `${url} bypasses proxy`);
   }
-  for (const url of ["/", "/login", "/dashboard", "/api/library", "/problems", "/revise"]) {
+  for (const url of ["/auth/callback?code=one-use-code", "/", "/login", "/dashboard", "/api/library", "/problems", "/revise"]) {
     assert.equal(unstable_doesMiddlewareMatch({ config, nextConfig: {}, url }), true, `${url} refreshes sessions`);
   }
+  globalThis.fetch = async () => { throw new Error("Callback proxy must not refresh the session"); };
+  try {
+    const callbackResponse = await proxy(new NextRequest("https://app.example/auth/callback?code=one-use-code", {
+      headers: { cookie: `${storageKey}=${encoded(session)}` },
+    }));
+    assert.ok(callbackResponse.headers.get("content-security-policy-report-only")?.includes("'nonce-"));
+    assert.equal(callbackResponse.cookies.getAll().length, 0);
+  } finally { globalThis.fetch = originalFetch; }
   process.env.USE_LOCAL_DB = "true";
   const localResponse = await proxy(new NextRequest("https://app.example/dashboard"));
   assert.equal(localResponse.cookies.getAll().length, 0);
   process.env.USE_LOCAL_DB = "false";
-  console.log("PASS: OAuth callback/assets bypass proxy; local mode bypasses Supabase");
+  console.log("PASS: callback receives CSP without session refresh; assets bypass proxy; local mode bypasses Supabase");
 }
 
 async function main() {

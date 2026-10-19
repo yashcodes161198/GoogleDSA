@@ -27,6 +27,7 @@ import {
   type NewProblemFormValues,
 } from "@/lib/problems/parseNewProblemInput";
 import type { ProblemStatus } from "@/lib/types";
+import { requireUuid, requireBoolean, requireIds, isSolveSeconds } from "@/lib/validation";
 
 export type StartInterviewResult =
   | { ok: true; sessionId: string }
@@ -58,6 +59,10 @@ async function mutateProgress(problemId: string, operation: string, value: unkno
 }
 
 export async function updateProblemStatus(problemId: string, status: ProblemStatus, refreshRoutes = true, requestId: string = randomUUID()) {
+  requireUuid(problemId);
+  requireUuid(requestId);
+  requireBoolean(refreshRoutes);
+  if (status !== "solved" && status !== "unsolved") throw new Error("Invalid status");
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
@@ -96,6 +101,9 @@ export async function updateProblemStatus(problemId: string, status: ProblemStat
 }
 
 export async function setProblemFavorite(problemId: string, favorite: boolean, refreshRoutes = true) {
+  requireUuid(problemId);
+  requireBoolean(favorite);
+  requireBoolean(refreshRoutes);
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
@@ -137,10 +145,13 @@ export async function saveProblemSolveTime(
   refreshRoutes = true
 ): Promise<SaveProblemSolveTimeResult> {
   try {
+    requireUuid(problemId);
+    requireBoolean(refreshRoutes);
+    if (!isSolveSeconds(seconds)) return { ok: false, error: "Solve time must be a whole number between 1 and 86,400 seconds." };
     const user = await getCurrentUser();
     if (!user) return { ok: false, error: "Not authenticated" };
 
-    const clamped = Math.max(1, Math.round(seconds));
+    const clamped = seconds;
 
     if (isLocalMode()) {
       const bestSeconds = getMemoryStore().saveSolveSeconds(
@@ -172,6 +183,9 @@ export async function saveProblemSolveTime(
 
 export async function markProblemRevised(problemId: string, refreshRoutes = true, requestId: string = randomUUID()) {
   try {
+    requireUuid(problemId);
+    requireUuid(requestId);
+    requireBoolean(refreshRoutes);
     const user = await getCurrentUser();
     if (!user) return { ok: false as const, error: "Not authenticated" };
 
@@ -216,6 +230,8 @@ export async function refreshRevisionQueue(
   uncheckedIds: string[]
 ) {
   try {
+    requireIds(currentIds, DAILY_REVISION_LIMIT);
+    requireIds(uncheckedIds, DAILY_REVISION_LIMIT);
     const user = await getCurrentUser();
     if (!user) return { ok: false as const, error: "Not authenticated" };
 
@@ -247,6 +263,7 @@ export async function startInterviewSession(
   config: InterviewConfig = DEFAULT_INTERVIEW_CONFIG
 ): Promise<StartInterviewResult> {
   try {
+    requireBoolean(forceNew);
     const user = await getCurrentUser();
     if (!user) throw new Error("Not authenticated");
 
@@ -254,6 +271,9 @@ export async function startInterviewSession(
     if (configError) throw new Error(configError);
 
     const problems = await getProblemsWithProgress();
+    if (config.selectedProblemIds && config.selectedProblemIds.length > problems.length) {
+      return { ok: false, error: "Choose questions from the available catalog." };
+    }
     const selected =
       config.selectedProblemIds !== undefined
         ? selectChosenInterviewProblems(problems, config.selectedProblemIds)
@@ -313,6 +333,7 @@ export async function startNewInterviewAction(
   _prevState: { error: string } | null,
   formData: FormData,
 ): Promise<{ error: string } | null> {
+  if (!(formData instanceof FormData)) return { error: "Invalid interview form." };
   const customize = formData.get("customize") === "on";
   const selectionMode = formData.get("selectionMode") ?? "random";
   if (customize && selectionMode !== "random" && selectionMode !== "picked") {
@@ -345,6 +366,9 @@ export async function updateInterviewProblem(
   problemId: string,
   completed: boolean
 ) {
+  requireUuid(sessionId);
+  requireUuid(problemId);
+  requireBoolean(completed);
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
@@ -378,6 +402,8 @@ export async function endInterviewSession(
   sessionId: string,
   status: "completed" | "abandoned" = "completed"
 ) {
+  requireUuid(sessionId);
+  if (status !== "completed" && status !== "abandoned") throw new Error("Invalid session status");
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
@@ -417,6 +443,9 @@ export async function addQuestionAction(
   _prevState: AddQuestionActionState,
   formData: FormData
 ): Promise<AddQuestionActionState> {
+  if (!(formData instanceof FormData)) return {
+    error: "Invalid question form.", values: formValuesFromFormData(new FormData()),
+  };
   const values = formValuesFromFormData(formData);
 
   const user = await getCurrentUser();

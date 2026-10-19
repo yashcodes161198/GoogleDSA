@@ -1,0 +1,30 @@
+@media (max-width: 1279px) {
+  .responsive,
+  .responsive thead,
+  .responsive tbody {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .responsive colgroup { display: none; }
+  .responsive thead tr { display: flex; flex-wrap: wrap; padding: 8px; }
+  .responsive th { padding: 8px; }
+  .responsive th:not([aria-sort]) { display: none; }
+  .responsive tbody tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 16px;
+    gap: 12px;
+    border-top: 1px solid var(--line);
+  }
+  .responsive td { padding: 0; border: 0; }
+  .responsive td:nth-child(1),
+  .responsive td:nth-child(2),
+  .responsive td:nth-child(7) { grid-column: 1 / -1; }
+  .responsive td:nth-child(1) { width: auto; }
+  .responsive td:nth-child(1) span { white-space: normal; }
+  .responsive td:nth-child(6) { grid-column: 1 / -1; }
+  .responsive td:nth-child(4)::after { content: " frequency"; font-size: 11px; }
+  .responsive td:nth-child(5)::before { content: "Best: "; }
+}

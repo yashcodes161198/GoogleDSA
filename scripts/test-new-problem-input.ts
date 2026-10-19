@@ -140,3 +140,25 @@ if (duplicatePayload.ok) {
 }
 
 console.log("New problem input tests passed");
+
+for (const leetcodeUrl of [
+  "https://example.invalid/leetcode.com/problems/two-sum/",
+  "https://leetcode.com.evil.invalid/problems/two-sum/",
+  "https://example.invalid/?url=https://leetcode.com/problems/two-sum/",
+  "https://leetcode.com@evil.invalid/problems/two-sum/",
+  "https://user@leetcode.com/problems/two-sum/",
+  "http://leetcode.com/problems/two-sum/",
+  "https://leetcode.com:444/problems/two-sum/",
+  "https://leetcode.com/problems/",
+  "https://leetcode.com/problems/two-sum/?next=https://example.invalid",
+]) assert(!parseNewProblemForm(fd({title:"Fixture",difficulty:"HARD",leetcodeUrl})).ok, "reject URL lookalike: " + leetcodeUrl);
+for (const entries of [
+  {tufUrl:"https://takeuforward.org/plus/dsa/problems/two-sum"},
+  {gfgUrl:"https://practice.geeksforgeeks.org/problems/two-sum/1"},
+  {leetcodeUrl:"https://www.leetcode.com/problems/two-sum/"},
+]) assert(parseNewProblemForm(fd({title:"Fixture",difficulty:"HARD",...entries})).ok, "accept supported provider path");
+for (const entries of [
+  {title:"x".repeat(201)}, {topics:"x".repeat(81)},
+  {topics:Array.from({length:21},(_,n)=>"topic"+n).join(",")},
+  {difficulty:"INVALID"}, {frequency:"10garbage"}, {acceptanceRate:"Infinity"},
+]) assert(!parseNewProblemForm(fd({title:"Fixture",difficulty:"HARD",leetcodeUrl:"https://leetcode.com/problems/two-sum/",...entries})).ok, "reject malformed catalog fields");

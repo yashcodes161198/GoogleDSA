@@ -25,7 +25,7 @@ try {
   await db.exec(`CREATE ROLE authenticated NOLOGIN; CREATE ROLE anon NOLOGIN; CREATE ROLE service_role NOLOGIN BYPASSRLS;
     CREATE SCHEMA auth; CREATE TABLE auth.users(id UUID PRIMARY KEY,email TEXT,raw_user_meta_data JSONB);
     CREATE FUNCTION auth.uid() RETURNS UUID LANGUAGE sql STABLE AS $$ SELECT NULLIF(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
-    CREATE FUNCTION auth.jwt() RETURNS JSONB LANGUAGE sql STABLE AS $$ SELECT '{}'::jsonb $$;
+    CREATE FUNCTION auth.jwt() RETURNS JSONB LANGUAGE sql STABLE AS $$ SELECT coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb $$;
     GRANT USAGE ON SCHEMA auth TO authenticated, anon;
     CREATE SCHEMA storage;
     CREATE TABLE storage.buckets(id TEXT PRIMARY KEY,name TEXT,public BOOLEAN,file_size_limit BIGINT,allowed_mime_types TEXT[]);
@@ -43,7 +43,7 @@ try {
       await db.query("INSERT INTO leaderboard_comments(user_id,body,created_at) VALUES ($1,'legacy','infinity')", [owner]);
     }
     if (name.startsWith("023_")) {
-      await db.query("INSERT INTO problems(slug,title,difficulty,link) SELECT 'legacy-'||n,'Legacy '||n,'MEDIUM','https://example.invalid' FROM generate_series(1,25) n");
+      await db.query("INSERT INTO problems(slug,title,difficulty,link) SELECT 'legacy-'||n,'Legacy '||n,'MEDIUM','https://leetcode.com/problems/fixture/' FROM generate_series(1,25) n");
       await db.query("INSERT INTO interview_sessions(id,user_id,ends_at) VALUES ($1,$2,now()-interval '1 hour')",[session,owner]);
       await db.query("INSERT INTO interview_session_problems(session_id,problem_id,position) SELECT $1,id,1 FROM problems",[session]);
     }
@@ -54,12 +54,22 @@ try {
       await db.exec("DELETE FROM problems WHERE slug LIKE 'legacy-%'");
     }
   }
-  await db.query("INSERT INTO problems(id,slug,title,difficulty,link) VALUES ($1,'hard','Hard','HARD','https://example.invalid'),($2,'medium','Medium','MEDIUM','https://example.invalid')", [problem, second]);
+  await db.query("INSERT INTO problems(id,slug,title,difficulty,link) VALUES ($1,'hard','Hard','HARD','https://leetcode.com/problems/fixture/'),($2,'medium','Medium','MEDIUM','https://leetcode.com/problems/fixture/')", [problem, second]);
+  for (const url of ["https://evil.invalid/leetcode.com/problems/fixture/", "https://leetcode.com@evil.invalid/problems/x/", "https://leetcode.com/problems/x/?redirect=evil", "http://leetcode.com/problems/x/"]) {
+    await assert.rejects(db.query("INSERT INTO problems(slug,title,difficulty,link) VALUES ($1,'Bad','HARD',$2)", [randomUUID(),url]), /Invalid provider URL/);
+  }
+  await assert.rejects(db.query("INSERT INTO problems(slug,title,difficulty,link) VALUES ('long',$1,'HARD','https://leetcode.com/problems/x/')", ['x'.repeat(201)]), /Invalid catalog fields/);
+  await asUser(owner);
+  await assert.rejects(db.query("INSERT INTO problems(slug,title,difficulty,link) VALUES ('non-admin','No','HARD','https://leetcode.com/problems/x/')"), /row-level security/);
   await asUser(owner);
   await assert.rejects(db.query("SELECT award_leaderboard_solve($1)", [problem]), /permission denied/);
   await assert.rejects(db.query("SELECT award_leaderboard_revision($1,1000000)", [problem]), /permission denied/);
   await assert.rejects(db.query("SELECT increment_user_problem_revision($1)", [problem]), /permission denied/);
   await assert.rejects(db.query("INSERT INTO user_problems(user_id,problem_id,revision_count) VALUES ($1,$2,999)", [owner, problem]), /permission denied/);
+  for (const value of [null, -1, 0, 1.5, 86401, "Infinity", {}]) await assert.rejects(act("time",value), /Invalid/);
+  await db.query("SELECT set_config('request.jwt.claims', $1, false)", [JSON.stringify({app_metadata:{role:"admin"}})]);
+  await db.query("INSERT INTO problems(slug,title,difficulty,link) VALUES ('admin-valid','Admin valid','HARD','https://leetcode.com/problems/admin-valid/')");
+  await db.query("SELECT set_config('request.jwt.claims','{}',false)");
   await assert.rejects(act("revise", {}), /Only solved/);
   const solveRequest = randomUUID();
   assert.deepEqual(await act("status", "solved", solveRequest), await act("status", "solved", solveRequest));
@@ -118,7 +128,7 @@ try {
   await act("status", "solved", failedRequest, second);
   await assert.rejects(db.query("SELECT set_interview_problem_completed($1,$2,false)",[session,second]),/Session has ended/);
   await db.exec("RESET ROLE");
-  await db.query("INSERT INTO problems(slug,title,difficulty,link) SELECT 'fixture-'||n,'Fixture '||n,'MEDIUM','https://example.invalid' FROM generate_series(1,25) n");
+  await db.query("INSERT INTO problems(slug,title,difficulty,link) SELECT 'fixture-'||n,'Fixture '||n,'MEDIUM','https://leetcode.com/problems/fixture/' FROM generate_series(1,25) n");
   const ids = (await db.query("SELECT id FROM problems ORDER BY slug DESC")).rows.map(r=>r.id);
   await asUser(owner);
   const start = async (chosen, mode="picked", requestId=randomUUID()) => (await db.query(

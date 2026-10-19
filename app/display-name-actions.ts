@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function saveDisplayName(
   formData: FormData,
 ): Promise<{ error: string | null; name: string | null }> {
+  if (!(formData instanceof FormData)) return { error: "Invalid name form.", name: null };
   await requireUser();
   const name = parseDisplayName(formData.get("displayName"));
   if (!name) return { error: "Enter a name of 1 to 40 characters.", name: null };

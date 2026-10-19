@@ -105,7 +105,12 @@ export function ProblemTimerProvider({
   }, []);
 
   const persist = useCallback(async (problemId: string, seconds: number) => {
-    const result = await saveTime(problemId, seconds);
+    let result: SaveProblemSolveTimeResult;
+    try {
+      result = await saveTime(problemId, seconds);
+    } catch {
+      result = { ok: false, error: "Could not save solve time. Please try again." };
+    }
     if (!result.ok) {
       setSaveErrors((prev) => ({ ...prev, [problemId]: result.error }));
       return false;
@@ -127,15 +132,16 @@ export function ProblemTimerProvider({
   const stop = useCallback(
     async (problemId: string, persistTime = true) => {
       const entry = timersRef.current[problemId];
-      if (!entry?.running) return;
+      if (!entry) return;
 
       const totalMs = getElapsedMs(problemId, entry);
       const seconds = Math.round(totalMs / 1000);
 
-      setTimers((prev) => ({
-        ...prev,
+      timersRef.current = {
+        ...timersRef.current,
         [problemId]: { elapsedMs: totalMs, running: false, startedAt: null },
-      }));
+      };
+      setTimers(timersRef.current);
 
       if (activeIdRef.current === problemId) {
         activeIdRef.current = null;
@@ -149,21 +155,23 @@ export function ProblemTimerProvider({
   );
 
   const start = useCallback(
-    async (problemId: string) => {
+    (problemId: string) => {
       const active = activeIdRef.current;
+      if (active === problemId && timersRef.current[problemId]?.running) return;
       if (active && active !== problemId) {
-        await stop(active, true);
+        void stop(active, true);
       }
 
       activeIdRef.current = problemId;
-      setTimers((prev) => ({
-        ...prev,
+      timersRef.current = {
+        ...timersRef.current,
         [problemId]: {
-          elapsedMs: prev[problemId]?.elapsedMs ?? 0,
+          elapsedMs: timersRef.current[problemId]?.elapsedMs ?? 0,
           running: true,
           startedAt: Date.now(),
         },
-      }));
+      };
+      setTimers(timersRef.current);
     },
     [stop]
   );

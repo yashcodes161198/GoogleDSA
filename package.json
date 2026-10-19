@@ -6,11 +6,9 @@
     "node": "22.x"
   },
   "scripts": {
-    "predev": "node scripts/free-port.mjs 3000",
     "dev": "next dev",
-    "prebuild": "node scripts/clean.mjs",
+    "clean": "node scripts/clean.mjs",
     "build": "next build",
-    "prestart": "node scripts/free-port.mjs 3000",
     "start": "next start",
     "lint": "eslint",
     "test:interview": "tsx scripts/test-interview-config.ts && tsx scripts/test-custom-interview-ui.ts && tsx scripts/test-picked-interview.ts",
@@ -19,6 +17,8 @@
     "test:problem-filters": "tsx scripts/test-problem-filters.ts",
     "test:problem-sorting": "tsx scripts/test-problem-sorting.ts",
     "test:session-library": "tsx scripts/test-session-library.ts",
+    "test:library-pages": "tsx scripts/test-read-all-pages.ts",
+    "test:security-headers": "tsx scripts/test-security-headers.ts",
     "test:leaderboard": "tsx scripts/test-leaderboard-points.ts && tsx scripts/test-leaderboard-history.ts",
     "test:leaderboard:http": "tsx scripts/verify-leaderboard-history.ts",
     "test:activity": "tsx scripts/test-score-activity.ts",
@@ -32,7 +32,10 @@
     "merge-striver": "tsx scripts/merge-striver-into-csv.ts",
     "merge-checklist": "tsx scripts/merge-checklist-into-csv.ts",
     "sync-checklist-frequency": "tsx scripts/sync-checklist-frequency.ts",
-    "migrate:009": "tsx scripts/apply-migration-009.ts"
+    "migrate:009": "tsx scripts/apply-migration-009.ts",
+    "check": "node scripts/check.mjs",
+    "test": "npm run check",
+    "test:validation": "tsx scripts/test-runtime-validation.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
@@ -47,6 +50,7 @@
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.10",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -55,6 +59,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "pg": "^8.23.0",
+    "playwright": "1.62.1",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
     "typescript": "^5"

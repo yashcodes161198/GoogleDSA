@@ -1,12 +1,12 @@
 [
   {
-    "QUERY PLAN": "Limit  (cost=0.29..4.94 rows=51 width=24) (actual time=0.177..0.302 rows=51.00 loops=1)"
+    "QUERY PLAN": "Limit  (cost=0.29..4.75 rows=51 width=24) (actual time=0.139..0.251 rows=51.00 loops=1)"
   },
   {
     "QUERY PLAN": "  Buffers: shared hit=52"
   },
   {
-    "QUERY PLAN": "  ->  Index Only Scan using leaderboard_events_user_created_id_idx on leaderboard_events  (cost=0.29..912.96 rows=10005 width=24) (actual time=0.153..0.219 rows=51.00 loops=1)"
+    "QUERY PLAN": "  ->  Index Only Scan using leaderboard_events_user_created_id_idx on leaderboard_events  (cost=0.29..876.96 rows=10005 width=24) (actual time=0.121..0.183 rows=51.00 loops=1)"
   },
   {
     "QUERY PLAN": "        Index Cond: ((user_id = '00000000-0000-0000-0000-000000000001'::uuid) AND (created_at >= '2026-10-18 23:30:00+05'::timestamp with time zone) AND (created_at < '2026-10-19 23:30:00+05'::timestamp with time zone))"
@@ -21,9 +21,9 @@
     "QUERY PLAN": "        Buffers: shared hit=52"
   },
   {
-    "QUERY PLAN": "Planning Time: 0.165 ms"
+    "QUERY PLAN": "Planning Time: 0.137 ms"
   },
   {
-    "QUERY PLAN": "Execution Time: 0.412 ms"
+    "QUERY PLAN": "Execution Time: 0.339 ms"
   }
 ]

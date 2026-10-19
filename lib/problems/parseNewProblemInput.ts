@@ -44,8 +44,8 @@ function trimUrl(value: FormDataEntryValue | null): string {
 
 function parsePercent(value: string): number | null {
   if (value === "") return 0;
-  const n = Number.parseFloat(value);
-  if (Number.isNaN(n) || n < 0 || n > 100) return null;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0 || n > 100) return null;
   return n;
 }
 
@@ -55,24 +55,27 @@ function isValidProviderUrl(
 ): boolean {
   try {
     const parsed = new URL(url);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+    if (url.length > 2048 || parsed.protocol !== "https:" || parsed.username || parsed.password ||
+      parsed.port || parsed.search || parsed.hash || parsed.href !== url || url.includes("\\")) return false;
+    const hosts = {
+      leetcode: ["leetcode.com", "www.leetcode.com"],
+      gfg: ["geeksforgeeks.org", "www.geeksforgeeks.org", "practice.geeksforgeeks.org"],
+      tuf: ["takeuforward.org", "www.takeuforward.org"],
+    };
+    const paths = {
+      leetcode: /^\/problems\/[a-z0-9_-]+\/?$/i,
+      gfg: /^\/problems\/[a-z0-9_-]+(?:\/\d+)?\/?$/i,
+      tuf: /^\/plus\/dsa\/problems\/[a-z0-9_-]+\/?$/i,
+    };
+    return hosts[provider].includes(parsed.hostname) && paths[provider].test(parsed.pathname);
   } catch {
     return false;
   }
-  if (provider === "leetcode") {
-    return /leetcode\.com\/problems\//i.test(url);
-  }
-  if (provider === "gfg") {
-    return /geeksforgeeks\.org\//i.test(url);
-  }
-  return /takeuforward\.org\//i.test(url);
 }
 
 export function formValuesFromFormData(formData: FormData): NewProblemFormValues {
   const difficultyRaw = trimUrl(formData.get("difficulty")).toUpperCase();
-  const difficulty = DIFFICULTIES.includes(difficultyRaw as Difficulty)
-    ? (difficultyRaw as Difficulty)
-    : "MEDIUM";
+  const difficulty = difficultyRaw as Difficulty;
 
   return {
     title: trimUrl(formData.get("title")),
@@ -104,12 +107,16 @@ export function parseNewProblemForm(formData: FormData): ParseNewProblemResult {
   const values = formValuesFromFormData(formData);
   const fieldErrors: Partial<Record<keyof NewProblemFormValues, string>> = {};
 
-  if (!values.title) {
-    fieldErrors.title = "Title is required.";
+  if (!values.title || values.title.length > 200) {
+    fieldErrors.title = "Enter a title of 1 to 200 characters.";
   }
 
   if (!DIFFICULTIES.includes(values.difficulty)) {
     fieldErrors.difficulty = "Choose a valid difficulty.";
+  }
+  const topics = parseTopics(values.topics);
+  if (values.topics.length > 2000 || topics.length > 20 || topics.some(topic => topic.length > 80)) {
+    fieldErrors.topics = "Use at most 20 topics, each up to 80 characters.";
   }
 
   const links = buildProblemLinks({
@@ -165,7 +172,7 @@ export function parseNewProblemForm(formData: FormData): ParseNewProblemResult {
       acceptance_rate: acceptance_rate ?? 0,
       link: primaryLink,
       links,
-      topics: parseTopics(values.topics),
+      topics,
     },
   };
 }
