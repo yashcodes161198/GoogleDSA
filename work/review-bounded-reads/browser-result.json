@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "documents": {
+    "settings": {
+      "bytes": 151876
+    },
+    "leaderboard": {
+      "bytes": 59464
+    }
+  },
+  "checks": [
+    "non-practice documents omit catalog/progress; no focus bootstrap",
+    "20-thread/reply pages",
+    "lazy media",
+    "50-event pages with full totals",
+    "action filters",
+    "deletion totals",
+    "one first-practice load",
+    "warm navigation with a pending save",
+    "durable refresh",
+    "failed-save rollback",
+    "account isolation",
+    "697 complete projected problems",
+    "anonymous/bad-input rejection"
+  ]
+}

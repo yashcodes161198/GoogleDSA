@@ -1,4 +1,5 @@
 import { ProblemsContent } from "@/components/ProblemsContent";
+import { PracticeLibrary } from "@/components/SessionLibraryProvider";
 
 export default async function ProblemsPage({
   searchParams,
@@ -6,5 +7,5 @@ export default async function ProblemsPage({
   searchParams: Promise<{ added?: string }>;
 }) {
   const params = await searchParams;
-  return <ProblemsContent added={params.added === "1"} />;
+  return <PracticeLibrary><ProblemsContent added={params.added === "1"} /></PracticeLibrary>;
 }

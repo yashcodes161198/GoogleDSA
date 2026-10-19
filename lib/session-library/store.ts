@@ -12,6 +12,7 @@ export type LibraryTransport = {
 };
 type Change = { id: string; apply: (problem: ProblemWithProgress) => ProblemWithProgress };
 export type LibrarySnapshot = {
+  loaded: boolean;
   problems: ProblemWithProgress[];
   pendingIds: ReadonlySet<string>;
   refreshing: boolean;
@@ -35,9 +36,9 @@ export class SessionLibrary {
   private inFlight: Promise<void> | null = null;
   private snapshot: LibrarySnapshot;
 
-  constructor(private userId: string, problems: ProblemWithProgress[], private transport: LibraryTransport) {
-    this.confirmed = problems;
-    this.snapshot = { problems, pendingIds: new Set(), refreshing: false, refreshVersion: 0, error: null };
+  constructor(private userId: string, problems: ProblemWithProgress[] | null, private transport: LibraryTransport) {
+    this.confirmed = problems ?? [];
+    this.snapshot = { problems: this.confirmed, loaded: problems !== null, pendingIds: new Set(), refreshing: false, refreshVersion: 0, error: null };
   }
 
   getSnapshot = () => this.snapshot;
@@ -59,10 +60,11 @@ export class SessionLibrary {
     this.active = false;
     this.confirmed = [];
     this.pending = [];
-    this.publish({ error: null, refreshing: false });
+    this.publish({ loaded: false, error: null, refreshing: false });
   };
 
   clearError = () => this.publish({ error: null });
+  ensureLoaded = () => this.snapshot.loaded ? Promise.resolve() : this.refresh();
 
   refresh = (): Promise<void> => {
     if (!this.active) return Promise.resolve();
@@ -78,7 +80,7 @@ export class SessionLibrary {
         // The response may predate a write that has already finished successfully.
         this.confirmed = result.problems.map(problem =>
           (this.writes.get(problem.id) ?? 0) > startedAt ? current.get(problem.id) ?? problem : problem);
-        this.publish({ refreshVersion: this.snapshot.refreshVersion + 1, error: null });
+        this.publish({ loaded: true, refreshVersion: this.snapshot.refreshVersion + 1, error: null });
       } catch (error) {
         if (this.active) this.publish({ error: error instanceof Error ? error.message : "Could not refresh your library. Try again." });
       } finally {

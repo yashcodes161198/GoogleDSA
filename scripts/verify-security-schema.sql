@@ -1,0 +1,27 @@
+WITH checks(name, passed) AS (VALUES
+ ('Private migration tables exist', (SELECT count(*)=5 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='private' AND c.relkind='r' AND c.relname IN ('problem_award_state','progress_requests','progress_write_limits','comment_media_reservations','interview_start_requests'))),
+ ('All eight new RPCs exist', (SELECT count(*)=8 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname IN ('mutate_problem_progress','set_interview_problem_completed','finish_interview_session','reserve_comment_media','finalize_comment_media','expired_comment_media','release_expired_comment_media','start_interview_session'))),
+ ('Old award helpers revoked', NOT has_function_privilege('authenticated','public.award_leaderboard_solve(uuid)','EXECUTE') AND NOT has_function_privilege('authenticated','public.award_leaderboard_revision(uuid,integer)','EXECUTE') AND NOT has_function_privilege('authenticated','public.increment_user_problem_revision(uuid)','EXECUTE')),
+ ('Direct progress writes revoked', NOT has_table_privilege('authenticated','public.user_problems','INSERT,UPDATE,DELETE') AND NOT has_any_column_privilege('authenticated','public.user_problems','INSERT,UPDATE')),
+ ('Direct interview writes revoked', NOT has_table_privilege('authenticated','public.interview_sessions','INSERT,UPDATE,DELETE') AND NOT has_table_privilege('authenticated','public.interview_session_problems','INSERT,UPDATE,DELETE')),
+ ('Private schema inaccessible to users', NOT has_schema_privilege('authenticated','private','USAGE') AND NOT has_schema_privilege('anon','private','USAGE')),
+ ('New progress RPC allowed to users', has_function_privilege('authenticated','public.mutate_problem_progress(uuid,text,jsonb,uuid)','EXECUTE') AND NOT has_function_privilege('anon','public.mutate_problem_progress(uuid,text,jsonb,uuid)','EXECUTE')),
+ ('Finalization restricted to server', has_function_privilege('service_role','public.finalize_comment_media(text)','EXECUTE') AND NOT has_function_privilege('authenticated','public.finalize_comment_media(text)','EXECUTE') AND NOT has_function_privilege('anon','public.finalize_comment_media(text)','EXECUTE')),
+ ('Cleanup restricted to server', has_function_privilege('service_role','public.expired_comment_media()','EXECUTE') AND NOT has_function_privilege('authenticated','public.expired_comment_media()','EXECUTE') AND has_function_privilege('service_role','public.release_expired_comment_media()','EXECUTE') AND NOT has_function_privilege('authenticated','public.release_expired_comment_media()','EXECUTE')),
+ ('Media columns exist', (SELECT count(*)=2 FROM information_schema.columns WHERE table_schema='public' AND table_name='leaderboard_comments' AND column_name IN ('media_path','media_kind'))),
+ ('Creation timestamps cannot be supplied', NOT has_column_privilege('authenticated','public.leaderboard_comments','created_at','INSERT,UPDATE')),
+ ('Finite timestamp constraint validated', EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid='public.leaderboard_comments'::regclass AND conname='leaderboard_comments_finite_time' AND convalidated)),
+ ('Timestamp and quota triggers enabled', (SELECT count(*)=2 FROM pg_trigger WHERE tgrelid='public.leaderboard_comments'::regclass AND tgname IN ('assign_leaderboard_comment_timestamp','enforce_comment_write_limits') AND tgenabled IN ('O','A'))),
+ ('Author-only edit policy exists', EXISTS(SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='leaderboard_comments' AND policyname='Authors can edit their leaderboard comments' AND cmd='UPDATE')),
+ ('Old direct upload policies removed', NOT EXISTS(SELECT 1 FROM pg_policies WHERE schemaname='storage' AND tablename='objects' AND policyname IN ('Users can upload their own leaderboard media','Users can remove their own leaderboard media'))),
+ ('Media bucket has 3 MiB limit', EXISTS(SELECT 1 FROM storage.buckets WHERE id='leaderboard-comment-media' AND file_size_limit=3145728)),
+ ('Picked question positions are positive', EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid='public.interview_session_problems'::regclass AND conname='interview_session_problems_position_check' AND replace(pg_get_constraintdef(oid), chr(34), '') LIKE '%position > 0%')),
+ ('Question positions are unique', EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid='public.interview_session_problems'::regclass AND conname='interview_session_problems_unique_position' AND contype='u' AND convalidated)),
+ ('Single active session index valid', EXISTS(SELECT 1 FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid WHERE c.relname='interview_one_active_per_user' AND i.indisvalid AND i.indisunique AND i.indpred IS NOT NULL)),
+ ('RLS remains enabled', (SELECT count(*)=6 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname IN ('problems','user_problems','leaderboard_events','leaderboard_comments','interview_sessions','interview_session_problems') AND c.relrowsecurity))
+)
+SELECT CASE WHEN bool_and(coalesce(passed,false)) THEN 'PASS' ELSE 'CHECK FAILED' END AS verification,
+ count(*) FILTER(WHERE passed) AS passed_checks,
+ count(*) FILTER(WHERE NOT coalesce(passed,false)) AS failed_checks,
+ coalesce(string_agg(name,'; ') FILTER(WHERE NOT coalesce(passed,false)), 'None') AS failures
+FROM checks;

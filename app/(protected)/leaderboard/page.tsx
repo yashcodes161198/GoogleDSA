@@ -127,10 +127,13 @@ export default async function LeaderboardPage({ searchParams }: {
                     {isSelected && history && (
                       <div id="leaderboard-score-history" className="my-3">
                         <ScoreHistory
-                          key={entry.user_id}
+                          key={`${entry.user_id}:${now.toISOString()}`}
                           events={history.events}
                           error={history.error}
                           now={now.toISOString()}
+                          summary={history.summary}
+                          nextCursor={history.nextCursor}
+                          userId={entry.user_id}
                           period="week"
                           title={`${entry.display_name}'s score history`}
                         />
@@ -143,7 +146,7 @@ export default async function LeaderboardPage({ searchParams }: {
           )}
         </CardContent>
       </Card>
-      {user && <LeaderboardDiscussion comments={discussion.comments} error={discussion.error} currentUserId={user.id} />}
+      {user && <LeaderboardDiscussion key={now.toISOString()} comments={discussion.comments} nextCursor={discussion.nextCursor} error={discussion.error} currentUserId={user.id} />}
     </div>
   );
 }

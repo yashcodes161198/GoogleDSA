@@ -59,6 +59,8 @@ async function main() {
     assert.equal(await history.locator("ol li").count(), 3);
     await history.getByText(hard.title, { exact: true }).first().waitFor();
     await history.getByRole("button", { name: "First revision", exact: true }).click();
+    await history.locator("ol li").nth(1).waitFor({ state: "hidden" });
+    await history.locator("ol li").first().waitFor();
     assert.equal(await history.locator("ol li").count(), 1);
     assert.match(await history.getByRole("definition").first().innerText(), /^4/);
     await history.getByRole("button", { name: "Clear filters", exact: true }).click();
@@ -90,6 +92,8 @@ async function main() {
     assert.equal(await chart.evaluate((element: HTMLElement) => element.scrollWidth <= element.clientWidth), true,
       "all seven days fit the mobile chart");
     await history.getByRole("button", { name: "Second+ revision", exact: true }).click();
+    await history.locator("ol li").nth(1).waitFor({ state: "hidden" });
+    await history.locator("ol li").first().waitFor();
     assert.equal(await history.locator("ol li").count(), 1);
     await history.getByRole("button", { name: "Clear filters", exact: true }).click();
     await page.evaluate(() => window.scrollTo(0, 0));

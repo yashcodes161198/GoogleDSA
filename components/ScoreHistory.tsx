@@ -6,16 +6,20 @@ import { useRouter } from "next/navigation";
 import { Check, History, RefreshCw, RotateCcw, Trash2, X } from "lucide-react";
 import { deleteScoreActivity } from "@/app/score-actions";
 import {
-  ACTION_LABELS, ACTIVITY_ACTIONS, activityAction, buildActivityDays,
+  ACTION_LABELS, ACTIVITY_ACTIONS, activityAction, activityDayKey, buildActivityDays,
   formatActivityDate, formatActivityFullDate, formatActivityTime,
-  type ActivityFilter, type ActivityPeriod, type ScoreActivity,
+  type ActivityFilter, type ActivityPeriod, type ActivitySummary, type ScoreActivity,
 } from "@/lib/activity";
+import { pageParams, type Cursor } from "@/lib/pagination";
 import styles from "./ScoreHistory.module.css";
 
 const icons = { solved: Check, "first-revision": RotateCcw, "later-revision": RefreshCw };
 
-export function ScoreHistory({ events, now, error, period = "month", title = "Score history", canDelete = false }: {
+export function ScoreHistory({ events, summary, nextCursor, userId, now, error, period = "month", title = "Score history", canDelete = false }: {
   events: ScoreActivity[];
+  summary: ActivitySummary[];
+  nextCursor: Cursor | null;
+  userId?: string;
   now: string;
   error: string | null;
   period?: ActivityPeriod;
@@ -26,11 +30,14 @@ export function ScoreHistory({ events, now, error, period = "month", title = "Sc
   const isWeekly = period === "week";
   const [filter, setFilter] = useState<ActivityFilter>("all");
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
-  const [visibleDays, setVisibleDays] = useState(7);
+  const [page, setPage] = useState({ events, nextCursor, filter: "all" as ActivityFilter, day: null as string | null });
+  const [loading, setLoading] = useState(false);
+  const [pageError, setPageError] = useState<string | null>(null);
+  const requestVersion = useRef(0);
   const [refreshing, startRefresh] = useTransition();
   const [deleting, startDelete] = useTransition();
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-  const [removedIds, setRemovedIds] = useState<string[]>([]);
+  const [removed, setRemoved] = useState<ScoreActivity[]>([]);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteNotice, setDeleteNotice] = useState("");
   const ledgerHeadingRef = useRef<HTMLHeadingElement>(null);
@@ -40,21 +47,48 @@ export function ScoreHistory({ events, now, error, period = "month", title = "Sc
     const chart = chartRef.current;
     if (chart) chart.scrollLeft = chart.scrollWidth;
   }, []);
-  const days = buildActivityDays(events.filter((event) => !removedIds.includes(event.id)), new Date(now), filter, period);
+  async function loadPage(action: ActivityFilter, day: string | null, append = false) {
+    const version = ++requestVersion.current;
+    setLoading(true);
+    setPageError(null);
+    try {
+      const params = pageParams(append ? page.nextCursor : null);
+      params.set("now", now); params.set("period", period); params.set("filter", action);
+      if (userId) params.set("user", userId);
+      if (day) params.set("day", day);
+      const response = await fetch(`/api/activity?${params}`, { cache: "no-store" });
+      if (!response.ok) throw new Error("Could not load activity. Try again.");
+      const result = await response.json();
+      if (version === requestVersion.current) setPage(previous => ({ events: append ? [...previous.events, ...result.events] : result.events,
+        nextCursor: result.nextCursor, filter: action, day }));
+    } catch (error) { if (version === requestVersion.current) setPageError((error as Error).message); }
+    finally { if (version === requestVersion.current) setLoading(false); }
+  }
+  function selectFilters(action: ActivityFilter, day: string | null) {
+    setFilter(action); setSelectedDay(day);
+    void loadPage(action, day);
+  }
+  const removedIds = new Set(removed.map(event => event.id));
+  const pageMatches = page.filter === filter && page.day === selectedDay;
+  const days = buildActivityDays(pageMatches ? page.events.filter(event => !removedIds.has(event.id)) : [], new Date(now), filter, period)
+    .map(day => {
+      const totals = summary.filter(row => row.day === day.key && (filter === "all" || row.action === filter));
+      const deleted = removed.filter(event => activityDayKey(event.created_at) === day.key && (filter === "all" || activityAction(event) === filter));
+      return { ...day, points: totals.reduce((sum, row) => sum + row.points, 0) - deleted.reduce((sum, event) => sum + event.points, 0),
+        count: totals.reduce((sum, row) => sum + row.count, 0) - deleted.length };
+    });
   const totalPoints = days.reduce((sum, day) => sum + day.points, 0);
-  const totalActions = days.reduce((sum, day) => sum + day.events.length, 0);
-  const activeDays = days.filter((day) => day.events.length > 0).length;
+  const totalActions = days.reduce((sum, day) => sum + day.count, 0);
+  const activeDays = days.filter((day) => day.count > 0).length;
   const maxPoints = Math.max(1, ...days.map((day) => day.points));
   const filteredDays = [...days].reverse().filter((day) =>
     selectedDay ? day.key === selectedDay : day.events.length > 0);
-  const shownDays = filteredDays.slice(0, visibleDays);
+  const shownDays = filteredDays;
   const isEmpty = !shownDays.some((day) => day.events.length > 0);
   const hasFilters = filter !== "all" || selectedDay !== null;
 
   function clearFilters() {
-    setFilter("all");
-    setSelectedDay(null);
-    setVisibleDays(7);
+    selectFilters("all", null);
   }
 
   function removeAward(event: ScoreActivity) {
@@ -67,7 +101,7 @@ export function ScoreHistory({ events, now, error, period = "month", title = "Sc
           setDeleteError(result.error);
           return;
         }
-        setRemovedIds((ids) => [...ids, event.id]);
+        setRemoved(previous => [...previous, event]);
         setConfirmDelete(null);
         setDeleteNotice(`Deleted ${event.points} points for ${event.problem_title}. Problem progress is unchanged.`);
         ledgerHeadingRef.current?.focus();
@@ -116,10 +150,10 @@ export function ScoreHistory({ events, now, error, period = "month", title = "Sc
                 aria-label={isWeekly ? "Daily scores for this leaderboard week" : "Daily scores for the past 30 days"}>
                 {days.map((day, index) => (
                   <button key={day.key} type="button" className={styles.dayButton}
-                    aria-label={`${formatActivityFullDate(day.date)}: ${day.points} points, ${day.events.length} scoring actions`}
+                    aria-label={`${formatActivityFullDate(day.date)}: ${day.points} points, ${day.count} scoring actions`}
                     aria-pressed={selectedDay === day.key}
                     title={`${formatActivityDate(day.date)}: ${day.points} pts`}
-                    onClick={() => { setSelectedDay(selectedDay === day.key ? null : day.key); setVisibleDays(7); }}>
+                    onClick={() => selectFilters(filter, selectedDay === day.key ? null : day.key)}>
                     {isWeekly && <span className={styles.dayPoints} aria-hidden="true">{day.points}</span>}
                     <span className={styles.barTrack}>
                       <span className={styles.bar} data-empty={day.points === 0}
@@ -137,7 +171,7 @@ export function ScoreHistory({ events, now, error, period = "month", title = "Sc
           <div className={styles.filters} role="group" aria-label="Filter score history by action">
             {(["all", ...ACTIVITY_ACTIONS] as const).map((value) => (
               <button key={value} type="button" aria-pressed={filter === value}
-                onClick={() => { setFilter(value); setVisibleDays(7); }}>
+                onClick={() => selectFilters(value, selectedDay)}>
                 {value === "all" ? "All actions" : ACTION_LABELS[value]}
               </button>
             ))}
@@ -153,7 +187,9 @@ export function ScoreHistory({ events, now, error, period = "month", title = "Sc
             {canDelete && <p className={styles.deleteHelp}>Misclick? Delete an award to remove its points from history and the leaderboard. Your solved status and revision count stay the same.</p>}
             {deleteError && <p className={styles.deleteFeedback} role="alert">{deleteError}</p>}
             <p className={styles.deleteFeedback} role="status">{deleteNotice}</p>
-            {isEmpty ? (
+            {pageError && <p role="alert">{pageError} <button type="button" disabled={loading} onClick={() => void loadPage(filter, selectedDay)}>Retry</button></p>}
+            {loading && <p role="status">Loading activity…</p>}
+            {isEmpty && !loading && !pageError ? (
               <div className={styles.empty}>
                 <History size={26} aria-hidden="true" />
                 <h3>{hasFilters ? "No activity matches these filters" : isWeekly ? "No points recorded this week" : "Your next score starts here"}</h3>
@@ -166,7 +202,7 @@ export function ScoreHistory({ events, now, error, period = "month", title = "Sc
               <section key={day.key} className={styles.dayGroup} aria-labelledby={`${historyId}-day-${day.key}`}>
                 <div className={styles.dayHeading}>
                   <h4 id={`${historyId}-day-${day.key}`}>{formatActivityFullDate(day.date)}</h4>
-                  <span>{day.events.length} {day.events.length === 1 ? "action" : "actions"}<strong>+{day.points} pts</strong></span>
+                  <span>{day.events.length} of {day.count} actions loaded<strong>+{day.points} pts</strong></span>
                 </div>
                 <ol className={styles.events}>
                   {day.events.map((event) => {
@@ -206,8 +242,8 @@ export function ScoreHistory({ events, now, error, period = "month", title = "Sc
                 </ol>
               </section>
             ))}
-            {filteredDays.length > visibleDays && <button className={`button-link secondary ${styles.more}`}
-              onClick={() => setVisibleDays(visibleDays + 7)}>Show earlier activity</button>}
+            {pageMatches && page.nextCursor && <button className={`button-link secondary ${styles.more}`} disabled={loading}
+              onClick={() => void loadPage(filter, selectedDay, true)}>Show earlier activity</button>}
           </div>
           <p className={styles.footnote}>These are the same points used for the weekly leaderboard. Each award is recorded once.</p>
         </>

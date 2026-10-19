@@ -1,6 +1,7 @@
 import { PageHeading } from "@/components/PageHeading";
 import { ReviseCard } from "@/components/ReviseCard";
 import { DAILY_REVISION_LIMIT } from "@/lib/config";
+import { PracticeLibrary } from "@/components/SessionLibraryProvider";
 
 export default function RevisePage() {
 
@@ -10,7 +11,7 @@ export default function RevisePage() {
         title="Daily revision"
         description={`Start with your oldest solved questions that have no revisions, then revisit the ones revised longest ago. Up to ${DAILY_REVISION_LIMIT} at a time, after a 48-hour break from solving or revising.`}
       />
-      <ReviseCard dailyLimit={DAILY_REVISION_LIMIT} />
+      <PracticeLibrary><ReviseCard dailyLimit={DAILY_REVISION_LIMIT} /></PracticeLibrary>
     </div>
   );
 }

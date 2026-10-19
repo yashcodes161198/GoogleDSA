@@ -22,6 +22,21 @@ const transport = (patch: Partial<LibraryTransport> = {}): LibraryTransport => (
 const problem = (store: SessionLibrary) => store.getSnapshot().problems[0];
 
 async function main() {
+  let lazyLoads = 0;
+  const lazyResponse = deferred<{ userId: string; problems: ProblemWithProgress[] }>();
+  const lazy = new SessionLibrary("user", null, transport({ load: () => { lazyLoads++; return lazyResponse.promise; } }));
+  assert.equal(lazy.getSnapshot().loaded, false);
+  assert.equal(lazyLoads, 0, "creating the protected-layout store does no library work");
+  const firstLoad = lazy.ensureLoaded();
+  assert.equal(lazy.ensureLoaded(), firstLoad, "simultaneous practice consumers share their first load");
+  lazyResponse.resolve({ userId: "user", problems: [initial] });
+  await firstLoad;
+  assert.equal(lazy.getSnapshot().loaded, true);
+  await lazy.ensureLoaded();
+  assert.equal(lazyLoads, 1, "warm practice navigation reuses the complete snapshot");
+  lazy.clear();
+  assert.equal(lazy.getSnapshot().loaded, false);
+  assert.equal(lazy.getSnapshot().problems.length, 0);
   // A fresh solve must not become immediately eligible for revision, even without a prior row.
   const status = deferred<{ solvedAt: string }>();
   const store = new SessionLibrary("user", [initial], transport({ status: () => status.promise }));

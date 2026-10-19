@@ -18,6 +18,7 @@ globalThis.fetch = async (input, init) => {
     }
     return Response.json(user);
   }
+  if (url.pathname.endsWith("/rpc/get_score_activity_page")) return Response.json({ events: [], summary: [] });
   if (url.pathname.startsWith("/rest/v1/")) return Response.json([]);
   throw new Error(`Unhandled theme fixture endpoint: ${url.pathname}`);
 };

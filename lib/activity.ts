@@ -8,6 +8,21 @@ export type ActivityPeriod = "month" | "week";
 export const ACTIVITY_ACTIONS = ["solved", "first-revision", "later-revision"] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];
 export type ActivityFilter = "all" | ActivityAction;
+export type ActivitySummary = { day: string; action: ActivityAction; points: number; count: number };
+
+export function summarizeActivity(events: ScoreActivity[]): ActivitySummary[] {
+  const groups = new Map<string, ActivitySummary>();
+  for (const event of events) {
+    const day = activityDayKey(event.created_at);
+    const action = activityAction(event);
+    const key = `${day}:${action}`;
+    const group = groups.get(key) ?? { day, action, points: 0, count: 0 };
+    group.points += event.points;
+    group.count += 1;
+    groups.set(key, group);
+  }
+  return [...groups.values()];
+}
 export const ACTION_LABELS: Record<ActivityAction, string> = {
   solved: "Solved",
   "first-revision": "First revision",

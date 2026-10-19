@@ -10,7 +10,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
 import { getDisplayName } from "@/lib/display-name";
 import { isPracticeToday } from "@/lib/practice-day";
-import { activityBounds, type ActivityPeriod, type ScoreActivity } from "@/lib/activity";
+import { activityBounds, activityAction, activityDayKey, summarizeActivity, type ActivitySummary, type ActivityFilter, type ActivityPeriod, type ScoreActivity } from "@/lib/activity";
+import { beforeCursor, cursorPage, type Cursor } from "@/lib/pagination";
 import { enrichProblemsFromCsv, enrichProblemFromCsv } from "@/lib/problems-enrich";
 import {
   selectRevisionQueue,
@@ -75,8 +76,9 @@ const getProblemsCatalog = cache(async () => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("problems")
-    .select("*")
-    .order("frequency", { ascending: false });
+    .select("id,slug,title,difficulty,frequency,acceptance_rate,link,links,topics")
+    .order("frequency", { ascending: false })
+    .order("id", { ascending: true });
 
   if (error) throw error;
   return enrichProblemsFromCsv((data as Problem[]) ?? []);
@@ -88,7 +90,7 @@ export async function getWeeklyLeaderboard(): Promise<{
 }> {
   if (isLocalMode()) {
     return {
-      entries: getMemoryStore().getWeeklyLeaderboard(),
+      entries: getMemoryStore().getWeeklyLeaderboard().filter((entry, index) => index < 100 || entry.user_id === getLocalUserId()),
       unavailable: false,
     };
   }
@@ -112,77 +114,84 @@ export async function getWeeklyLeaderboard(): Promise<{
   return { entries, unavailable: false };
 }
 
-export async function getLeaderboardComments(): Promise<{
+export async function getLeaderboardComments(parentId: string | null = null, cursor: Cursor | null = null): Promise<{
   comments: LeaderboardComment[];
+  nextCursor: Cursor | null;
   error: string | null;
 }> {
   if (isLocalMode()) {
-    return { comments: getMemoryStore().getLeaderboardComments(), error: null };
+    const all = getMemoryStore().getLeaderboardComments();
+    const rows = all.filter(comment => comment.parent_id === parentId && beforeCursor(comment, cursor))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id))
+      .map(comment => ({ ...comment, reply_count: all.filter(reply => reply.parent_id === comment.id).length }));
+    const page = cursorPage(rows, 20);
+    return { comments: page.items, nextCursor: page.nextCursor, error: null };
   }
 
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc("get_leaderboard_comments");
+    const { data, error } = await supabase.rpc("get_leaderboard_comments_page", {
+      p_parent: parentId, p_before: cursor?.created_at ?? null, p_id: cursor?.id ?? null,
+    });
     if (error) throw error;
     const rows = (data ?? []) as (Omit<LeaderboardComment, "media_url"> & { media_path: string | null })[];
     const bucket = supabase.storage.from("leaderboard-comment-media");
+    const page = cursorPage(rows, 20);
     return {
-      comments: rows.map(({ media_path, ...comment }) => ({
+      comments: page.items.map(({ media_path, ...comment }) => ({
         ...comment,
         media_kind: comment.media_kind ?? null,
         media_url: media_path ? bucket.getPublicUrl(media_path).data.publicUrl : null,
       })),
+      nextCursor: page.nextCursor,
       error: null,
     };
   } catch (error) {
     console.error("Failed to load leaderboard comments", error);
-    return { comments: [], error: "Discussion could not be loaded. Try refreshing the page." };
+    return { comments: [], nextCursor: null, error: "Discussion could not be loaded. Try refreshing the page." };
   }
 }
 
 export async function getScoreActivity(now = new Date(), options: {
   userId?: string;
   period?: ActivityPeriod;
+  cursor?: Cursor | null;
+  filter?: ActivityFilter;
+  day?: string | null;
+  includeSummary?: boolean;
 } = {}): Promise<{
   events: ScoreActivity[];
+  summary: ActivitySummary[];
+  nextCursor: Cursor | null;
   error: string | null;
 }> {
   const user = await getCurrentUser();
-  if (!user) return { events: [], error: "Sign in to view score history." };
+  if (!user) return { events: [], summary: [], nextCursor: null, error: "Sign in to view score history." };
   // Leaderboard awards are readable by every authenticated user under migration 013.
   const userId = options.userId ?? user.id;
   if (isLocalMode()) {
-    return { events: getMemoryStore().getScoreActivity(userId, now, options.period), error: null };
+    const all = getMemoryStore().getScoreActivity(userId, now, options.period);
+    const page = cursorPage(all.filter(event => beforeCursor(event, options.cursor ?? null) &&
+      (!options.day || activityDayKey(event.created_at) === options.day) &&
+      (!options.filter || options.filter === "all" || activityAction(event) === options.filter)), 50);
+    return { events: page.items, summary: options.includeSummary === false ? [] : summarizeActivity(all), nextCursor: page.nextCursor, error: null };
   }
 
   try {
     const supabase = await createClient();
     const { start, end } = activityBounds(now, options.period);
-    const events: ScoreActivity[] = [];
-    const pageSize = 1000;
-    for (let offset = 0; ; offset += pageSize) {
-      const { data, error } = await supabase
-        .from("leaderboard_events")
-        .select("id, problem_id, difficulty, event_type, revision_number, points, created_at, problem:problems(title)")
-        .eq("user_id", userId)
-        .gte("created_at", start.toISOString())
-        .lt("created_at", end.toISOString())
-        .order("created_at", { ascending: false })
-        .order("id", { ascending: false })
-        .range(offset, offset + pageSize - 1);
-      if (error) throw error;
-      const rows = (data ?? []) as unknown as (Omit<ScoreActivity, "problem_title"> & {
-        problem: { title: string } | null;
-      })[];
-      events.push(...rows.map(({ problem, ...event }) => ({
-        ...event, problem_title: problem?.title ?? "Unavailable question",
-      })));
-      if (rows.length < pageSize) break;
-    }
-    return { events, error: null };
+    const { data, error } = await supabase.rpc("get_score_activity_page", {
+      p_user: userId, p_start: start.toISOString(), p_end: end.toISOString(),
+      p_before: options.cursor?.created_at ?? null, p_id: options.cursor?.id ?? null,
+      p_action: options.filter ?? "all", p_day: options.day ?? null, p_summary: options.includeSummary !== false,
+    });
+    if (error) throw error;
+    const result = data as { events: ScoreActivity[]; summary: ActivitySummary[] };
+    const page = cursorPage(result.events, 50);
+    return { events: page.items, summary: result.summary, nextCursor: page.nextCursor, error: null };
   } catch (error) {
     console.error("Failed to load score activity", error);
-    return { events: [], error: "Score history could not be loaded. Try again in a moment." };
+    return { events: [], summary: [], nextCursor: null, error: "Score history could not be loaded. Try again in a moment." };
   }
 }
 
@@ -191,13 +200,15 @@ export async function getProblemsWithProgress(): Promise<ProblemWithProgress[]> 
   if (!user) return [];
 
   if (isLocalMode()) {
-    return getMemoryStore().getProblemsWithProgress(getLocalUserId());
+    return getMemoryStore().getProblemsWithProgress(getLocalUserId()).map(problem => ({
+      ...problem, user_problem: problem.user_problem ? practiceProgress(problem.user_problem) : null,
+    }));
   }
 
   const supabase = await createClient();
   const [problems, { data: userProblems, error }] = await Promise.all([
     getProblemsCatalog(),
-    supabase.from("user_problems").select("*").eq("user_id", user.id),
+    supabase.from("user_problems").select("user_id,problem_id,status,solved_at,ease_factor,interval_days,repetitions,next_review_at,last_reviewed_at,revision_count,last_revised_at,daily_revision_count,last_solve_seconds,best_solve_seconds,is_favorite").eq("user_id", user.id),
   ]);
   if (error) throw error;
 
@@ -213,6 +224,16 @@ export async function getProblemsWithProgress(): Promise<ProblemWithProgress[]> 
       status: (user_problem?.status ?? "unsolved") as ProblemStatus,
     };
   });
+}
+
+function practiceProgress(progress: UserProblem): Omit<UserProblem, "notes"> {
+  // Keep local fixtures and hosted payloads on the same projection.
+  const { user_id, problem_id, status, solved_at, ease_factor, interval_days, repetitions,
+    next_review_at, last_reviewed_at, revision_count, last_revised_at, daily_revision_count,
+    last_solve_seconds, best_solve_seconds, is_favorite } = progress;
+  return { user_id, problem_id, status, solved_at, ease_factor, interval_days, repetitions,
+    next_review_at, last_reviewed_at, revision_count, last_revised_at, daily_revision_count,
+    last_solve_seconds, best_solve_seconds, is_favorite };
 }
 
 type DashboardStatsRpcRow = {

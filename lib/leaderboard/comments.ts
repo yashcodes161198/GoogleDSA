@@ -7,4 +7,5 @@ export type LeaderboardComment = {
   media_url: string | null;
   parent_id: string | null;
   created_at: string;
+  reply_count?: number;
 };

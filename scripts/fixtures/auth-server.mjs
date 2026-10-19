@@ -30,6 +30,7 @@ globalThis.fetch = async (input, init) => {
     });
   }
   if (url.pathname === "/auth/v1/user") return Response.json(user);
+  if (url.pathname.endsWith("/rpc/get_score_activity_page")) return Response.json({ events: [], summary: [] });
   if (url.pathname.startsWith("/rest/v1/")) return Response.json([]);
   throw new Error(`Unhandled auth fixture endpoint: ${url.pathname}`);
 };

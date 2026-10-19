@@ -29,7 +29,7 @@ export interface UserProblem {
   user_id: string;
   problem_id: string;
   status: ProblemStatus;
-  notes: string | null;
+  notes?: string | null;
   solved_at: string | null;
   ease_factor: number;
   interval_days: number;

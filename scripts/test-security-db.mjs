@@ -3,6 +3,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import { checkBoundedReads } from "./check-bounded-reads.mjs";
 
 const runtime = process.env.SCORE_DB_TEST_RUNTIME;
 if (!runtime) throw new Error("Set SCORE_DB_TEST_RUNTIME to a directory containing @electric-sql/pglite.");
@@ -179,6 +180,7 @@ try {
   await db.query("UPDATE private.progress_write_limits SET minute_count=120 WHERE user_id=$1", [owner]);
   await asUser(owner);
   await assert.rejects(act("favorite", false), /write limit reached/);
+  await checkBoundedReads(db, asUser, owner, problem);
   console.log("Database batch passed: trusted progress/awards, retries, ownership, rollback, quotas, finite timestamps, text edits, 25/full-catalog interviews and atomic failure, media reservations/finalization and orphan cleanup. Multi-connection concurrency and the live Storage service are not covered by PGlite.");
 } catch(error) {
   console.error(error.message);

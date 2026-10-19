@@ -7,6 +7,7 @@ import { editLeaderboardComment, postLeaderboardComment } from "@/app/leaderboar
 import { MAX_MEDIA_BYTES } from "@/lib/leaderboard/media-limits";
 import { commentDate } from "@/lib/leaderboard/comment-date";
 import type { LeaderboardComment } from "@/lib/leaderboard/comments";
+import { pageParams, type Cursor } from "@/lib/pagination";
 import styles from "./LeaderboardDiscussion.module.css";
 
 function CommentComposer({
@@ -198,6 +199,7 @@ function CommentMessage({ comment, currentUserId }: { comment: LeaderboardCommen
           <img
             src={comment.media_url}
             alt={`${comment.media_kind === "gif" ? "GIF" : "Sticker"} posted by ${comment.display_name}`}
+            loading="lazy" decoding="async" width={280} height={200}
           />
         </div>
       )}
@@ -216,14 +218,33 @@ function CommentMessage({ comment, currentUserId }: { comment: LeaderboardCommen
 
 function Comment({
   comment,
-  replies,
   currentUserId,
 }: {
   comment: LeaderboardComment;
-  replies: LeaderboardComment[];
   currentUserId: string;
 }) {
   const [replying, setReplying] = useState(false);
+  const [replies, setReplies] = useState<LeaderboardComment[]>([]);
+  const [nextCursor, setNextCursor] = useState<Cursor | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function loadReplies(reset = false) {
+    setPending(true);
+    setError(null);
+    try {
+      const params = pageParams(reset ? null : nextCursor);
+      params.set("parent", comment.id);
+      const response = await fetch(`/api/discussion?${params}`, { cache: "no-store" });
+      if (!response.ok) throw new Error("Could not load replies. Try again.");
+      const page = await response.json();
+      setReplies(previous => reset ? page.comments : [...previous, ...page.comments]);
+      setNextCursor(page.nextCursor);
+      setLoaded(true);
+    } catch (error) { setError((error as Error).message); }
+    finally { setPending(false); }
+  }
 
   return (
     <li className={styles.thread}>
@@ -249,6 +270,8 @@ function Comment({
           </button>
         </div>
       </div>
+      {(comment.reply_count ?? 0) > 0 && !loaded && <button type="button" className={styles.replyButton}
+        disabled={pending} onClick={() => void loadReplies()}>{pending ? "Loading…" : `View ${comment.reply_count} replies`}</button>}
       {replies.length > 0 && (
         <ol className={styles.replies} aria-label={`Replies to ${comment.display_name}`}>
           {replies.map((reply) => (
@@ -268,9 +291,12 @@ function Comment({
           ))}
         </ol>
       )}
+      {loaded && nextCursor && <button type="button" className={styles.replyButton} disabled={pending}
+        onClick={() => void loadReplies()}>{pending ? "Loading…" : "Load earlier replies"}</button>}
+      {error && <p role="alert" className={styles.error}>{error}</p>}
       {replying && (
         <div id={`reply-form-${comment.id}`} className={styles.replyForm}>
-          <CommentComposer parentId={comment.id} onPosted={() => setReplying(false)} />
+          <CommentComposer parentId={comment.id} onPosted={() => { setReplying(false); void loadReplies(true); }} />
         </div>
       )}
     </li>
@@ -281,18 +307,28 @@ export function LeaderboardDiscussion({
   comments,
   error,
   currentUserId,
+  nextCursor: initialCursor,
 }: {
   comments: LeaderboardComment[];
   error: string | null;
   currentUserId: string;
+  nextCursor: Cursor | null;
 }) {
-  const topLevel = comments.filter((comment) => comment.parent_id === null);
-  const repliesByParent = new Map<string, LeaderboardComment[]>();
-  for (const comment of comments) {
-    if (!comment.parent_id) continue;
-    const replies = repliesByParent.get(comment.parent_id) ?? [];
-    replies.push(comment);
-    repliesByParent.set(comment.parent_id, replies);
+  const [topLevel, setThreads] = useState(comments);
+  const [cursor, setCursor] = useState(initialCursor);
+  const [pending, setPending] = useState(false);
+  const [pageError, setPageError] = useState<string | null>(null);
+  async function loadMore() {
+    setPending(true);
+    setPageError(null);
+    try {
+      const response = await fetch(`/api/discussion?${pageParams(cursor)}`, { cache: "no-store" });
+      if (!response.ok) throw new Error("Could not load comments. Try again.");
+      const page = await response.json();
+      setThreads(previous => [...previous, ...page.comments]);
+      setCursor(page.nextCursor);
+    } catch (error) { setPageError((error as Error).message); }
+    finally { setPending(false); }
   }
 
   return (
@@ -303,7 +339,7 @@ export function LeaderboardDiscussion({
           <h2 id="discussion-title">The conversation</h2>
           <p>Talk through a problem, celebrate a win, or help someone keep going.</p>
         </div>
-        {!error && <span className={styles.count}>{comments.length} {comments.length === 1 ? "comment" : "comments"}</span>}
+        {!error && <span className={styles.count}>{topLevel.length} threads loaded</span>}
       </div>
       {error ? (
         <p role="alert" className={styles.loadError}>{error}</p>
@@ -322,12 +358,14 @@ export function LeaderboardDiscussion({
                 <Comment
                   key={comment.id}
                   comment={comment}
-                  replies={repliesByParent.get(comment.id) ?? []}
                   currentUserId={currentUserId}
                 />
               ))}
             </ol>
           )}
+          {cursor && <button type="button" className="button-link secondary m-6" disabled={pending}
+            onClick={() => void loadMore()}>{pending ? "Loading…" : "Load earlier threads"}</button>}
+          {pageError && <p role="alert" className={styles.error}>{pageError}</p>}
         </>
       )}
     </section>

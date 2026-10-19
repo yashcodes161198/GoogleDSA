@@ -1,5 +1,7 @@
 # GoogleDSA performance investigation
 
+**19 October 2026 implementation update:** P01/P02 now page discussion/history and load the practice library on first Problems/Revise use, while retaining its provider across protected navigation. Settings/Leaderboard first opens carry no library payload and do not fetch it on focus. The older server-bootstrap descriptions and measurements below are historical. See [the review's P01/P02 resolutions and grouped checks](PERFORMANCE_SECURITY_REVIEW_2026-10-19.md) for current behavior; no new production timing comparison is claimed.
+
 Measured 9 October 2026 (Asia/Calcutta). Status: session library verified locally; signed-in production baseline recorded in Brave before deployment. No schema, hosting-plan or production deployment changes.
 
 ## Settled and pending decisions

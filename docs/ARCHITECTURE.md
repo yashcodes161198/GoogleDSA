@@ -8,7 +8,7 @@ A Next.js 16 app that tracks ~770 Google interview questions, runs 2-hour mock i
 
 **At a glance:** ~770 Google questions tracked · 1 Easy / 3 Medium / 1 Hard per mock interview · SM-2 spaced repetition · 4 RLS-protected tables
 
-**9 October 2026 update:** Problems and Revise now share a user-scoped in-memory library bootstrapped by the protected layout. Their navigation loads route shells; saves update the store without route revalidation. Focus refreshes through authenticated, uncached `/api/library`. Dashboard and Interview still use server loaders. The request diagrams and historical improvement notes below describe the earlier server-driven practice pages; [PERFORMANCE.md](PERFORMANCE.md) and [the amended ADR](adr/0001-session-library.md) describe current behavior, measured results, failure handling and first-open costs.
+**19 October 2026 update:** Problems and Revise share a user-scoped in-memory library owned by the protected layout. The layout authenticates without loading the library; a practice boundary requests authenticated, uncached `/api/library` once on first practice use. Warm practice navigation reuses the store, saves update it without practice-route revalidation, and focus refresh starts only after the library has loaded. Direct Settings/Leaderboard opens carry no catalog/progress snapshot. Dashboard and Interview still use server loaders. The request diagrams and historical improvement notes below describe earlier server-driven pages; [PERFORMANCE.md](PERFORMANCE.md) records the dated experiments, and [the security/performance review](PERFORMANCE_SECURITY_REVIEW_2026-10-19.md) records the current P01/P02 checks and rollout requirements.
 
 ## Table of contents
 

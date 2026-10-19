@@ -9,8 +9,8 @@ import type { ProblemWithProgress } from "@/lib/types";
 
 const LibraryContext = createContext<{ store: SessionLibrary; canAddQuestion: boolean } | null>(null);
 
-export function SessionLibraryProvider({ userId, initialProblems, canAddQuestion, localMode, children }: {
-  userId: string; initialProblems: ProblemWithProgress[]; canAddQuestion: boolean; localMode: boolean; children: React.ReactNode;
+export function SessionLibraryProvider({ userId, initialProblems = null, canAddQuestion, localMode, children }: {
+  userId: string; initialProblems?: ProblemWithProgress[] | null; canAddQuestion: boolean; localMode: boolean; children: React.ReactNode;
 }) {
   const router = useRouter();
   const [store] = useState(() => new SessionLibrary(userId, initialProblems, {
@@ -29,7 +29,7 @@ export function SessionLibraryProvider({ userId, initialProblems, canAddQuestion
   }));
 
   useEffect(() => {
-    const onFocus = () => { if (document.visibilityState === "visible") void store.refresh(); };
+    const onFocus = () => { if (document.visibilityState === "visible" && store.getSnapshot().loaded) void store.refresh(); };
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);
     const subscription = localMode ? null : createClient().auth.onAuthStateChange((event, session) => {
@@ -67,4 +67,13 @@ export function LibraryRefreshStatus() {
       ? <p className="text-sm text-destructive" role="alert">{error}{" "}<button type="button" className="underline" onClick={() => void store.refresh()}>Refresh progress</button></p>
       : <p className="text-sm text-muted" role="status">Refreshing progress…</p>}
   </div>;
+}
+
+export function PracticeLibrary({ children }: { children: React.ReactNode }) {
+  const { loaded, error, store } = useSessionLibrary();
+  useEffect(() => { void store.ensureLoaded(); }, [store]);
+  if (!loaded) return <div className="surface p-6" role={error ? "alert" : "status"}>
+    {error ? <>{error} <button type="button" className="underline" onClick={() => void store.ensureLoaded()}>Try again</button></> : "Loading your practice library…"}
+  </div>;
+  return children;
 }
