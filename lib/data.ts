@@ -462,7 +462,6 @@ export async function getInterviewSession(
     session.status === "active" &&
     new Date(session.ends_at).getTime() <= Date.now()
   ) {
-    await expireStaleInterviewSessions(user.id);
     session.status = "completed";
   }
 
@@ -515,20 +514,6 @@ export async function getInterviewSession(
   };
 }
 
-export async function expireStaleInterviewSessions(userId: string): Promise<void> {
-  if (isLocalMode()) {
-    getMemoryStore().expireStaleInterviewSessions(userId);
-    return;
-  }
-  const supabase = await createClient();
-  await supabase
-    .from("interview_sessions")
-    .update({ status: "completed" })
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .lt("ends_at", new Date().toISOString());
-}
-
 export async function getActiveInterviewSession(): Promise<InterviewSession | null> {
   const user = await getCurrentUser();
   if (!user) return null;
@@ -537,14 +522,13 @@ export async function getActiveInterviewSession(): Promise<InterviewSession | nu
     return getMemoryStore().getActiveInterviewSession(getLocalUserId());
   }
 
-  await expireStaleInterviewSessions(user.id);
-
   const supabase = await createClient();
   const { data } = await supabase
     .from("interview_sessions")
     .select("*")
     .eq("user_id", user.id)
     .eq("status", "active")
+    .gt("ends_at", new Date().toISOString())
     .order("started_at", { ascending: false })
     .limit(1)
     .maybeSingle();

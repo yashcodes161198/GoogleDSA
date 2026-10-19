@@ -92,7 +92,7 @@ assert.deepEqual(store.getScoreActivity(user, now).map((entry) => entry.revision
   "deleting a solve leaves other revision awards alone");
 assert.deepEqual(store.getProblemsWithProgress(user), progressBeforeDelete,
   "deleting points does not change problem progress or revision counts");
-assert.equal(store.awardSolve(user, hard.id, now), 8, "a future solve can earn a deleted award again");
+assert.equal(store.awardSolve(user, hard.id, now), 0, "deleting an award retains its immutable identity and cannot earn it again");
 assert.equal(store.awardSolve(user, hard.id, now), 0, "new awards still prevent duplicates");
 assert.equal(store.getScoreActivity("another-user", now).length, 1);
 console.log("score activity ok: IST bounds, filters, deduplication, deletion, ownership, retries, original weeks, unchanged progress");

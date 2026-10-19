@@ -1,8 +1,8 @@
+import { localModeFromEnvironment } from "./local-mode";
+
 export function isLocalMode(): boolean {
-  return (
-    process.env.USE_LOCAL_DB === "true" ||
-    process.env.NEXT_PUBLIC_USE_LOCAL_DB === "true"
-  );
+  if (typeof window !== "undefined") return false;
+  return localModeFromEnvironment(process.env);
 }
 
 export const LOCAL_ADMIN = {

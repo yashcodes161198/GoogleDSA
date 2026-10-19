@@ -4,19 +4,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ImagePlus, MessageCircle, Send, X } from "lucide-react";
 import { editLeaderboardComment, postLeaderboardComment } from "@/app/leaderboard-comment-actions";
+import { MAX_MEDIA_BYTES } from "@/lib/leaderboard/media-limits";
+import { commentDate } from "@/lib/leaderboard/comment-date";
 import type { LeaderboardComment } from "@/lib/leaderboard/comments";
 import styles from "./LeaderboardDiscussion.module.css";
-
-function commentDate(value: string): string {
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "Asia/Kolkata",
-  }).format(new Date(value));
-}
 
 function CommentComposer({
   parentId,
@@ -51,8 +42,8 @@ function CommentComposer({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
-    if (selectedFile && selectedFile.size > 5 * 1024 * 1024) {
-      setError("GIFs and stickers must be 5 MB or smaller.");
+    if (selectedFile && selectedFile.size > MAX_MEDIA_BYTES) {
+      setError("GIFs and stickers must be 3 MB or smaller.");
       return;
     }
     setPending(true);
@@ -127,7 +118,7 @@ function CommentComposer({
             <span className={styles.attachLong}>Add GIF or sticker</span>
             <span className={styles.attachShort}>Attach</span>
           </label>
-          <span className={styles.hint}>GIF, PNG or WebP · max 5 MB</span>
+          <span className={styles.hint}>GIF, PNG or WebP · max 3 MB · attachments are public</span>
         </div>
         <button type="submit" disabled={pending} className={styles.postButton}>
           <Send size={15} aria-hidden="true" />

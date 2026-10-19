@@ -1,0 +1,23 @@
+✓ Running next.config.ts took 184ms
+{
+  "passed": true,
+  "authenticated": true,
+  "palettes": 38,
+  "checks": [
+    "original defaults",
+    "forced modes",
+    "independent light/dark choices",
+    "all palettes",
+    "button contrast",
+    "reload",
+    "system changes",
+    "mobile overflow",
+    "keyboard",
+    "navigation",
+    "failed save rollback",
+    "reset",
+    "theme before JavaScript",
+    "cross-device persistence",
+    "account isolation"
+  ]
+}

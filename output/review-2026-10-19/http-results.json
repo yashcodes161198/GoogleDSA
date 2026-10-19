@@ -1,0 +1,589 @@
+{
+  "environment": "loopback production build, in-memory database, Node 20.15.0",
+  "samples": [
+    {
+      "path": "/dashboard",
+      "iteration": 0,
+      "ms": 294.5879,
+      "bytes": 435239
+    },
+    {
+      "path": "/dashboard",
+      "iteration": 1,
+      "ms": 54.63560000000001,
+      "bytes": 435239
+    },
+    {
+      "path": "/dashboard",
+      "iteration": 2,
+      "ms": 41.828899999999976,
+      "bytes": 435239
+    },
+    {
+      "path": "/dashboard",
+      "iteration": 3,
+      "ms": 39.133399999999995,
+      "bytes": 435239
+    },
+    {
+      "path": "/dashboard",
+      "iteration": 4,
+      "ms": 29.629400000000032,
+      "bytes": 435239
+    },
+    {
+      "path": "/dashboard",
+      "iteration": 5,
+      "ms": 31.817000000000007,
+      "bytes": 435239
+    },
+    {
+      "path": "/dashboard",
+      "iteration": 6,
+      "ms": 30.604900000000043,
+      "bytes": 435239
+    },
+    {
+      "path": "/dashboard",
+      "iteration": 7,
+      "ms": 36.16639999999995,
+      "bytes": 435239
+    },
+    {
+      "path": "/dashboard",
+      "iteration": 8,
+      "ms": 32.4316,
+      "bytes": 435239
+    },
+    {
+      "path": "/dashboard",
+      "iteration": 9,
+      "ms": 30.158999999999992,
+      "bytes": 435239
+    },
+    {
+      "path": "/dashboard",
+      "iteration": 10,
+      "ms": 29.976800000000026,
+      "bytes": 435239
+    },
+    {
+      "path": "/problems",
+      "iteration": 0,
+      "ms": 55.72770000000003,
+      "bytes": 832255
+    },
+    {
+      "path": "/problems",
+      "iteration": 1,
+      "ms": 43.18679999999995,
+      "bytes": 832255
+    },
+    {
+      "path": "/problems",
+      "iteration": 2,
+      "ms": 34.48149999999998,
+      "bytes": 832255
+    },
+    {
+      "path": "/problems",
+      "iteration": 3,
+      "ms": 34.379800000000046,
+      "bytes": 832255
+    },
+    {
+      "path": "/problems",
+      "iteration": 4,
+      "ms": 33.672000000000025,
+      "bytes": 832255
+    },
+    {
+      "path": "/problems",
+      "iteration": 5,
+      "ms": 34.93520000000001,
+      "bytes": 832255
+    },
+    {
+      "path": "/problems",
+      "iteration": 6,
+      "ms": 36.78640000000007,
+      "bytes": 832255
+    },
+    {
+      "path": "/problems",
+      "iteration": 7,
+      "ms": 38.40440000000001,
+      "bytes": 832255
+    },
+    {
+      "path": "/problems",
+      "iteration": 8,
+      "ms": 37.356700000000046,
+      "bytes": 832255
+    },
+    {
+      "path": "/problems",
+      "iteration": 9,
+      "ms": 47.95640000000003,
+      "bytes": 832255
+    },
+    {
+      "path": "/problems",
+      "iteration": 10,
+      "ms": 33.13390000000004,
+      "bytes": 832255
+    },
+    {
+      "path": "/revise",
+      "iteration": 0,
+      "ms": 32.25410000000011,
+      "bytes": 403032
+    },
+    {
+      "path": "/revise",
+      "iteration": 1,
+      "ms": 18.626700000000028,
+      "bytes": 403032
+    },
+    {
+      "path": "/revise",
+      "iteration": 2,
+      "ms": 20.100200000000086,
+      "bytes": 403032
+    },
+    {
+      "path": "/revise",
+      "iteration": 3,
+      "ms": 18.57380000000012,
+      "bytes": 403032
+    },
+    {
+      "path": "/revise",
+      "iteration": 4,
+      "ms": 25.7958000000001,
+      "bytes": 403032
+    },
+    {
+      "path": "/revise",
+      "iteration": 5,
+      "ms": 17.692800000000034,
+      "bytes": 403032
+    },
+    {
+      "path": "/revise",
+      "iteration": 6,
+      "ms": 16.5788,
+      "bytes": 403032
+    },
+    {
+      "path": "/revise",
+      "iteration": 7,
+      "ms": 23.457499999999982,
+      "bytes": 403032
+    },
+    {
+      "path": "/revise",
+      "iteration": 8,
+      "ms": 18.205200000000104,
+      "bytes": 403032
+    },
+    {
+      "path": "/revise",
+      "iteration": 9,
+      "ms": 24.290199999999913,
+      "bytes": 403032
+    },
+    {
+      "path": "/revise",
+      "iteration": 10,
+      "ms": 18.487699999999904,
+      "bytes": 403032
+    },
+    {
+      "path": "/interview",
+      "iteration": 0,
+      "ms": 49.32159999999999,
+      "bytes": 484780
+    },
+    {
+      "path": "/interview",
+      "iteration": 1,
+      "ms": 18.460199999999986,
+      "bytes": 484780
+    },
+    {
+      "path": "/interview",
+      "iteration": 2,
+      "ms": 23.72550000000001,
+      "bytes": 484780
+    },
+    {
+      "path": "/interview",
+      "iteration": 3,
+      "ms": 35.654599999999846,
+      "bytes": 484780
+    },
+    {
+      "path": "/interview",
+      "iteration": 4,
+      "ms": 46.813499999999976,
+      "bytes": 484780
+    },
+    {
+      "path": "/interview",
+      "iteration": 5,
+      "ms": 31.216199999999844,
+      "bytes": 484780
+    },
+    {
+      "path": "/interview",
+      "iteration": 6,
+      "ms": 20.96210000000019,
+      "bytes": 484780
+    },
+    {
+      "path": "/interview",
+      "iteration": 7,
+      "ms": 24.763300000000072,
+      "bytes": 484780
+    },
+    {
+      "path": "/interview",
+      "iteration": 8,
+      "ms": 20.583599999999933,
+      "bytes": 484780
+    },
+    {
+      "path": "/interview",
+      "iteration": 9,
+      "ms": 23.651200000000017,
+      "bytes": 484780
+    },
+    {
+      "path": "/interview",
+      "iteration": 10,
+      "ms": 23.12369999999987,
+      "bytes": 484780
+    },
+    {
+      "path": "/leaderboard",
+      "iteration": 0,
+      "ms": 46.38670000000002,
+      "bytes": 406596
+    },
+    {
+      "path": "/leaderboard",
+      "iteration": 1,
+      "ms": 20.982299999999896,
+      "bytes": 406596
+    },
+    {
+      "path": "/leaderboard",
+      "iteration": 2,
+      "ms": 26.898099999999886,
+      "bytes": 406596
+    },
+    {
+      "path": "/leaderboard",
+      "iteration": 3,
+      "ms": 18.23770000000013,
+      "bytes": 406596
+    },
+    {
+      "path": "/leaderboard",
+      "iteration": 4,
+      "ms": 26.21400000000017,
+      "bytes": 406596
+    },
+    {
+      "path": "/leaderboard",
+      "iteration": 5,
+      "ms": 17.9692,
+      "bytes": 406596
+    },
+    {
+      "path": "/leaderboard",
+      "iteration": 6,
+      "ms": 22.84770000000003,
+      "bytes": 406596
+    },
+    {
+      "path": "/leaderboard",
+      "iteration": 7,
+      "ms": 22.52669999999989,
+      "bytes": 406596
+    },
+    {
+      "path": "/leaderboard",
+      "iteration": 8,
+      "ms": 20.206199999999626,
+      "bytes": 406596
+    },
+    {
+      "path": "/leaderboard",
+      "iteration": 9,
+      "ms": 31.933800000000247,
+      "bytes": 406596
+    },
+    {
+      "path": "/leaderboard",
+      "iteration": 10,
+      "ms": 19.400700000000143,
+      "bytes": 406596
+    },
+    {
+      "path": "/settings",
+      "iteration": 0,
+      "ms": 32.132400000000416,
+      "bytes": 448606
+    },
+    {
+      "path": "/settings",
+      "iteration": 1,
+      "ms": 20.77390000000014,
+      "bytes": 448606
+    },
+    {
+      "path": "/settings",
+      "iteration": 2,
+      "ms": 24.685300000000097,
+      "bytes": 448606
+    },
+    {
+      "path": "/settings",
+      "iteration": 3,
+      "ms": 18.620100000000093,
+      "bytes": 448606
+    },
+    {
+      "path": "/settings",
+      "iteration": 4,
+      "ms": 23.474899999999707,
+      "bytes": 448606
+    },
+    {
+      "path": "/settings",
+      "iteration": 5,
+      "ms": 23.149199999999837,
+      "bytes": 448606
+    },
+    {
+      "path": "/settings",
+      "iteration": 6,
+      "ms": 24.596399999999903,
+      "bytes": 448606
+    },
+    {
+      "path": "/settings",
+      "iteration": 7,
+      "ms": 21.086699999999837,
+      "bytes": 448606
+    },
+    {
+      "path": "/settings",
+      "iteration": 8,
+      "ms": 24.583600000000388,
+      "bytes": 448606
+    },
+    {
+      "path": "/settings",
+      "iteration": 9,
+      "ms": 18.896099999999933,
+      "bytes": 448606
+    },
+    {
+      "path": "/settings",
+      "iteration": 10,
+      "ms": 25.827499999999873,
+      "bytes": 448606
+    },
+    {
+      "path": "/api/library",
+      "iteration": 0,
+      "ms": 15.864000000000033,
+      "bytes": 337221
+    },
+    {
+      "path": "/api/library",
+      "iteration": 1,
+      "ms": 6.682199999999739,
+      "bytes": 337221
+    },
+    {
+      "path": "/api/library",
+      "iteration": 2,
+      "ms": 6.981600000000071,
+      "bytes": 337221
+    },
+    {
+      "path": "/api/library",
+      "iteration": 3,
+      "ms": 6.971799999999803,
+      "bytes": 337221
+    },
+    {
+      "path": "/api/library",
+      "iteration": 4,
+      "ms": 6.58159999999998,
+      "bytes": 337221
+    },
+    {
+      "path": "/api/library",
+      "iteration": 5,
+      "ms": 10.674999999999727,
+      "bytes": 337221
+    },
+    {
+      "path": "/api/library",
+      "iteration": 6,
+      "ms": 11.971700000000055,
+      "bytes": 337221
+    },
+    {
+      "path": "/api/library",
+      "iteration": 7,
+      "ms": 6.267899999999827,
+      "bytes": 337221
+    },
+    {
+      "path": "/api/library",
+      "iteration": 8,
+      "ms": 5.849099999999908,
+      "bytes": 337221
+    },
+    {
+      "path": "/api/library",
+      "iteration": 9,
+      "ms": 6.009600000000319,
+      "bytes": 337221
+    },
+    {
+      "path": "/api/library",
+      "iteration": 10,
+      "ms": 6.294700000000375,
+      "bytes": 337221
+    }
+  ],
+  "summary": [
+    {
+      "path": "/dashboard",
+      "medianMs": 32.124300000000005,
+      "minMs": 29.629400000000032,
+      "maxMs": 54.63560000000001,
+      "bytes": 435239,
+      "estimatedGzipBytes": 67980,
+      "initialJsGzipBytes": 272850,
+      "headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "referrer-policy": null,
+        "permissions-policy": null,
+        "cache-control": "private, no-cache, no-store, max-age=0, must-revalidate"
+      }
+    },
+    {
+      "path": "/problems",
+      "medianMs": 35.86080000000004,
+      "minMs": 33.13390000000004,
+      "maxMs": 47.95640000000003,
+      "bytes": 832255,
+      "estimatedGzipBytes": 75700,
+      "initialJsGzipBytes": 279527,
+      "headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "referrer-policy": null,
+        "permissions-policy": null,
+        "cache-control": "private, no-cache, no-store, max-age=0, must-revalidate"
+      }
+    },
+    {
+      "path": "/revise",
+      "medianMs": 18.600250000000074,
+      "minMs": 16.5788,
+      "maxMs": 25.7958000000001,
+      "bytes": 403032,
+      "estimatedGzipBytes": 64216,
+      "initialJsGzipBytes": 278704,
+      "headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "referrer-policy": null,
+        "permissions-policy": null,
+        "cache-control": "private, no-cache, no-store, max-age=0, must-revalidate"
+      }
+    },
+    {
+      "path": "/interview",
+      "medianMs": 23.688350000000014,
+      "minMs": 18.460199999999986,
+      "maxMs": 46.813499999999976,
+      "bytes": 484780,
+      "estimatedGzipBytes": 90581,
+      "initialJsGzipBytes": 276030,
+      "headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "referrer-policy": null,
+        "permissions-policy": null,
+        "cache-control": "private, no-cache, no-store, max-age=0, must-revalidate"
+      }
+    },
+    {
+      "path": "/leaderboard",
+      "medianMs": 21.754499999999894,
+      "minMs": 17.9692,
+      "maxMs": 31.933800000000247,
+      "bytes": 406596,
+      "estimatedGzipBytes": 65302,
+      "initialJsGzipBytes": 279038,
+      "headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "referrer-policy": null,
+        "permissions-policy": null,
+        "cache-control": "private, no-cache, no-store, max-age=0, must-revalidate"
+      }
+    },
+    {
+      "path": "/settings",
+      "medianMs": 23.312049999999772,
+      "minMs": 18.620100000000093,
+      "maxMs": 25.827499999999873,
+      "bytes": 448606,
+      "estimatedGzipBytes": 69284,
+      "initialJsGzipBytes": 278554,
+      "headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "referrer-policy": null,
+        "permissions-policy": null,
+        "cache-control": "private, no-cache, no-store, max-age=0, must-revalidate"
+      }
+    },
+    {
+      "path": "/api/library",
+      "medianMs": 6.63189999999986,
+      "minMs": 5.849099999999908,
+      "maxMs": 11.971700000000055,
+      "bytes": 337221,
+      "estimatedGzipBytes": 56347,
+      "initialJsGzipBytes": 0,
+      "headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "referrer-policy": null,
+        "permissions-policy": null,
+        "cache-control": "private, no-store"
+      },
+      "problems": 697
+    }
+  ]
+}

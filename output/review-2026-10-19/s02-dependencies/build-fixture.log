@@ -1,0 +1,54 @@
+▲ Next.js 16.4.2 (Turbopack)
+- Environments: .env
+✓ Running next.config.ts took 218ms
+- Experiments (use with caution):
+  · serverActions
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 10.7s
+  Running TypeScript ...
+  Finished TypeScript in 9.6s ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/15) ...
+  Generating static pages using 15 workers (3/15) 
+Failed to load leaderboard comments Error: Dynamic server usage: Route /leaderboard couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at <unknown> (lib\supabase\server.ts:10:29)
+    at <unknown> (lib\auth.ts:14:26)
+    at <unknown> (lib\themes\server.ts:12:22)
+    at k (app\layout.tsx:35:47)
+   8 | // cached getUser in lib/auth).
+   9 | export const createClient = cache(async () => {
+> 10 |   const cookieStore = await cookies();
+     |                             ^
+  11 |
+  12 |   return createServerClient(
+  13 |     process.env.NEXT_PUBLIC_SUPABASE_URL!, {
+  description: "Route /leaderboard couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+  Generating static pages using 15 workers (7/15) 
+  Generating static pages using 15 workers (11/15) 
+✓ Generating static pages using 15 workers (15/15) in 1084ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api/library
+├ ƒ /auth/callback
+├ ƒ /dashboard
+├ ƒ /interview
+├ ƒ /interview/[sessionId]
+├ ƒ /leaderboard
+├ ƒ /login
+├ ƒ /problems
+├ ƒ /problems/new
+├ ƒ /revise
+├ ƒ /settings
+└ ƒ /signup
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -1,0 +1,38 @@
+Admin authorization tests passed
+REPRODUCED: expired-session cleanup deletes the new PKCE verifier; callback fails
+PASS: waiting for startup preserves PKCE through the callback
+PASS: empty/incognito session signs in with one callback and survives the next request
+PASS: expired session signs in with one callback and survives the next request
+OAuth code exchange failed { code: 'pkce_code_verifier_not_found', status: 400 }
+OAuth code exchange failed { code: undefined, status: 400 }
+PASS: callback failures return to login with an error; redirects stay on the app origin
+Error [AuthApiError]: Revoked session
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 400,
+  code: undefined
+}
+Error [AuthApiError]: Revoked session
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 400,
+  code: undefined
+}
+PASS: expired tokens refresh for browser and server; revoked cookies clear; current/empty sessions make zero Auth requests in proxy
+PASS: OAuth callback/assets bypass proxy; local mode bypasses Supabase
+Custom interview UI regression checks passed
+Dashboard stats passed: solves, interview solves, every revision increment, failures, and midnight IST
+(node:10480) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+All interview configuration tests passed
+leaderboard history ok: comment ownership and edits, cross-user access, IST days, week boundaries, daily totals, action filters, settings defaults
+leaderboard points ok
+New problem input tests passed
+Picked interview validation, ordering, and session tests passed
+Problem filters passed: all filters, URL encoding, pagination, defaults, invalid links, and clear
+Problem sorting passed: three-state headers, all columns, revision counts and age, stable ties, original order, and pagination
+Revision queue tests passed
+score activity ok: IST bounds, filters, deduplication, deletion, ownership, retries, original weeks, unchanged progress
+Session library race, rollback, cooldown, timing and isolation tests passed
+All solve timer tests passed
+Themes passed: original defaults, all 38 source palettes, valid mode pairs, readable text and buttons.

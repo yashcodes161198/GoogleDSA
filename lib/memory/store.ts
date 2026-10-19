@@ -53,6 +53,21 @@ class MemoryStore {
   leaderboardComments: LeaderboardComment[] = [];
   displayName = LOCAL_ADMIN.email.split("@")[0];
   private seeded = false;
+  private awardIdentities = new Set<string>();
+  private progressRequests = new Map<string, { input: string; result: unknown }>();
+
+  runProgressRequest<T>(userId: string, requestId: string, input: unknown, work: () => T): T {
+    const key = `${userId}:${requestId}`;
+    const encoded = JSON.stringify(input);
+    const previous = this.progressRequests.get(key);
+    if (previous) {
+      if (previous.input !== encoded) throw new Error("Request identifier already used");
+      return previous.result as T;
+    }
+    const result = work();
+    this.progressRequests.set(key, { input: encoded, result });
+    return result;
+  }
 
   ensureSeeded() {
     if (this.seeded) return;
@@ -291,6 +306,7 @@ class MemoryStore {
       (s) => s.id === sessionId && s.user_id === userId
     );
     if (!session) throw new Error("Session not found");
+    if (session.status !== "active" || Date.parse(session.ends_at) <= Date.now()) throw new Error("Session has ended");
 
     const row = this.interviewSessionProblems.find(
       (sp) => sp.session_id === sessionId && sp.problem_id === problemId
@@ -472,7 +488,9 @@ class MemoryStore {
         event.revision_number === revisionNumber
       );
     });
-    if (duplicate) return 0;
+    const identity = `${userId}:${problemId}:${eventType}:${revisionNumber ?? 0}`;
+    if (duplicate || this.awardIdentities.has(identity)) return 0;
+    this.awardIdentities.add(identity);
 
     this.leaderboardEvents.push({
       id: randomUUID(),

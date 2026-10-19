@@ -1,0 +1,16 @@
+{
+  "isolatedPostgres": true,
+  "migrations": [
+    13,
+    16
+  ],
+  "progressTableExists": false,
+  "solveWithoutProgressPoints": 8,
+  "fabricatedRevision1000000Points": 2,
+  "fabricatedRevision1000001Points": 2,
+  "solveAfterDeletionPoints": 8,
+  "commentTimestamp": "infinity",
+  "commentMigrations": "017, comment schema/policies/RPC from 018, 019; Storage service not emulated",
+  "commentDateFormatterThrows": true,
+  "pickedPosition21Rejected": true
+}

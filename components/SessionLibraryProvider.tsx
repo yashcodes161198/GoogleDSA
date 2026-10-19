@@ -22,9 +22,9 @@ export function SessionLibraryProvider({ userId, initialProblems, canAddQuestion
       if (result.userId !== userId) router.refresh();
       return result;
     },
-    status: (id, status) => updateProblemStatus(id, status, false),
+    status: (id, status) => updateProblemStatus(id, status, false, crypto.randomUUID()),
     favorite: (id, favorite) => setProblemFavorite(id, favorite, false),
-    revise: id => markProblemRevised(id, false),
+    revise: id => markProblemRevised(id, false, crypto.randomUUID()),
     time: (id, seconds) => saveProblemSolveTime(id, seconds, false),
   }));
 

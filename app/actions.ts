@@ -6,7 +6,6 @@ import { redirect } from "next/navigation";
 import { DAILY_REVISION_LIMIT, isLocalMode } from "@/lib/config";
 import { getLocalUserId, getMemoryStore } from "@/lib/memory/store";
 import {
-  expireStaleInterviewSessions,
   getDailyRevisions,
   getProblemsWithProgress,
   getCurrentUser,
@@ -49,72 +48,41 @@ function startInterviewErrorMessage(error: unknown): string {
   return "Could not start the interview. Please verify the Supabase schema and problems catalog, then try again.";
 }
 
-async function awardLeaderboardSolve(problemId: string) {
+async function mutateProgress(problemId: string, operation: string, value: unknown, requestId: string) {
   const supabase = await createClient();
-  const { error } = await supabase.rpc("award_leaderboard_solve", {
-    p_problem_id: problemId,
+  const { data, error } = await supabase.rpc("mutate_problem_progress", {
+    p_problem_id: problemId, p_operation: operation, p_value: value, p_request_id: requestId,
   });
-  if (error) console.error("Failed to award leaderboard solve points", error);
+  if (error) throw error;
+  return data as { solvedAt: string; revisionCount: number; bestSeconds: number };
 }
 
-async function awardLeaderboardRevision(problemId: string, revisionNumber: number) {
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("award_leaderboard_revision", {
-    p_problem_id: problemId,
-    p_revision_number: revisionNumber,
-  });
-  if (error) console.error("Failed to award leaderboard revision points", error);
-}
-
-export async function updateProblemStatus(problemId: string, status: ProblemStatus, refreshRoutes = true) {
+export async function updateProblemStatus(problemId: string, status: ProblemStatus, refreshRoutes = true, requestId: string = randomUUID()) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
-  const now = new Date().toISOString();
+  let now = new Date().toISOString();
 
   if (isLocalMode()) {
     const store = getMemoryStore();
-    const patch: Parameters<typeof store.upsertUserProblem>[2] = { status };
-    if (status === "solved") {
-      const srs = initialSrsOnSolve();
-      Object.assign(patch, {
-        solved_at: now,
-        ease_factor: srs.ease_factor,
-        interval_days: srs.interval_days,
-        repetitions: srs.repetitions,
-        next_review_at: srs.next_review_at.toISOString(),
-      });
-    }
-    store.upsertUserProblem(getLocalUserId(), problemId, patch);
-    if (status === "solved") {
-      store.awardSolve(getLocalUserId(), problemId);
-    }
-  } else {
-    const supabase = await createClient();
-    const payload: Record<string, unknown> = {
-      user_id: user.id,
-      problem_id: problemId,
-      status,
-    };
-
-    if (status === "solved") {
-      const srs = initialSrsOnSolve();
-      Object.assign(payload, {
-        solved_at: now,
-        ease_factor: srs.ease_factor,
-        interval_days: srs.interval_days,
-        repetitions: srs.repetitions,
-        next_review_at: srs.next_review_at.toISOString(),
-      });
-    }
-
-    const { error } = await supabase.from("user_problems").upsert(payload, {
-      onConflict: "user_id,problem_id",
+    now = store.runProgressRequest(user.id, requestId, [problemId, "status", status], () => {
+      const patch: Parameters<typeof store.upsertUserProblem>[2] = { status };
+      if (status === "solved") {
+        const srs = initialSrsOnSolve();
+        Object.assign(patch, {
+          solved_at: now,
+          ease_factor: srs.ease_factor,
+          interval_days: srs.interval_days,
+          repetitions: srs.repetitions,
+          next_review_at: srs.next_review_at.toISOString(),
+        });
+      }
+      store.upsertUserProblem(getLocalUserId(), problemId, patch);
+      if (status === "solved") store.awardSolve(getLocalUserId(), problemId);
+      return now;
     });
-    if (error) throw error;
-    if (status === "solved") {
-      await awardLeaderboardSolve(problemId);
-    }
+  } else {
+    now = (await mutateProgress(problemId, "status", status, requestId)).solvedAt;
   }
 
   revalidatePath("/settings");
@@ -134,31 +102,7 @@ export async function setProblemFavorite(problemId: string, favorite: boolean, r
   if (isLocalMode()) {
     getMemoryStore().setProblemFavorite(getLocalUserId(), problemId, favorite);
   } else {
-    const supabase = await createClient();
-    const { data: existing } = await supabase
-      .from("user_problems")
-      .select("status")
-      .eq("user_id", user.id)
-      .eq("problem_id", problemId)
-      .maybeSingle();
-
-    const { error } = await supabase.from("user_problems").upsert(
-      {
-        user_id: user.id,
-        problem_id: problemId,
-        status: existing?.status ?? "unsolved",
-        is_favorite: favorite,
-      },
-      { onConflict: "user_id,problem_id" }
-    );
-    if (error) {
-      if (error.code === "42703" || error.message.includes("is_favorite")) {
-        throw new Error(
-          "Favorites are not available yet. Apply the latest database migration."
-        );
-      }
-      throw error;
-    }
+    await mutateProgress(problemId, "favorite", favorite, randomUUID());
   }
 
   if (refreshRoutes) {
@@ -212,43 +156,7 @@ export async function saveProblemSolveTime(
       return { ok: true, bestSeconds };
     }
 
-    const supabase = await createClient();
-    const { data: existing, error: fetchError } = await supabase
-      .from("user_problems")
-      .select("status, best_solve_seconds")
-      .eq("user_id", user.id)
-      .eq("problem_id", problemId)
-      .maybeSingle();
-
-    if (fetchError) throw fetchError;
-
-    const existingBest =
-      existing?.best_solve_seconds != null
-        ? Number(existing.best_solve_seconds)
-        : null;
-    const bestSeconds =
-      existingBest != null ? Math.min(existingBest, clamped) : clamped;
-
-    if (existing) {
-      const { error } = await supabase
-        .from("user_problems")
-        .update({
-          last_solve_seconds: clamped,
-          best_solve_seconds: bestSeconds,
-        })
-        .eq("user_id", user.id)
-        .eq("problem_id", problemId);
-      if (error) throw error;
-    } else {
-      const { error } = await supabase.from("user_problems").insert({
-        user_id: user.id,
-        problem_id: problemId,
-        status: "unsolved",
-        last_solve_seconds: clamped,
-        best_solve_seconds: bestSeconds,
-      });
-      if (error) throw error;
-    }
+    const { bestSeconds } = await mutateProgress(problemId, "time", clamped, randomUUID());
 
     if (refreshRoutes) {
       revalidatePath("/problems");
@@ -262,16 +170,15 @@ export async function saveProblemSolveTime(
   }
 }
 
-export async function markProblemRevised(problemId: string, refreshRoutes = true) {
+export async function markProblemRevised(problemId: string, refreshRoutes = true, requestId: string = randomUUID()) {
   try {
     const user = await getCurrentUser();
     if (!user) return { ok: false as const, error: "Not authenticated" };
 
     if (isLocalMode()) {
-      const revisionCount = getMemoryStore().markRevised(
-        getLocalUserId(),
-        problemId
-      );
+      const store = getMemoryStore();
+      const revisionCount = store.runProgressRequest(user.id, requestId, [problemId, "revise"],
+        () => store.markRevised(user.id, problemId));
       revalidatePath("/settings");
       revalidatePath("/dashboard");
       if (refreshRoutes) {
@@ -282,28 +189,7 @@ export async function markProblemRevised(problemId: string, refreshRoutes = true
       return { ok: true as const, revisionCount };
     }
 
-    const supabase = await createClient();
-    const { data: revisionCount, error } = await supabase.rpc(
-      "increment_user_problem_revision",
-      { p_problem_id: problemId }
-    );
-
-    if (error) {
-      console.error("Failed to increment revision count", error);
-      if (error.code === "42703" || error.code === "PGRST202") {
-        return {
-          ok: false as const,
-          error:
-            "Revision tracking is not installed in Supabase. Apply migration 004_revision_tracking_rpc.sql.",
-        };
-      }
-      return {
-        ok: false as const,
-        error: "Could not save this revision. Please try again.",
-      };
-    }
-
-    await awardLeaderboardRevision(problemId, Number(revisionCount));
+    const { revisionCount } = await mutateProgress(problemId, "revise", {}, requestId);
 
     revalidatePath("/settings");
     revalidatePath("/dashboard");
@@ -314,7 +200,7 @@ export async function markProblemRevised(problemId: string, refreshRoutes = true
     }
     return {
       ok: true as const,
-      revisionCount: Number(revisionCount),
+      revisionCount,
     };
   } catch (error) {
     console.error("Failed to mark problem revised", error);
@@ -410,67 +296,13 @@ export async function startInterviewSession(
     }
 
     const supabase = await createClient();
-    await expireStaleInterviewSessions(user.id);
-
-    if (!forceNew) {
-      const { data: active } = await supabase
-        .from("interview_sessions")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("status", "active")
-        .order("started_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (active) {
-        revalidatePath("/interview");
-        return { ok: true, sessionId: active.id as string };
-      }
-    } else {
-      const { error: closeActiveError } = await supabase
-        .from("interview_sessions")
-        .update({ status: "completed" })
-        .eq("user_id", user.id)
-        .eq("status", "active");
-
-      if (closeActiveError) throw closeActiveError;
-    }
-
-    const startedAt = new Date();
-    const endsAt = new Date(
-      startedAt.getTime() + config.durationMinutes * 60 * 1000
-    );
-
-    const { data: session, error: sessionError } = await supabase
-      .from("interview_sessions")
-      .insert({
-        user_id: user.id,
-        started_at: startedAt.toISOString(),
-        ends_at: endsAt.toISOString(),
-        status: "active",
-      })
-      .select("id")
-      .single();
-
-    if (sessionError || !session) {
-      throw sessionError ?? new Error("Failed to create session");
-    }
-
-    const rows = problemIds.map((problemId, i) => ({
-      session_id: session.id,
-      problem_id: problemId,
-      position: i + 1,
-      completed: false,
-    }));
-
-    const { error: problemsError } = await supabase
-      .from("interview_session_problems")
-      .insert(rows);
-
-    if (problemsError) throw problemsError;
-
+    const { data: sessionId, error } = await supabase.rpc("start_interview_session", {
+      p_problem_ids: problemIds, p_duration_minutes: config.durationMinutes, p_force_new: forceNew,
+      p_mode: config.selectedProblemIds !== undefined ? "picked" : "random", p_request_id: randomUUID(),
+    });
+    if (error) throw error;
     revalidatePath("/interview");
-    return { ok: true, sessionId: session.id as string };
+    return { ok: true, sessionId: sessionId as string };
   } catch (error) {
     console.error("Failed to start interview", error);
     return { ok: false, error: startInterviewErrorMessage(error) };
@@ -508,47 +340,6 @@ export async function startNewInterviewAction(
   redirect(`/interview/${result.sessionId}`);
 }
 
-async function syncInterviewCompletionToProgress(
-  userId: string,
-  problemId: string,
-  completed: boolean
-) {
-  if (!completed) return;
-
-  if (isLocalMode()) {
-    getMemoryStore().syncSolvedFromInterview(getLocalUserId(), problemId);
-    return;
-  }
-
-  const supabase = await createClient();
-  const { data: existing } = await supabase
-    .from("user_problems")
-    .select("status")
-    .eq("user_id", userId)
-    .eq("problem_id", problemId)
-    .maybeSingle();
-
-  if (existing?.status === "solved") return;
-
-  const now = new Date().toISOString();
-  const srs = initialSrsOnSolve();
-  const { error } = await supabase.from("user_problems").upsert(
-    {
-      user_id: userId,
-      problem_id: problemId,
-      status: "solved",
-      solved_at: now,
-      ease_factor: srs.ease_factor,
-      interval_days: srs.interval_days,
-      repetitions: srs.repetitions,
-      next_review_at: srs.next_review_at.toISOString(),
-    },
-    { onConflict: "user_id,problem_id" }
-  );
-  if (error) throw error;
-  await awardLeaderboardSolve(problemId);
-}
-
 export async function updateInterviewProblem(
   sessionId: string,
   problemId: string,
@@ -566,16 +357,12 @@ export async function updateInterviewProblem(
     );
   } else {
     const supabase = await createClient();
-    const { error } = await supabase
-      .from("interview_session_problems")
-      .update({ completed })
-      .eq("session_id", sessionId)
-      .eq("problem_id", problemId);
-
+    const { error } = await supabase.rpc("set_interview_problem_completed", {
+      p_session_id: sessionId, p_problem_id: problemId, p_completed: completed,
+    });
     if (error) throw error;
   }
-
-  await syncInterviewCompletionToProgress(user.id, problemId, completed);
+  if (isLocalMode() && completed) getMemoryStore().syncSolvedFromInterview(getLocalUserId(), problemId);
 
   revalidatePath(`/interview/${sessionId}`);
   if (completed) {
@@ -594,35 +381,17 @@ export async function endInterviewSession(
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
-  let completedRows: { problem_id: string }[] = [];
-
   if (isLocalMode()) {
-    completedRows = getMemoryStore().endInterviewSession(
+    const completedRows = getMemoryStore().endInterviewSession(
       getLocalUserId(),
       sessionId,
       status
     );
+    for (const row of completedRows) getMemoryStore().syncSolvedFromInterview(getLocalUserId(), row.problem_id);
   } else {
     const supabase = await createClient();
-    const { error } = await supabase
-      .from("interview_sessions")
-      .update({ status })
-      .eq("id", sessionId)
-      .eq("user_id", user.id);
-
+    const { error } = await supabase.rpc("finish_interview_session", { p_session_id: sessionId, p_status: status });
     if (error) throw error;
-
-    const { data } = await supabase
-      .from("interview_session_problems")
-      .select("problem_id")
-      .eq("session_id", sessionId)
-      .eq("completed", true);
-
-    completedRows = data ?? [];
-  }
-
-  for (const row of completedRows) {
-    await syncInterviewCompletionToProgress(user.id, row.problem_id, true);
   }
 
   revalidatePath("/interview");

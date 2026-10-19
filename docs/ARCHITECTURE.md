@@ -4,7 +4,7 @@ A Next.js 16 app that tracks ~770 Google interview questions, runs 2-hour mock i
 
 > An interactive version of this doc (with a request-flow diagram) is available as a [Cursor Canvas](https://cursor.com) for anyone working in this repo with Cursor — ask the agent to open `google-dsa-architecture.canvas.tsx`. This file is the portable, git-native copy.
 
-**Stack:** Next.js 16.2.9 · React 19 · TypeScript · Tailwind v4 · Supabase · Vercel
+**Stack:** Next.js 16.4.2 · React 19 · TypeScript · Tailwind v4 · Supabase · Vercel
 
 **At a glance:** ~770 Google questions tracked · 1 Easy / 3 Medium / 1 Hard per mock interview · SM-2 spaced repetition · 4 RLS-protected tables
 

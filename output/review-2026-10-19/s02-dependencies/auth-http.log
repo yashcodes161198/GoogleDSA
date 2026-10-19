@@ -1,0 +1,6 @@
+✓ Running next.config.ts took 190ms
+PASS HTTP: empty session callback sends cookies; next protected page is authenticated
+PASS HTTP: stale session callback sends cookies; next protected page is authenticated
+PASS HTTP: expired session refresh reaches both server-rendered page and browser cookies
+OAuth code exchange failed { code: 'pkce_code_verifier_not_found', status: 400 }
+PASS HTTP: anonymous pages stay protected and callback failure displays a login error

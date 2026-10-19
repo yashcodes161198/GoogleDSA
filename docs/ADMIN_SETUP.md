@@ -4,12 +4,16 @@ Only accounts with **`app_metadata.role = "admin"`** can add shared catalog ques
 
 ## Local development
 
-With `USE_LOCAL_DB=true` (or `NEXT_PUBLIC_USE_LOCAL_DB=true`), the app signs you in automatically as:
+With the server flag `USE_LOCAL_DB=true` during local development, the app signs you in automatically as:
 
 - **Email:** `admin@local.dev`
 - **Password:** none (login is bypassed)
 
 That account can use **Add question** without extra setup.
+
+The public `NEXT_PUBLIC_USE_LOCAL_DB` flag cannot enable authentication bypass. Both flags must be false on hosted deployments. Configuration loading rejects bypass flags on hosted platforms and ordinary production builds. For an intentional local-memory production fixture, build with `GOOGLEDSA_LOCAL_TEST=true`, `GOOGLEDSA_BIND_HOST=127.0.0.1` and `USE_LOCAL_DB=true`, then run `node scripts/local-test-server.mjs`; this launcher binds only to loopback.
+
+Discussion media uploads use the server storage credential at runtime after validating and re-encoding the image. Text comments do not require that credential. Schedule `node scripts/cleanup-comment-media.mjs` in a trusted maintenance environment to remove abandoned and deleted-account attachments and release unused reservations. This command requires the Supabase URL and server credential in its environment and must never run in a browser.
 
 ## Production (Supabase)
 

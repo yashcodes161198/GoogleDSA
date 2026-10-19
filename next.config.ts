@@ -1,8 +1,11 @@
 import type { NextConfig } from "next";
+import { localModeFromEnvironment } from "./lib/local-mode";
+
+localModeFromEnvironment(process.env);
 
 const nextConfig: NextConfig = {
   experimental: {
-    serverActions: { bodySizeLimit: "6mb" },
+    serverActions: { bodySizeLimit: "4mb" },
   },
   devIndicators:
     process.env.GOOGLEDSA_UI_PREVIEW === "true" ? false : undefined,

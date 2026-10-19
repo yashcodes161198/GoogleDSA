@@ -1,0 +1,6 @@
+
+C:\Users\yash\Desktop\Code\GoogleDSA\scripts\seed-problems.ts
+  50:40  warning  '_links' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 1 problem (0 errors, 1 warning)
+
