@@ -17,7 +17,7 @@ import {
   getProblemProgressStatus,
   PROBLEM_PROGRESS_FILTERS,
 } from "@/lib/revision/problemProgressStatus";
-import { DEFAULT_PROBLEM_FILTERS, type ProblemFilters } from "@/lib/problems/filters";
+import { DEFAULT_PROBLEM_FILTERS, matchesLastActionRange, type ProblemFilters } from "@/lib/problems/filters";
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown } from "lucide-react";
 import type {
   Difficulty,
@@ -103,7 +103,8 @@ export function ProblemTable() {
     return [...set].sort();
   }, [problems]);
   const { filters, updateFilters } = useProblemFilters(topics);
-  const { search, difficulty, status, topic, frequencyInput, favoriteFilter, page, pageSize } = filters;
+  const { search, difficulty, status, topic, frequencyInput, favoriteFilter, actionFrom, actionTo, page, pageSize } = filters;
+  const invalidDateRange = Boolean(actionFrom && actionTo && actionFrom > actionTo);
 
   const filtered = useMemo(() => {
     return problems.filter((p) => {
@@ -115,6 +116,7 @@ export function ProblemTable() {
       if (topic !== "ALL" && !p.topics.includes(topic)) return false;
       if (favoriteFilter === "FAVORITES" && !p.user_problem?.is_favorite)
         return false;
+      if (!matchesLastActionRange(p.user_problem, actionFrom, actionTo)) return false;
       const enteredFrequency = Number(frequencyInput);
       if (
         frequencyInput.trim() !== "" &&
@@ -133,6 +135,8 @@ export function ProblemTable() {
     topic,
     frequencyInput,
     favoriteFilter,
+    actionFrom,
+    actionTo,
   ]);
 
   const sorted = useMemo(() => sortProblems(filtered, sort), [filtered, sort]);
@@ -173,6 +177,7 @@ export function ProblemTable() {
     topic !== "ALL",
     favoriteFilter !== "ALL",
     frequencyInput.trim() !== "",
+    Boolean(actionFrom || actionTo),
   ].filter(Boolean).length;
   const hasFilters =
     search ||
@@ -180,7 +185,7 @@ export function ProblemTable() {
     status !== "ALL" ||
     topic !== "ALL" ||
     favoriteFilter !== "ALL" ||
-    frequencyInput;
+    frequencyInput || actionFrom || actionTo;
 
   return (
     <div className="space-y-4">
@@ -290,6 +295,40 @@ export function ProblemTable() {
                 onChange={(e) => updateFilters({ frequencyInput: e.target.value }, true)}
               />
             </label>
+            <fieldset className="col-span-full min-w-0 border-t border-line pt-3" aria-describedby="problem-action-date-help">
+              <legend className="px-1 text-xs font-medium text-muted">Last action (IST)</legend>
+              <div className="grid max-w-lg grid-cols-2 gap-3">
+                <label className="field-label">
+                  From
+                  <Input
+                    type="date"
+                    value={actionFrom}
+                    max={actionTo || "9999-12-31"}
+                    aria-invalid={invalidDateRange}
+                    aria-describedby={invalidDateRange ? "problem-action-date-error" : undefined}
+                    onChange={(e) => updateFilters({ actionFrom: e.target.value })}
+                  />
+                </label>
+                <label className="field-label">
+                  To
+                  <Input
+                    type="date"
+                    value={actionTo}
+                    min={actionFrom || undefined}
+                    max="9999-12-31"
+                    aria-invalid={invalidDateRange}
+                    aria-describedby={invalidDateRange ? "problem-action-date-error" : undefined}
+                    onChange={(e) => updateFilters({ actionTo: e.target.value })}
+                  />
+                </label>
+              </div>
+              <p id="problem-action-date-help" className="mt-2 text-xs text-muted">
+                Latest solve, revision, or review. Both dates are included.
+              </p>
+              {invalidDateRange && <p id="problem-action-date-error" className="mt-2 text-sm text-destructive" role="alert">
+                Choose a To date on or after the From date.
+              </p>}
+            </fieldset>
           </div>
         </div>
       </div>
