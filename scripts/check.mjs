@@ -31,7 +31,7 @@ for (const name of (await readdir("scripts")).filter(name => /^test-.*\.ts$/.tes
   await run(name.replace(/\.ts$/, ""), ["node_modules/tsx/dist/cli.mjs", `scripts/${name}`]);
 }
 await run("lint", ["node_modules/eslint/bin/eslint.js", "app", "components", "lib", "scripts", "next.config.ts", "proxy.ts"]);
-for (const name of ["test-security-db", "test-score-deletion-db", "test-migration-bundle"]) await run(name, [`scripts/${name}.mjs`]);
+for (const name of ["test-security-db", "test-score-deletion-db", "test-migration-bundle", "test-revision-session-db"]) await run(name, [`scripts/${name}.mjs`]);
 await run("dependency-audit", ["scripts/check-dependencies.mjs"]);
 const sentinel = ".next-verification/cache/check-preserved";
 await mkdir(path.dirname(sentinel), { recursive: true });
@@ -43,6 +43,7 @@ await run("repeat-build", ["node_modules/next/dist/bin/next", "build"]);
 await access(sentinel);
 await run("startup-safety", ["scripts/test-startup-safety.mjs"]);
 await run("auth-http", ["scripts/test-auth-http-runner.mjs"]);
+await run("revision-session-http", ["scripts/test-revision-session-http.mjs"]);
 await run("browser-enforce", ["scripts/test-bounded-reads-http.mjs"], { CSP_ENFORCE: "true" });
 await run("browser-report-only", ["scripts/test-bounded-reads-http.mjs"], { CSP_ENFORCE: "false" });
 await run("themes-http", ["scripts/test-themes-http-runner.mjs"]);

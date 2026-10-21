@@ -10,6 +10,7 @@ import {
   reconcileRevisionCount,
 } from "../lib/revision/optimisticRevision";
 import type { ProblemWithProgress } from "../lib/types";
+import { revisedSessionIds, updateRevisionSession } from "../lib/revision/session";
 
 function assert(condition: boolean, message: string) {
   if (!condition) {
@@ -168,10 +169,17 @@ const selected = selectRevisionQueue(
   { limit: 10, now }
 );
 const selectedIds = selected.map(p => p.id);
+const session = updateRevisionSession(null, selected, null, now);
 const afterMark = selected.map((p, index) => index === 4
   ? problem(p.id, { solvedAt: p.user_problem?.solved_at, revisionCount: 1, revisedAt: now.toISOString() })
   : p).concat(problem("slot-11", { solvedAt: "2026-09-11T00:00:00.000Z" }));
 const visibleAfterMark = materializeRevisionQueue(selectedIds, afterMark);
+assert(updateRevisionSession(session, afterMark) === session, "reloading restores the saved list instead of selecting a fresh queue");
+assert(revisedSessionIds(session, afterMark).has("slot-05"), "completion uses revision count, independent of today's date");
+const replacedSession = updateRevisionSession(session, afterMark, session.version, now);
+assert(!replacedSession.entries.some(entry => entry.id === "slot-05") && replacedSession.entries.some(entry => entry.id === "slot-11"), "explicit replacement saves the new list");
+assert(updateRevisionSession(replacedSession, afterMark, session.version, now) === replacedSession, "stale replacement leaves the new list intact");
+assert(revisedSessionIds(session, selected).size === 0, "a failed optimistic revision rolls back completion");
 assert(
   visibleAfterMark.map(p => p.id).join() === selectedIds.join() &&
     visibleAfterMark.length === 10 &&

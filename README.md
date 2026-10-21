@@ -9,7 +9,7 @@ Track ~770 Google interview LeetCode questions, run 2-hour mock interviews with 
 - **Progress tracking** — mark problems as attempted/solved, filter by difficulty/topic/status, adjustable rows-per-page (25/50/100/All)
 - **Dashboard** — coverage stats, topic gaps, and smart "next up" recommendations, backed by a single-query Postgres RPC
 - **Mock interview** — 5 problems (1 Easy, 3 Medium, 1 Hard), 2-hour timer, weighted by Google frequency, optimistic "Mark as done"
-- **Revise** — serves up to 10 solved problems with the lowest per-user revision counts and increments each count atomically when revised
+- **Revise** — saves up to 10 questions to your account, keeping their order and completion across reloads, devices, and days. Only **Replace revised** removes completed questions and fills available slots. Requires migration `027_revision_sessions.sql` after the earlier migrations.
 - **Auth** — Google OAuth + email/password via Supabase
 - **Settings & activity** — account-menu access to the last 30 days of leaderboard awards, grouped by IST date with timestamps, points, question titles, and solve/first revision/second+ revision filters. Uses the existing `013_leaderboard.sql` event records; older unrecorded actions are not reconstructed.
 - **Point corrections** — delete your own mistaken awards from Settings → Score history, with confirmation. This removes points from the week they were earned without changing solved status or revision counts. Requires migration `016_delete_own_score_events.sql` in Supabase. Leaderboard histories remain read-only.
@@ -59,6 +59,7 @@ cp .env.local.example .env.local
    - [`supabase/migrations/015_daily_revision_count.sql`](supabase/migrations/015_daily_revision_count.sql) — required to count every revision increment in “Revised today”, including repeated revisions of the same problem. Apply after the earlier migrations. Daily dashboard counters reset at midnight Asia/Kolkata.
    - [`supabase/migrations/016_delete_own_score_events.sql`](supabase/migrations/016_delete_own_score_events.sql) — allows players to delete only their own point awards; requires `013_leaderboard.sql` first.
    - [`supabase/migrations/017_leaderboard_comments.sql`](supabase/migrations/017_leaderboard_comments.sql), [`018_leaderboard_comment_media.sql`](supabase/migrations/018_leaderboard_comment_media.sql), and [`019_edit_own_leaderboard_comments.sql`](supabase/migrations/019_edit_own_leaderboard_comments.sql) — discussion, media, and author-only comment editing; run in that order.
+   - [`supabase/migrations/027_revision_sessions.sql`](supabase/migrations/027_revision_sessions.sql) — account-backed revision lists; requires migration `020_trusted_progress.sql`. Apply before deploying the saved revision session UI. Existing revision counts are preserved; the first visit creates the saved list.
 3. Copy your project URL and anon key into `.env.local`.
 4. Copy the **service role key** (Settings → API) into `.env.local` for seeding only.
 

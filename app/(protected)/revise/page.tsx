@@ -9,7 +9,7 @@ export default function RevisePage() {
     <div className="space-y-8">
       <PageHeading
         title="Daily revision"
-        description={`Start with your oldest solved questions that have no revisions, then revisit the ones revised longest ago. Up to ${DAILY_REVISION_LIMIT} at a time, after a 48-hour break from solving or revising.`}
+        description={`Your list and checkmarks are saved across days and devices until you press Replace revised. Up to ${DAILY_REVISION_LIMIT} questions at a time, prioritizing unrevised solves, after a 48-hour break from solving or revising.`}
       />
       <PracticeLibrary><ReviseCard dailyLimit={DAILY_REVISION_LIMIT} /></PracticeLibrary>
     </div>

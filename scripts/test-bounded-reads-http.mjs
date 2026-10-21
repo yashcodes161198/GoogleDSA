@@ -73,6 +73,8 @@ globalThis.fetch=async (input,init)=>{
     return Response.json(rows.filter(row=>!after||row[key]>after).slice(0,137).map(row=>Object.fromEntries(select.split(",").map(key=>[key,row[key]]))));
   }
   const p=init?.body?JSON.parse(String(init.body)):{};
+  if(url.pathname.endsWith("/rpc/get_revision_session")) return Response.json({version:1,
+    entries:progress.get(user.id).filter(row=>row.status==="solved").slice(0,10).map(row=>({id:row.problem_id,revisionCount:row.revision_count}))});
   if(url.pathname.endsWith("/rpc/get_leaderboard_comments_page")) return Response.json((p.p_parent?replies.filter(row=>row.parent_id===p.p_parent):threads).filter(row=>before(row,p)).slice(0,21));
   if(url.pathname.endsWith("/rpc/get_weekly_leaderboard")) return Response.json([{user_id:users[0].id,display_name:"Player 1",points:events.reduce((n,e)=>n+e.points,0),rank:1}]);
   if(url.pathname.endsWith("/rpc/get_score_activity_page")) {

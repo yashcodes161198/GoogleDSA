@@ -3,10 +3,9 @@
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { DAILY_REVISION_LIMIT, isLocalMode } from "@/lib/config";
+import { isLocalMode } from "@/lib/config";
 import { getLocalUserId, getMemoryStore } from "@/lib/memory/store";
 import {
-  getDailyRevisions,
   getProblemsWithProgress,
   getCurrentUser,
 } from "@/lib/data";
@@ -27,7 +26,7 @@ import {
   type NewProblemFormValues,
 } from "@/lib/problems/parseNewProblemInput";
 import type { ProblemStatus } from "@/lib/types";
-import { requireUuid, requireBoolean, requireIds, isSolveSeconds } from "@/lib/validation";
+import { requireUuid, requireBoolean, isSolveSeconds } from "@/lib/validation";
 
 export type StartInterviewResult =
   | { ok: true; sessionId: string }
@@ -221,39 +220,6 @@ export async function markProblemRevised(problemId: string, refreshRoutes = true
     return {
       ok: false as const,
       error: "Could not save this revision. Please try again.",
-    };
-  }
-}
-
-export async function refreshRevisionQueue(
-  currentIds: string[],
-  uncheckedIds: string[]
-) {
-  try {
-    requireIds(currentIds, DAILY_REVISION_LIMIT);
-    requireIds(uncheckedIds, DAILY_REVISION_LIMIT);
-    const user = await getCurrentUser();
-    if (!user) return { ok: false as const, error: "Not authenticated" };
-
-    const current = new Set(currentIds.slice(0, DAILY_REVISION_LIMIT));
-    const preservedCount = new Set(
-      uncheckedIds.filter((id) => current.has(id))
-    ).size;
-    const replacementCount = Math.max(
-      0,
-      DAILY_REVISION_LIMIT - preservedCount
-    );
-
-    const replacements = await getDailyRevisions(replacementCount, {
-      excludeIds: current,
-    });
-
-    return { ok: true as const, replacements };
-  } catch (error) {
-    console.error("Failed to refresh revision queue", error);
-    return {
-      ok: false as const,
-      error: "Could not refresh the revision queue. Please try again.",
     };
   }
 }

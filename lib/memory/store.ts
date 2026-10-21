@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { updateRevisionSession, type RevisionSession } from "@/lib/revision/session";
 import type { LeaderboardComment } from "@/lib/leaderboard/comments";
 import { LOCAL_ADMIN } from "@/lib/config";
 import {
@@ -45,6 +46,16 @@ function userProblemKey(userId: string, problemId: string) {
 }
 
 class MemoryStore {
+  private revisionSessions = new Map<string, RevisionSession>();
+
+  getRevisionSession(userId: string, expectedVersion: number | null = null) {
+    this.revisionSessions ??= new Map();
+    const session = updateRevisionSession(this.revisionSessions.get(userId) ?? null,
+      this.getProblemsWithProgress(userId), expectedVersion);
+    this.revisionSessions.set(userId, session);
+    return session;
+  }
+
   problems: Problem[] = [];
   userProblems = new Map<string, UserProblemRow>();
   interviewSessions: InterviewSession[] = [];

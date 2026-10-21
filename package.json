@@ -12,7 +12,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:interview": "tsx scripts/test-interview-config.ts && tsx scripts/test-custom-interview-ui.ts && tsx scripts/test-picked-interview.ts",
-    "test:revision": "tsx scripts/test-revision-queue.ts",
+    "test:revision": "tsx scripts/test-revision-queue.ts && node scripts/test-revision-session-db.mjs",
     "test:dashboard": "tsx scripts/test-dashboard-stats.ts",
     "test:problem-filters": "tsx scripts/test-problem-filters.ts",
     "test:problem-sorting": "tsx scripts/test-problem-sorting.ts",
