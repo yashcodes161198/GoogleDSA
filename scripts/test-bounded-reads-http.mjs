@@ -338,6 +338,7 @@ try {
   await question.getByText("Saving…",{exact:true}).waitFor({timeout:1000});
   assert.equal(fixture.completed,false,"completion is optimistic while time save is pending");
   assert.equal(await complete.isChecked(),true,"immediate completion feedback");
+  assert.equal(await complete.isDisabled(),true,"pending completion cannot be toggled again");
   await page.waitForFunction(()=>!document.querySelector(".practice-row-list")?.textContent.includes("Saving…"));
   assert.equal(fixture.completed,true);
   await complete.uncheck();
@@ -358,6 +359,20 @@ try {
   await page.waitForFunction(()=>!document.querySelector(".practice-row-list")?.textContent.includes("Saving…"));
   assert.equal(await complete.isChecked(),true,"failed completion rolls back");
   fixture.failComplete=false;
+  for (const status of ["completed", "abandoned", "active"]) {
+    activeSession.status=status;
+    activeSession.ends_at=new Date(Date.now()-60000).toISOString();
+    await page.reload();
+    await page.getByText("You can still mark or correct completed questions.").waitFor();
+    await complete.uncheck();
+    await page.waitForFunction(()=>!document.querySelector(".practice-row-list")?.textContent.includes("Saving…"));
+    assert.equal(await complete.isChecked(),false);
+    await complete.check();
+    await page.waitForFunction(()=>!document.querySelector(".practice-row-list")?.textContent.includes("Saving…"));
+    assert.equal(await complete.isChecked(),true,`${status} session completion remains checked after saving`);
+    await page.reload();
+    assert.equal(await complete.isChecked(),true,"completion survives a page reload");
+  }
   const unauthorized=await fetch(`${base}/api/discussion`);assert.equal(unauthorized.status,401);
   for(const endpoint of ["discussion?before=bad&id=bad","activity?now=invalid","activity?now=2026-10-19T08:00:00Z&filter=bad"]) {
     assert.equal((await context.request.get(`${base}/api/${endpoint}`)).status(),400);

@@ -126,7 +126,23 @@ try {
   await db.query("SELECT finish_interview_session($1,'completed')", [session]);
   // The same retry identity succeeds after the earlier transaction rolled back.
   await act("status", "solved", failedRequest, second);
-  await assert.rejects(db.query("SELECT set_interview_problem_completed($1,$2,false)",[session,second]),/Session has ended/);
+  const awardsBefore = (await db.query("SELECT count(*)::int AS n FROM leaderboard_events")).rows[0].n;
+  for (const status of ["completed", "abandoned", "active"]) {
+    await db.exec("RESET ROLE");
+    await db.query("UPDATE interview_sessions SET status=$2,ends_at=now()-interval '1 hour' WHERE id=$1", [session,status]);
+    await asUser(owner);
+    for (const completed of [false, true, true]) {
+      await db.query("SELECT set_interview_problem_completed($1,$2,$3)", [session,second,completed]);
+      assert.equal((await db.query("SELECT completed FROM interview_session_problems WHERE session_id=$1 AND problem_id=$2", [session,second])).rows[0].completed, completed,
+        `${status} interviews remain editable after expiry`);
+    }
+    assert.equal((await db.query("SELECT status FROM interview_sessions WHERE id=$1", [session])).rows[0].status,status,"recording completion does not restart the session");
+    await asUser(other);
+    await assert.rejects(db.query("SELECT set_interview_problem_completed($1,$2,false)", [session,second]), /Session not found/);
+    await asUser(owner);
+    await assert.rejects(db.query("SELECT set_interview_problem_completed($1,$2,true)", [session,problem]), /Problem not in session/);
+  }
+  assert.equal((await db.query("SELECT count(*)::int AS n FROM leaderboard_events")).rows[0].n,awardsBefore,"rechecking ended interviews cannot duplicate solve credit");
   await db.exec("RESET ROLE");
   await db.query("INSERT INTO problems(slug,title,difficulty,link) SELECT 'fixture-'||n,'Fixture '||n,'MEDIUM','https://leetcode.com/problems/fixture/' FROM generate_series(1,25) n");
   const ids = (await db.query("SELECT id FROM problems ORDER BY slug DESC")).rows.map(r=>r.id);

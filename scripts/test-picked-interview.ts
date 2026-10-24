@@ -59,4 +59,14 @@ assert.equal(
     60000,
   45,
 );
-console.log("Picked interview validation, ordering, and session tests passed");
+for (const status of ["completed", "abandoned", "active"] as const) {
+  session.session.ends_at = new Date(Date.now() - 1000).toISOString();
+  session.session.status = status;
+  for (const completed of [true, false, true]) {
+    store.updateInterviewProblem(userId, sessionId, ids[0], completed);
+    assert.equal(store.getInterviewSession(userId, sessionId)!.problems[0].completed, completed);
+  }
+  assert.throws(() => store.updateInterviewProblem("another-user", sessionId, ids[0], true), /Session not found/);
+  assert.throws(() => store.updateInterviewProblem(userId, sessionId, "missing-question", true), /Problem not in session/);
+}
+console.log("Picked interview validation, ordering, and completion after session end passed");
