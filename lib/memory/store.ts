@@ -317,7 +317,6 @@ class MemoryStore {
       (s) => s.id === sessionId && s.user_id === userId
     );
     if (!session) throw new Error("Session not found");
-    if (session.status !== "active" || Date.parse(session.ends_at) <= Date.now()) throw new Error("Session has ended");
 
     const row = this.interviewSessionProblems.find(
       (sp) => sp.session_id === sessionId && sp.problem_id === problemId

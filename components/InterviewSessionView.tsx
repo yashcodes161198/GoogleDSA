@@ -176,6 +176,9 @@ function InterviewSessionContent({
           <div className="surface p-5">
             <p className="text-sm text-muted">Session ended</p>
             <p className="mt-1 font-semibold capitalize">{session.status}</p>
+            <p className="mt-2 text-sm text-muted">
+              You can still mark or correct completed questions.
+            </p>
             <Link href="/interview" className="text-link mt-4 inline-block">
               Back to interviews
             </Link>
@@ -275,6 +278,7 @@ function InterviewSessionContent({
                 className="h-8 w-8"
                 id={`complete-${sp.problem_id}`}
                 checked={sp.completed}
+                disabled={pending}
                 aria-label={`Mark ${problem.title} as done in this interview`}
                 onChange={(checked) =>
                   void handleCompleteChange(sp.problem_id, checked)
