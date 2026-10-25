@@ -95,11 +95,6 @@ try {
   assert.equal(after.version, before.version + 1);
   assert.deepEqual(after.entries, before.entries.filter(entry => entry.id !== problem));
   assert.equal((await db.query("SELECT count(*)::int AS count FROM problems")).rows[0].count, 19);
-  await db.exec("INSERT INTO problems(slug,title,difficulty,link) VALUES ('zigzag-conversion','Zigzag Conversion','MEDIUM','https://leetcode.com/problems/zigzag-conversion/')");
-  const removal = await readFile("supabase/migrations/030_remove_zigzag_conversion.sql", "utf8");
-  await db.exec(removal);
-  await db.exec(removal);
-  assert.equal((await db.query("SELECT count(*)::int AS count FROM problems")).rows[0].count, 19);
   console.log("Question deletion HTTP/database: auth, admin-only RLS, origin/UUID validation, errors, cascades, revision cleanup and migration retries passed");
 } finally {
   await new Promise(resolve => server.close(resolve));

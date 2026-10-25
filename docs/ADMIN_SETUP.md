@@ -38,7 +38,7 @@ Apply `029_admin_question_deletion.sql` after the earlier migrations. An authent
 
 Deletion permanently removes the question for all users, including its progress, interview references and leaderboard awards through foreign-key cascades. Saved revision lists remove its ID and advance their version. Existing browser tabs refresh their question library on focus or reload. The endpoint uses the signed-in user's database permissions and needs no service-role key.
 
-Migration `030_remove_zigzag_conversion.sql` removes Zigzag Conversion from existing databases. Its seed CSV entry is also removed so reseeding does not restore it.
+Remove deleted questions from `data/problems.csv` as well so reseeding does not restore them. Question deletions go through the API rather than question-specific SQL migrations.
 
 To remove admin access:
 
