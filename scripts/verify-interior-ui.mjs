@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { chromium } from "playwright";
+import { verifyFavoriteTooltips } from "./verify-tooltips.mjs";
 
 const base = process.env.INTERIOR_TEST_URL ?? "http://127.0.0.1:3127";
 assert.ok(["127.0.0.1", "localhost"].includes(new URL(base).hostname), "UI verification only runs against a local fixture");
@@ -22,6 +23,7 @@ try {
   await page.screenshot({ path: `${output}/desktop-dashboard.png`, fullPage: true });
   await page.getByRole("navigation", { name: "Main navigation" }).filter({ visible: true }).getByRole("link", { name: "Problems", exact: true }).click();
   await page.getByRole("heading", { name: "Problems", exact: true }).waitFor();
+  checks.push(...await verifyFavoriteTooltips(page));
   const search = page.getByRole("textbox", { name: "Search problems" });
   await search.fill("Two Sum");
   await page.waitForURL(/search=/);
