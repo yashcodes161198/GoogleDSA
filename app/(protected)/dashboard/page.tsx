@@ -1,3 +1,4 @@
+import { ValueFlash } from "@/components/interior/value-flash";
 import Link from "next/link";
 import { ArrowUpRight, Check, Timer } from "lucide-react";
 import { PageHeading } from "@/components/PageHeading";
@@ -44,21 +45,21 @@ export default async function DashboardPage() {
       <dl className="study-summary">
         <div>
           <dt>Solved today</dt>
-          <dd>{stats.solvedToday}</dd>
+          <dd><ValueFlash value={stats.solvedToday} /></dd>
         </div>
         <div>
           <dt>Revised today</dt>
-          <dd>{stats.revisionsDoneToday}</dd>
+          <dd><ValueFlash value={stats.revisionsDoneToday} /></dd>
         </div>
         <div>
           <dt>Problems solved</dt>
           <dd>
-            {stats.solved} <small>/ {stats.total}</small>
+            <ValueFlash value={stats.solved} /> <small>/ {stats.total}</small>
           </dd>
         </div>
         <div>
           <dt>Still to solve</dt>
-          <dd>{stats.unsolved}</dd>
+          <dd><ValueFlash value={stats.unsolved} /></dd>
         </div>
       </dl>
       <div className="daily-grid mb-8">

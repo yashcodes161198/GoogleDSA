@@ -1,3 +1,4 @@
+import { PressButton } from "@/components/interior/press-depth";
 import { cn } from "@/lib/utils";
 import { ButtonHTMLAttributes, forwardRef } from "react";
 
@@ -24,10 +25,10 @@ const sizes = {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "default", size = "default", ...props }, ref) => (
-    <button
+    <PressButton
       ref={ref}
       className={cn(
-        "inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-[7px] text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-[9px] text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
         variants[variant],
         sizes[size],
         className,

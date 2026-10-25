@@ -1,5 +1,7 @@
 "use client";
 
+import { PressButton } from "@/components/interior/press-depth";
+
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { RotateCcw } from "lucide-react";
@@ -71,7 +73,7 @@ export function ReviseCard({ dailyLimit }: { dailyLimit: number }) {
   };
 
   const errorMessage = error && <p className="surface p-4 text-sm text-destructive" role="alert">
-    {error}{" "}<button type="button" className="underline" onClick={() => setRetryVersion(v => v + 1)}>Reload saved list</button>
+    {error}{" "}<PressButton type="button" className="underline" onClick={() => setRetryVersion(v => v + 1)}>Reload saved list</PressButton>
   </p>;
   if (!session) {
     return errorMessage || <div className="surface p-6" role="status">Loading your saved revision list…</div>;

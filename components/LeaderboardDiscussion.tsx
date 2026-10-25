@@ -1,5 +1,9 @@
 "use client";
 
+import { LoadingLabel } from "@/components/interior/loading-button";
+
+import { PressButton } from "@/components/interior/press-depth";
+
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ImagePlus, MessageCircle, Send, X } from "lucide-react";
@@ -90,7 +94,7 @@ function CommentComposer({
             <span>{selectedFile.type === "image/gif" || /\.gif$/i.test(selectedFile.name) ? "GIF" : "Sticker"} ready to post</span>
             <small>{selectedFile.name}</small>
           </div>
-          <button
+          <PressButton
             type="button"
             onClick={() => { chooseFile(null); if (fileRef.current) fileRef.current.value = ""; }}
             className={styles.removeAttachment}
@@ -98,7 +102,7 @@ function CommentComposer({
             disabled={pending}
           >
             <X size={16} aria-hidden="true" />
-          </button>
+          </PressButton>
         </div>
       )}
       <div className={styles.composerFooter}>
@@ -121,10 +125,10 @@ function CommentComposer({
           </label>
           <span className={styles.hint}>GIF, PNG or WebP · max 3 MB · attachments are public</span>
         </div>
-        <button type="submit" disabled={pending} className={styles.postButton}>
+        <PressButton type="submit" disabled={pending} className={styles.postButton}>
           <Send size={15} aria-hidden="true" />
-          {pending ? "Posting…" : parentId ? "Post reply" : "Post comment"}
-        </button>
+          <LoadingLabel pending={pending} idle={parentId ? "Post reply" : "Post comment"} busy="Posting…" />
+        </PressButton>
       </div>
       {error && <p role="alert" className={styles.error}>{error}</p>}
     </form>
@@ -177,17 +181,17 @@ function CommentMessage({ comment, currentUserId }: { comment: LeaderboardCommen
             className={styles.textarea}
           />
           <div className={styles.editActions}>
-            <button type="submit" disabled={pending} className={styles.postButton}>
-              {pending ? "Saving…" : "Save"}
-            </button>
-            <button
+            <PressButton type="submit" disabled={pending} className={styles.postButton}>
+              <LoadingLabel pending={pending} idle="Save" busy="Saving…" />
+            </PressButton>
+            <PressButton
               type="button"
               disabled={pending}
               className={styles.replyButton}
               onClick={() => { setDraft(body); setError(null); setEditing(false); }}
             >
               Cancel
-            </button>
+            </PressButton>
           </div>
           {error && <p role="alert" className={styles.error}>{error}</p>}
         </form>
@@ -204,13 +208,13 @@ function CommentMessage({ comment, currentUserId }: { comment: LeaderboardCommen
         </div>
       )}
       {comment.user_id === currentUserId && !editing && (
-        <button
+        <PressButton
           type="button"
           className={styles.replyButton}
           onClick={() => setEditing(true)}
         >
           Edit
-        </button>
+        </PressButton>
       )}
     </>
   );
@@ -259,7 +263,7 @@ function Comment({
             <time dateTime={comment.created_at} className={styles.time}>{commentDate(comment.created_at)}</time>
           </div>
           <CommentMessage comment={comment} currentUserId={currentUserId} />
-          <button
+          <PressButton
             type="button"
             className={styles.replyButton}
             onClick={() => setReplying((value) => !value)}
@@ -267,11 +271,11 @@ function Comment({
             aria-controls={replying ? `reply-form-${comment.id}` : undefined}
           >
             {replying ? "Cancel reply" : "Reply"}
-          </button>
+          </PressButton>
         </div>
       </div>
-      {(comment.reply_count ?? 0) > 0 && !loaded && <button type="button" className={styles.replyButton}
-        disabled={pending} onClick={() => void loadReplies()}>{pending ? "Loading…" : `View ${comment.reply_count} replies`}</button>}
+      {(comment.reply_count ?? 0) > 0 && !loaded && <PressButton type="button" className={styles.replyButton}
+        disabled={pending} onClick={() => void loadReplies()}><LoadingLabel pending={pending} idle={`View ${comment.reply_count} replies`} busy="Loading…" /></PressButton>}
       {replies.length > 0 && (
         <ol className={styles.replies} aria-label={`Replies to ${comment.display_name}`}>
           {replies.map((reply) => (
@@ -291,8 +295,8 @@ function Comment({
           ))}
         </ol>
       )}
-      {loaded && nextCursor && <button type="button" className={styles.replyButton} disabled={pending}
-        onClick={() => void loadReplies()}>{pending ? "Loading…" : "Load earlier replies"}</button>}
+      {loaded && nextCursor && <PressButton type="button" className={styles.replyButton} disabled={pending}
+        onClick={() => void loadReplies()}><LoadingLabel pending={pending} idle="Load earlier replies" busy="Loading…" /></PressButton>}
       {error && <p role="alert" className={styles.error}>{error}</p>}
       {replying && (
         <div id={`reply-form-${comment.id}`} className={styles.replyForm}>
@@ -363,8 +367,8 @@ export function LeaderboardDiscussion({
               ))}
             </ol>
           )}
-          {cursor && <button type="button" className="button-link secondary m-6" disabled={pending}
-            onClick={() => void loadMore()}>{pending ? "Loading…" : "Load earlier threads"}</button>}
+          {cursor && <PressButton type="button" className="button-link secondary m-6" disabled={pending}
+            onClick={() => void loadMore()}><LoadingLabel pending={pending} idle="Load earlier threads" busy="Loading…" /></PressButton>}
           {pageError && <p role="alert" className={styles.error}>{pageError}</p>}
         </>
       )}

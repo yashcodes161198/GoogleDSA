@@ -1,5 +1,7 @@
 "use client";
 
+import { LikeBurst } from "@/components/interior/like-burst";
+
 import { Star } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -17,19 +19,18 @@ export function FavoriteButton({
 
   return (
     <Tooltip label={label}>
-      <button
-        type="button"
-        aria-label={label}
-        aria-pressed={favorite}
+      <LikeBurst
+        label={label}
+        active={favorite}
         disabled={disabled}
-        onClick={onToggle}
+        onToggle={onToggle}
         className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-amber-500 disabled:opacity-50 dark:hover:bg-zinc-800"
       >
         <Star
           className={cn("h-4 w-4", favorite && "fill-amber-400 text-amber-500")}
           aria-hidden="true"
         />
-      </button>
+      </LikeBurst>
     </Tooltip>
   );
 }

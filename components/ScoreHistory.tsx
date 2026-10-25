@@ -1,5 +1,11 @@
 "use client";
 
+import { SelectionIndicator } from "@/components/interior/tabs";
+
+import { LoadingLabel } from "@/components/interior/loading-button";
+
+import { PressButton } from "@/components/interior/press-depth";
+
 import { useEffect, useId, useRef, useState, useTransition, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -128,10 +134,10 @@ export function ScoreHistory({ events, summary, nextCursor, userId, now, error, 
           <History size={26} aria-hidden="true" />
           <h3>History is unavailable</h3>
           <p>{error}</p>
-          <button className="button-link secondary" disabled={refreshing}
+          <PressButton className="button-link secondary" disabled={refreshing}
             onClick={() => startRefresh(() => router.refresh())}>
-            <RefreshCw size={15} aria-hidden="true" />{refreshing ? "Retrying…" : "Try again"}
-          </button>
+            <RefreshCw size={15} aria-hidden="true" /><LoadingLabel pending={refreshing} idle="Try again" busy="Retrying…" />
+          </PressButton>
         </div>
       ) : (
         <>
@@ -150,7 +156,7 @@ export function ScoreHistory({ events, summary, nextCursor, userId, now, error, 
               <div className={`${styles.chart} ${isWeekly ? styles.weekChart : ""}`}
                 aria-label={isWeekly ? "Daily scores for this leaderboard week" : "Daily scores for the past 30 days"}>
                 {days.map((day, index) => (
-                  <button key={day.key} type="button" className={styles.dayButton}
+                  <PressButton key={day.key} type="button" className={styles.dayButton}
                     aria-label={`${formatActivityFullDate(day.date)}: ${day.points} points, ${day.count} scoring actions`}
                     aria-pressed={selectedDay === day.key}
                     title={`${formatActivityDate(day.date)}: ${day.points} pts`}
@@ -163,7 +169,7 @@ export function ScoreHistory({ events, summary, nextCursor, userId, now, error, 
                     <span className={styles.dayLabel} aria-hidden="true">
                       {isWeekly || index === days.length - 1 || (index % 7 === 0 && index < days.length - 3) ? formatActivityDate(day.date) : ""}
                     </span>
-                  </button>
+                  </PressButton>
                 ))}
               </div>
             </div>
@@ -171,24 +177,25 @@ export function ScoreHistory({ events, summary, nextCursor, userId, now, error, 
 
           <div className={styles.filters} role="group" aria-label="Filter score history by action">
             {(["all", ...ACTIVITY_ACTIONS] as const).map((value) => (
-              <button key={value} type="button" aria-pressed={filter === value}
+              <PressButton key={value} type="button" className="interior-choice" aria-pressed={filter === value}
                 onClick={() => selectFilters(value, selectedDay)}>
-                {value === "all" ? "All actions" : ACTION_LABELS[value]}
-              </button>
+                  <SelectionIndicator id={`${historyId}-action-filter`} active={filter === value} />
+                  <span>{value === "all" ? "All actions" : ACTION_LABELS[value]}</span>
+              </PressButton>
             ))}
           </div>
 
           <div className={styles.ledger} aria-live="polite" aria-atomic="false">
             <div className={styles.ledgerHeading}>
               <h3 ref={ledgerHeadingRef} tabIndex={-1}>{selectedDay ? `Activity on ${formatActivityDate(`${selectedDay}T12:00:00Z`)}` : "Daily activity"}</h3>
-              {hasFilters && <button type="button" className={styles.clear} onClick={clearFilters}>
+              {hasFilters && <PressButton type="button" className={styles.clear} onClick={clearFilters}>
                 <X size={14} aria-hidden="true" />Clear filters
-              </button>}
+              </PressButton>}
             </div>
             {canDelete && <p className={styles.deleteHelp}>Misclick? Delete an award to remove its points from history and the leaderboard. Your solved status and revision count stay the same.</p>}
             {deleteError && <p className={styles.deleteFeedback} role="alert">{deleteError}</p>}
             <p className={styles.deleteFeedback} role="status">{deleteNotice}</p>
-            {pageError && <p role="alert">{pageError} <button type="button" disabled={loading} onClick={() => void loadPage(filter, selectedDay)}>Retry</button></p>}
+            {pageError && <p role="alert">{pageError} <PressButton type="button" disabled={loading} onClick={() => void loadPage(filter, selectedDay)}>Retry</PressButton></p>}
             {loading && <p role="status">Loading activity…</p>}
             {isEmpty && !loading && !pageError ? (
               <div className={styles.empty}>
@@ -196,7 +203,7 @@ export function ScoreHistory({ events, summary, nextCursor, userId, now, error, 
                 <h3>{hasFilters ? "No activity matches these filters" : isWeekly ? "No points recorded this week" : "Your next score starts here"}</h3>
                 <p>{hasFilters ? "Try another day or action to find scores." : isWeekly ? "No scoring actions were recorded for this player during this leaderboard week." :
                   "Solve or revise a medium or hard question. Your points and the time you earned them will appear here."}</p>
-                {hasFilters ? <button className="button-link secondary" onClick={clearFilters}>Show all activity</button> : !isWeekly &&
+                {hasFilters ? <PressButton className="button-link secondary" onClick={clearFilters}>Show all activity</PressButton> : !isWeekly &&
                   <Link className="button-link" href="/problems">Browse problems</Link>}
               </div>
             ) : shownDays.map((day) => (
@@ -220,21 +227,21 @@ export function ScoreHistory({ events, summary, nextCursor, userId, now, error, 
                         </div>
                         <div className={styles.eventControls}>
                           <span className={styles.points}>+{event.points}<small> pts</small></span>
-                          {canDelete && <button type="button" className={styles.deleteButton}
+                          {canDelete && <PressButton type="button" className={styles.deleteButton}
                             disabled={deleting} aria-expanded={confirmDelete === event.id}
                             aria-controls={confirmDelete === event.id ? `${historyId}-delete-${event.id}` : undefined}
                             aria-label={`Delete ${event.points} points for ${event.problem_title}, ${event.revision_number === null ? "solve" : `revision ${event.revision_number}`}`}
                             onClick={() => { setConfirmDelete(confirmDelete === event.id ? null : event.id); setDeleteError(null); setDeleteNotice(""); }}>
                             <Trash2 size={14} aria-hidden="true" />Delete
-                          </button>}
+                          </PressButton>}
                         </div>
                         {canDelete && confirmDelete === event.id && <div className={styles.deleteConfirmation} id={`${historyId}-delete-${event.id}`}>
                           <p>Delete this {event.points}-point award? This cannot be undone. Problem progress will stay the same.</p>
                           <div>
-                            <button type="button" className="button-link secondary" disabled={deleting}
-                              onClick={() => { setConfirmDelete(null); setDeleteError(null); }}>Cancel</button>
-                            <button type="button" className="button-link" disabled={deleting}
-                              onClick={() => removeAward(event)}>{deleting ? "Deleting…" : "Delete award"}</button>
+                            <PressButton type="button" className="button-link secondary" disabled={deleting}
+                              onClick={() => { setConfirmDelete(null); setDeleteError(null); }}>Cancel</PressButton>
+                            <PressButton type="button" className="button-link" disabled={deleting}
+                              onClick={() => removeAward(event)}><LoadingLabel pending={deleting} idle="Delete award" busy="Deleting…" /></PressButton>
                           </div>
                         </div>}
                       </li>
@@ -243,8 +250,8 @@ export function ScoreHistory({ events, summary, nextCursor, userId, now, error, 
                 </ol>
               </section>
             ))}
-            {pageMatches && page.nextCursor && <button className={`button-link secondary ${styles.more}`} disabled={loading}
-              onClick={() => void loadPage(filter, selectedDay, true)}>Show earlier activity</button>}
+            {pageMatches && page.nextCursor && <PressButton className={`button-link secondary ${styles.more}`} disabled={loading}
+              onClick={() => void loadPage(filter, selectedDay, true)}>Show earlier activity</PressButton>}
           </div>
           <p className={styles.footnote}>These are the same points used for the weekly leaderboard. Each award is recorded once.</p>
         </>

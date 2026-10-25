@@ -1,5 +1,8 @@
 "use client";
 
+import { PressButton } from "@/components/interior/press-depth";
+import { PopoverSurface } from "@/components/interior/popover";
+
 import { useId, useMemo, useRef, useState } from "react";
 import { compareQuestionDifficulty } from "@/components/question-order";
 import { X, Search } from "lucide-react";
@@ -123,7 +126,7 @@ export function InterviewQuestionPicker({
           />
         </div>
         {open && (
-          <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-line bg-surface shadow-lg">
+          <PopoverSurface className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-line bg-surface shadow-lg">
             <ul
               id={listId}
               role="listbox"
@@ -158,7 +161,7 @@ export function InterviewQuestionPicker({
                 Showing 12 of {options.length}. Keep typing to narrow the list.
               </p>
             )}
-          </div>
+          </PopoverSurface>
         )}
       </div>
       <p id={`${listId}-hint`} className="text-xs text-muted">
@@ -186,7 +189,7 @@ export function InterviewQuestionPicker({
                 </span>
                 <span className="min-w-0 flex-1">{p.title}</span>
                 <DifficultyBadge difficulty={p.difficulty} />
-                <button
+                <PressButton
                   type="button"
                   className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted hover:bg-subtle hover:text-foreground sm:h-9 sm:w-9"
                   aria-label={`Remove ${p.title}`}
@@ -195,7 +198,7 @@ export function InterviewQuestionPicker({
                   }
                 >
                   <X size={16} aria-hidden="true" />
-                </button>
+                </PressButton>
               </li>
             );
           })}

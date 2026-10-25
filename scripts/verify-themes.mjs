@@ -79,8 +79,9 @@ export async function verifyThemes(base, authenticated = false) {
         const expected = `rgb(${[1, 3, 5].map((n) => parseInt(bg.slice(n, n + 2), 16)).join(", ")})`;
         assert.equal((await color()).background, expected, id);
         assert.equal((await color()).surface.toLowerCase(), palette.colors["--color-background-light"].toLowerCase());
-        const button = await page.locator(".button-link").first().evaluate((el) => ({
-          color: getComputedStyle(el).color,
+        // Select and measure in one task: appearance saves can replace the server-rendered link.
+        const button = await page.evaluate(() => ({
+          color: getComputedStyle(document.querySelector(".button-link")).color,
           expected: getComputedStyle(document.documentElement).getPropertyValue("--accent-contrast").trim(),
         }));
         assert.equal(button.color, button.expected === "#000000" ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)", `${id}: readable primary button`);

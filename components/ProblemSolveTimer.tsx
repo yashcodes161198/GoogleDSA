@@ -1,5 +1,7 @@
 "use client";
 
+import { PressButton } from "@/components/interior/press-depth";
+
 import { Button } from "@/components/ui/button";
 import { BestSolveTimeLabel } from "@/components/BestSolveTimeLabel";
 import { formatDurationMs } from "@/lib/format-duration";
@@ -59,7 +61,7 @@ export function ProblemSolveTimer({
           {saveError && (
             <p className="mt-1 text-xs text-destructive" role="alert">
               {saveError}
-              {" "}<button type="button" className="underline" onClick={() => void stopAndPersist(problemId)}>Retry time save</button>
+              {" "}<PressButton type="button" className="underline" onClick={() => void stopAndPersist(problemId)}>Retry time save</PressButton>
             </p>
           )}
         </div>

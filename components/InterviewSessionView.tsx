@@ -1,5 +1,7 @@
 "use client";
 
+import { PressButton } from "@/components/interior/press-depth";
+
 import { useCallback, useOptimistic, useTransition, useState } from "react";
 import { compareQuestionDifficulty } from "@/components/question-order";
 import { useRouter } from "next/navigation";
@@ -191,7 +193,7 @@ function InterviewSessionContent({
               {completedCount} / {optimisticProblems.length}
             </span>
           </div>
-          <button
+          <PressButton
             type="button"
             className="text-link min-h-11 text-xs xl:hidden"
             aria-expanded={showQuestions}
@@ -199,7 +201,7 @@ function InterviewSessionContent({
             onClick={() => setShowQuestions((shown) => !shown)}
           >
             {showQuestions ? "Hide list" : "Show list"}
-          </button>
+          </PressButton>
           <nav
             id="session-question-list"
             aria-label="Session questions"

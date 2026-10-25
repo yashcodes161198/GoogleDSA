@@ -1,5 +1,10 @@
 "use client";
 
+import { PageNumber } from "@/components/interior/pagination";
+import { SortIndicator } from "@/components/interior/sortable-table";
+
+import { PressButton } from "@/components/interior/press-depth";
+
 import { useMemo, useState } from "react";
 import styles from "./ProblemTable.module.css";
 import { nextProblemSort, sortProblems, type ProblemSort, type ProblemSortColumn } from "@/lib/problems/sorting";
@@ -18,7 +23,7 @@ import {
   PROBLEM_PROGRESS_FILTERS,
 } from "@/lib/revision/problemProgressStatus";
 import { DEFAULT_PROBLEM_FILTERS, matchesLastActionRange, type ProblemFilters } from "@/lib/problems/filters";
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import type {
   Difficulty,
   ProblemStatus,
@@ -33,10 +38,9 @@ function SortableHeader({ column, label, sort, onSort }: {
 }) {
   const direction = sort?.column === column ? sort.direction : "none";
   const nextDirection = direction === "none" ? "ascending" : direction === "ascending" ? "descending" : "original";
-  const Icon = direction === "ascending" ? ArrowUp : direction === "descending" ? ArrowDown : ArrowUpDown;
   return (
     <th scope="col" aria-sort={direction}>
-      <button
+      <PressButton
         type="button"
         className="inline-flex cursor-pointer items-center gap-1 rounded-sm text-inherit hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
         onClick={() => onSort(column)}
@@ -44,8 +48,8 @@ function SortableHeader({ column, label, sort, onSort }: {
         title={nextDirection === "original" ? "Restore original order" : `Sort ${nextDirection}`}
       >
         {label}
-        <Icon size={12} className="shrink-0" aria-hidden="true" />
-      </button>
+        <SortIndicator direction={direction} />
+      </PressButton>
     </th>
   );
 }
@@ -199,7 +203,7 @@ export function ProblemTable() {
               onChange={(e) => updateFilters({ search: e.target.value }, true)}
             />
           </label>
-          <button
+          <PressButton
             type="button"
             className="col-span-2 flex min-h-11 items-center justify-between border-t border-line text-sm font-medium sm:hidden"
             aria-expanded={showFilters}
@@ -217,7 +221,7 @@ export function ProblemTable() {
               className={showFilters ? "rotate-180" : ""}
               aria-hidden="true"
             />
-          </button>
+          </PressButton>
           <div
             id="problem-secondary-filters"
             className={showFilters ? "contents" : "hidden sm:contents"}
@@ -452,9 +456,7 @@ export function ProblemTable() {
         </label>
         {pageCount > 1 && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-muted">
-              Page {safePage + 1} of {pageCount}
-            </span>
+            <PageNumber page={safePage + 1} count={pageCount} />
             <Button
               size="sm"
               variant="outline"

@@ -1,5 +1,9 @@
 "use client";
 
+import { SegmentedControl } from "@/components/interior/segmented-control";
+
+import { PressButton } from "@/components/interior/press-depth";
+
 import type { CSSProperties } from "react";
 import { Check, Monitor, Moon, Palette, Sun } from "lucide-react";
 import { useThemeSettings } from "./ThemeProvider";
@@ -32,19 +36,16 @@ export function ThemeSettings() {
         <h2 id="appearance-title"><Palette size={18} aria-hidden="true" />Appearance</h2>
         <p>Choose a palette for each mode. System follows your device automatically.</p>
       </div>
-      <button type="button" className={styles.reset} disabled={saving || isDefault}
-        onClick={() => void update(DEFAULT_THEME_SETTINGS)}>Reset to defaults</button>
+      <PressButton type="button" className={styles.reset} disabled={saving || isDefault}
+        onClick={() => void update(DEFAULT_THEME_SETTINGS)}>Reset to defaults</PressButton>
     </div>
-    <fieldset className={styles.mode} disabled={saving}>
-      <legend className="sr-only">Color mode</legend>
-      {([
-        ["system", "System", Monitor], ["light", "Light", Sun], ["dark", "Dark", Moon],
-      ] as const).map(([mode, label, Icon]) => <label key={mode}>
-        <input type="radio" name="theme-mode" value={mode} checked={settings.mode === mode}
-          onChange={() => void update({ ...settings, mode })} />
-        <Icon size={16} aria-hidden="true" />{label}
-      </label>)}
-    </fieldset>
+    <SegmentedControl name="theme-mode" label="Color mode" value={settings.mode} disabled={saving}
+      className="my-5 w-full sm:w-fit"
+      options={[
+        { value: "system", label: "System", icon: <Monitor size={16} aria-hidden="true" /> },
+        { value: "light", label: "Light", icon: <Sun size={16} aria-hidden="true" /> },
+        { value: "dark", label: "Dark", icon: <Moon size={16} aria-hidden="true" /> },
+      ]} onChange={mode => void update({ ...settings, mode })} />
     <div className={styles.pickers}>
       {(["light", "dark"] as const).map((mode) => {
         const selected = THEMES.find((theme) => theme.id === settings[mode])!;

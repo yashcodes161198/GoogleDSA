@@ -1,5 +1,9 @@
 "use client";
 
+import { SkeletonSwap } from "@/components/interior/skeleton-swap";
+
+import { PressButton } from "@/components/interior/press-depth";
+
 import { createContext, useContext, useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { markProblemRevised, saveProblemSolveTime, setProblemFavorite, updateProblemStatus } from "@/app/actions";
@@ -64,7 +68,7 @@ export function LibraryRefreshStatus() {
 
   return <div className="surface fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 max-w-[calc(100vw-2rem)] px-4 py-3 shadow-lg md:right-6 md:bottom-6">
     {error
-      ? <p className="text-sm text-destructive" role="alert">{error}{" "}<button type="button" className="underline" onClick={() => void store.refresh()}>Refresh progress</button></p>
+      ? <p className="text-sm text-destructive" role="alert">{error}{" "}<PressButton type="button" className="underline" onClick={() => void store.refresh()}>Refresh progress</PressButton></p>
       : <p className="text-sm text-muted" role="status">Refreshing progress…</p>}
   </div>;
 }
@@ -72,8 +76,7 @@ export function LibraryRefreshStatus() {
 export function PracticeLibrary({ children }: { children: React.ReactNode }) {
   const { loaded, error, store } = useSessionLibrary();
   useEffect(() => { void store.ensureLoaded(); }, [store]);
-  if (!loaded) return <div className="surface p-6" role={error ? "alert" : "status"}>
-    {error ? <>{error} <button type="button" className="underline" onClick={() => void store.ensureLoaded()}>Try again</button></> : "Loading your practice library…"}
-  </div>;
-  return children;
+  return <SkeletonSwap ready={loaded} fallback={<div className="surface p-6" role={error ? "alert" : "status"}>
+    {error ? <>{error} <PressButton type="button" className="underline" onClick={() => void store.ensureLoaded()}>Try again</PressButton></> : "Loading your practice library…"}
+  </div>}>{children}</SkeletonSwap>;
 }

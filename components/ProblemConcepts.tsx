@@ -1,5 +1,8 @@
 "use client";
 
+import { PressButton } from "@/components/interior/press-depth";
+import { PopoverSurface } from "@/components/interior/popover";
+
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Info } from "lucide-react";
@@ -76,7 +79,7 @@ export function ProblemConcepts({
   if (!topics.length) return null;
   return (
     <>
-      <button
+      <PressButton
         ref={trigger}
         type="button"
         className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted hover:bg-subtle hover:text-foreground"
@@ -102,10 +105,10 @@ export function ProblemConcepts({
         }}
       >
         <Info size={16} aria-hidden="true" />
-      </button>
+      </PressButton>
       {position &&
         createPortal(
-          <div
+          <PopoverSurface
             ref={panel}
             id={id}
             role="tooltip"
@@ -122,7 +125,7 @@ export function ProblemConcepts({
           >
             <p className="mb-2 font-semibold">Concepts</p>
             <p className="leading-relaxed text-muted">{topics.join(", ")}</p>
-          </div>,
+          </PopoverSurface>,
           document.body,
         )}
     </>

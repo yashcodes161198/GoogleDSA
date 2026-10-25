@@ -1,5 +1,7 @@
 "use client";
 
+import { LoadingLabel } from "@/components/interior/loading-button";
+
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -87,7 +89,7 @@ export function AuthForm({ mode, initialError = null }: { mode: "login" | "signu
           onClick={handleGoogleSignIn}
           disabled={loading}
         >
-          Continue with Google
+          <LoadingLabel pending={loading} idle="Continue with Google" busy="Continue with Google" />
         </Button>
 
         <div className="relative">
@@ -138,7 +140,7 @@ export function AuthForm({ mode, initialError = null }: { mode: "login" | "signu
             </p>
           )}
           <Button type="submit" className="w-full" disabled={loading}>
-            {mode === "login" ? "Sign in" : "Sign up"}
+            <LoadingLabel pending={loading} idle={mode === "login" ? "Sign in" : "Sign up"} busy={mode === "login" ? "Sign in" : "Sign up"} />
           </Button>
         </form>
 

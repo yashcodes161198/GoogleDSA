@@ -1,5 +1,9 @@
 "use client";
 
+import { FieldError } from "@/components/interior/inline-validation";
+
+import { LoadingLabel } from "@/components/interior/loading-button";
+
 import Link from "next/link";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
@@ -31,17 +35,8 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? "Saving..." : "Add question"}
+      <LoadingLabel pending={pending} idle="Add question" busy="Saving..." />
     </Button>
-  );
-}
-
-function FieldError({ message }: { message?: string }) {
-  if (!message) return null;
-  return (
-    <p className="text-sm text-red-600" role="alert">
-      {message}
-    </p>
   );
 }
 

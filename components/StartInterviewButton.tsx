@@ -1,5 +1,12 @@
 "use client";
 
+import { LoadingLabel } from "@/components/interior/loading-button";
+
+import { SegmentedControl } from "@/components/interior/segmented-control";
+import { Disclosure } from "@/components/interior/accordion";
+
+import { PressButton } from "@/components/interior/press-depth";
+
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { startNewInterviewAction } from "@/app/actions";
@@ -28,7 +35,7 @@ function StartButton({ disabled = false }: { disabled?: boolean }) {
 
   return (
     <Button type="submit" size="lg" disabled={pending || disabled}>
-      {pending ? "Starting..." : "Start new interview"}
+      <LoadingLabel pending={pending} idle="Start new interview" busy="Starting..." />
     </Button>
   );
 }
@@ -86,7 +93,7 @@ export function StartInterviewButton({
                   Choose your questions and duration.
                 </p>
               </div>
-              <button
+              <PressButton
                 type="button"
                 role="switch"
                 aria-checked={customize}
@@ -101,11 +108,11 @@ export function StartInterviewButton({
                   }`}
                 />
                 <span className="sr-only">Customize interview</span>
-              </button>
+              </PressButton>
             </div>
 
             {customize && (
-              <div className="space-y-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+              <Disclosure className="space-y-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
                 <input type="hidden" name="customize" value="on" />
                 <div>
                   <p
@@ -114,27 +121,9 @@ export function StartInterviewButton({
                   >
                     Question selection
                   </p>
-                  <div
-                    role="radiogroup"
-                    aria-labelledby="question-selection-label"
-                    className="grid grid-cols-2 gap-1 rounded-lg bg-subtle p-1"
-                  >
-                    {(["random", "picked"] as const).map((mode) => (
-                      <label key={mode} className="relative cursor-pointer">
-                        <input
-                          type="radio"
-                          name="selectionMode"
-                          value={mode}
-                          checked={selectionMode === mode}
-                          onChange={() => setSelectionMode(mode)}
-                          className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                        />
-                        <span className="flex min-h-10 items-center justify-center rounded-md px-3 text-sm font-medium text-muted peer-checked:bg-surface peer-checked:text-foreground peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-accent">
-                          {mode === "random" ? "Random" : "Pick questions"}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
+                  <SegmentedControl name="selectionMode" label="Question selection" value={selectionMode}
+                    options={[{ value: "random", label: "Random" }, { value: "picked", label: "Pick questions" }]}
+                    onChange={setSelectionMode} />
                 </div>
                 {selectionMode === "picked" ? (
                   <InterviewQuestionPicker
@@ -199,7 +188,7 @@ export function StartInterviewButton({
                     {MAX_INTERVIEW_PROBLEMS}.
                   </p>
                 )}
-              </div>
+              </Disclosure>
             )}
 
             {state?.error && (

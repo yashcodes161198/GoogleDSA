@@ -1,3 +1,4 @@
+import { ProgressBar } from "@/components/interior/progress-bar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DashboardStats } from "@/lib/types";
 
@@ -24,19 +25,7 @@ export function TopicCoverage({
                   {topic.solved}/{topic.total} ({pct}%)
                 </span>
               </div>
-              <div
-                className="h-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"
-                role="progressbar"
-                aria-label={topic.topic}
-                aria-valuenow={pct}
-                aria-valuemin={0}
-                aria-valuemax={100}
-              >
-                <div
-                  className="h-full rounded-full bg-blue-600 transition-all"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
+              <ProgressBar value={pct} label={topic.topic} />
             </div>
           );
         })}

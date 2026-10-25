@@ -47,6 +47,7 @@ await run("revision-session-http", ["scripts/test-revision-session-http.mjs"]);
 await run("browser-enforce", ["scripts/test-bounded-reads-http.mjs"], { CSP_ENFORCE: "true" });
 await run("browser-report-only", ["scripts/test-bounded-reads-http.mjs"], { CSP_ENFORCE: "false" });
 await run("themes-http", ["scripts/test-themes-http-runner.mjs"]);
+await run("interior-ui", ["scripts/test-interior-ui-http.mjs"]);
 }
 assert.ok(results.every(result => result.passed), "Checks failed; see output/verification/result.json and the named logs");
 console.log("\nAll checks passed. Evidence: output/verification/result.json");

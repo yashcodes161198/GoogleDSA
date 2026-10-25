@@ -1,5 +1,7 @@
 "use client";
 
+import { SelectionIndicator } from "@/components/interior/tabs";
+
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -71,17 +73,19 @@ export function AppNav({
           <Link
             key={href}
             href={href}
-            className="nav-link"
+            className="nav-link interior-choice"
             aria-current={pathname.startsWith(href) ? "page" : undefined}
           >
+            <SelectionIndicator id="desktop-navigation" active={pathname.startsWith(href)} />
             <Icon size={18} strokeWidth={1.7} aria-hidden="true" />
             {label}
           </Link>
         ))}
       </nav>
       <div className="hidden md:mt-auto md:block">
-        <Link href="/settings" className="nav-link mb-4"
+        <Link href="/settings" className="nav-link mb-4 interior-choice"
           aria-current={pathname.startsWith("/settings") ? "page" : undefined}>
+          <SelectionIndicator id="desktop-navigation" active={pathname.startsWith("/settings")} />
           <Settings size={18} strokeWidth={1.7} aria-hidden="true" />Settings &amp; activity
         </Link>
         <div className="sidebar-account">

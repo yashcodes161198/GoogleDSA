@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { CheckMorph } from "@/components/interior/icon-morph";
 import { cn } from "@/lib/utils";
 
 export function Checkbox({
@@ -42,13 +42,7 @@ export function Checkbox({
           "peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 peer-focus-visible:ring-offset-2 dark:peer-focus-visible:ring-offset-zinc-950",
         )}
       >
-        <Check
-          className={cn(
-            "h-4 w-4 text-white transition-opacity",
-            checked ? "opacity-100" : "opacity-0",
-          )}
-          strokeWidth={3}
-        />
+        <CheckMorph checked={checked} />
       </span>
     </label>
   );

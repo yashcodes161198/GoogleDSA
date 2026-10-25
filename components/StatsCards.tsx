@@ -1,3 +1,4 @@
+import { ValueFlash } from "@/components/interior/value-flash";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DashboardStats } from "@/lib/types";
 
@@ -22,7 +23,7 @@ export function StatsCards({ stats }: { stats: DashboardStats }) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{item.value}</div>
+            <div className="text-3xl font-bold"><ValueFlash value={item.value} /></div>
             <p className="text-sm text-zinc-500">{item.sub}</p>
           </CardContent>
         </Card>
