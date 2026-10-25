@@ -32,6 +32,14 @@ WHERE email = 'you@example.com';
 
 The admin keeps the password they chose at signup. The app never stores or displays production passwords.
 
+## Deleting questions
+
+Apply `029_admin_question_deletion.sql` after the earlier migrations. An authenticated admin can call `DELETE /api/questions/<question UUID>` using their session cookie. Requests from another origin are rejected. The API returns `200` with `{ "deleted": true, "id": "..." }`, `400` for an invalid UUID, `401` without a session, `403` without admin access, `404` for a missing question, or `503` if deletion fails.
+
+Deletion permanently removes the question for all users, including its progress, interview references and leaderboard awards through foreign-key cascades. Saved revision lists remove its ID and advance their version. Existing browser tabs refresh their question library on focus or reload. The endpoint uses the signed-in user's database permissions and needs no service-role key.
+
+Migration `030_remove_zigzag_conversion.sql` removes Zigzag Conversion from existing databases. Its seed CSV entry is also removed so reseeding does not restore it.
+
 To remove admin access:
 
 ```sql

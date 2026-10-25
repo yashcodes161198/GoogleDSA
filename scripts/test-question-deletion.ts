@@ -1,0 +1,26 @@
+import assert from "node:assert/strict";
+import { getMemoryStore } from "../lib/memory/store";
+import { LOCAL_ADMIN } from "../lib/config";
+
+const store = getMemoryStore();
+const catalog = store.getProblemsCatalog();
+assert.ok(!catalog.some(problem => problem.slug === "zigzag-conversion"));
+assert.ok(catalog.some(problem => problem.slug === "binary-tree-zigzag-level-order-traversal"));
+const problem = catalog[0];
+const other = catalog[1];
+const old = new Date(Date.now() - 7 * 86400000).toISOString();
+store.upsertUserProblem(LOCAL_ADMIN.id, problem.id, { status: "solved", solved_at: old });
+store.upsertUserProblem(LOCAL_ADMIN.id, other.id, { status: "solved", solved_at: old });
+store.awardSolve(LOCAL_ADMIN.id, problem.id);
+const session = store.getRevisionSession(LOCAL_ADMIN.id);
+assert.ok(session.entries.some(entry => entry.id === problem.id));
+assert.equal(store.deleteProblem(problem.id), true);
+assert.equal(store.deleteProblem(problem.id), false);
+assert.ok(!store.getProblemsCatalog().some(row => row.id === problem.id));
+assert.ok(![...store.userProblems.values()].some(row => row.problem_id === problem.id));
+assert.ok(!store.leaderboardEvents.some(event => event.problem_id === problem.id));
+const updated = store.getRevisionSession(LOCAL_ADMIN.id);
+assert.equal(updated.version, session.version + 1);
+assert.deepEqual(updated.entries, session.entries.filter(entry => entry.id !== problem.id));
+assert.ok(store.getProblemsCatalog().some(row => row.id === other.id));
+console.log("Question deletion: seed removal, local cascades, saved revision cleanup and repeat deletion passed");

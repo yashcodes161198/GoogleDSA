@@ -43,6 +43,7 @@ await run("repeat-build", ["node_modules/next/dist/bin/next", "build"]);
 await access(sentinel);
 await run("startup-safety", ["scripts/test-startup-safety.mjs"]);
 await run("auth-http", ["scripts/test-auth-http-runner.mjs"]);
+await run("question-deletion-http", ["scripts/test-question-deletion-http.mjs"]);
 await run("revision-session-http", ["scripts/test-revision-session-http.mjs"]);
 await run("browser-enforce", ["scripts/test-bounded-reads-http.mjs"], { CSP_ENFORCE: "true" });
 await run("browser-report-only", ["scripts/test-bounded-reads-http.mjs"], { CSP_ENFORCE: "false" });

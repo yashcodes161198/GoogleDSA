@@ -121,6 +121,24 @@ class MemoryStore {
     });
   }
 
+  deleteProblem(id: string): boolean {
+    this.ensureSeeded();
+    if (!this.problems.some(problem => problem.id === id)) return false;
+    this.problems = this.problems.filter(problem => problem.id !== id);
+    for (const [key, progress] of this.userProblems) {
+      if (progress.problem_id === id) this.userProblems.delete(key);
+    }
+    this.interviewSessionProblems = this.interviewSessionProblems.filter(row => row.problem_id !== id);
+    this.leaderboardEvents = this.leaderboardEvents.filter(event => event.problem_id !== id);
+    for (const [userId, session] of this.revisionSessions) {
+      const entries = session.entries.filter(entry => entry.id !== id);
+      if (entries.length !== session.entries.length) {
+        this.revisionSessions.set(userId, { version: session.version + 1, entries });
+      }
+    }
+    return true;
+  }
+
   upsertUserProblem(
     userId: string,
     problemId: string,
